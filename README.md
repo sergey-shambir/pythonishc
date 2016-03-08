@@ -1,2 +1,7 @@
-# compiler-theory-samples
-C++ samples with Graphviz and Lemon
+# C++ samples with Graphviz and Lemon
+
+All samples use modern C++ standards (c++ 2011 and higher).
+
+Existing samples:
+
+* `lemon-1-calculator` shows how to use Lemon-generated LALR parser for calculator grammar.
