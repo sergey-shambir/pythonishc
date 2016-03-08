@@ -1,0 +1,127 @@
+// All token codes are small integers with #defines that begin with "TK_"
+%token_prefix TK_
+
+// The type of the data attached to each token is Token.  This is also the
+// default type for non-terminals.
+//
+%token_type {SToken}
+%default_type {SToken}
+
+// The generated parser function takes a 4th argument as follows:
+%extra_argument {CBatchParser *pParse}
+
+// This code runs whenever there is a syntax error
+//
+%syntax_error {
+    (void)yymajor;  // Silence some compiler warnings
+    pParse->OnError(TOKEN); // TOKEN has type defined in '%token_type'
+}
+%stack_overflow {
+    pParse->OnStackOverflow();
+}
+
+// The name of the generated procedure that implements the parser
+// is as follows:
+%name ParseBatchGrammar
+
+// The following text is included near the beginning of the C source
+// code file that implements the parser.
+//
+%include {
+// Generated function: void ParseBatchGrammar(void*, int, SToken, CBatchParser*);
+
+#include "Token.h"
+#include "BatchParser.h"
+#include <assert.h>
+#include <math.h>
+
+// Disable all error recovery processing in the parser push-down automaton.
+#define YYNOERRORRECOVERY 1
+// Indicate that ParseBatchGrammarFree() will never be called with a nullptr.
+#define YYPARSEFREENEVERNULL 1
+
+struct SRecord
+{
+    double value;
+};
+
+} // end %include
+
+/////////////////////////
+////////////////////////
+///////////////////////
+
+// An IDENTIFIER can be a generic identifier, or one of several
+// keywords.  Any non-standard keyword can also be an identifier.
+//
+%type expression SRecord
+%left PLUS MINUS.
+%left STAR SLASH PERCENT.
+
+translation_unit ::= statement_lines_list.
+
+statement_lines_list ::= statement_line.
+
+statement_lines_list ::= statement_lines_list statement_line.
+
+statement_line ::= statement NEWLINE.
+
+statement ::= ID(A) ASSIGN expression(B).
+{
+    pParse->AssignVariable(A.stringId, B.value);
+}
+
+statement ::= PRINT expression(A).
+{
+    pParse->PrintResult(A.value);
+}
+
+expression(X) ::= LPAREN expression(A) RPAREN.
+{
+    X.value = A.value;
+}
+
+expression(X) ::= expression(A) PLUS expression(B).
+{
+    X.value = A.value + B.value;
+}
+
+expression(X) ::= expression(A) MINUS expression(B).
+{
+    X.value = A.value - B.value;
+}
+
+expression(X) ::= expression(A) STAR expression(B).
+{
+    X.value = A.value * B.value;
+}
+
+expression(X) ::= expression(A) SLASH expression(B).
+{
+    X.value = A.value / B.value;
+}
+
+expression(X) ::= expression(A) PERCENT expression(B).
+{
+    X.value = fmod(A.value, B.value);
+}
+
+expression(X) ::= PLUS expression(A).
+{
+    X.value = A.value;
+}
+
+expression(X) ::= MINUS expression(A).
+{
+    X.value = -A.value;
+}
+
+expression(X) ::= NUMBER(A).
+{
+    X.value = A.value;
+}
+
+expression(X) ::= ID(A).
+{
+    X.value = pParse->GetVariableValue(A.stringId);
+}
