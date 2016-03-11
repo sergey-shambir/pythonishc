@@ -12,6 +12,9 @@ void ParseBatchGrammar(void*, int, SToken, CBatchParser*);
 void ParseBatchGrammarFree(
   void *p,                    /* The parser to be deleted */
   void (*freeProc)(void*)     /* Function used to reclaim memory */);
+#ifndef NDEBUG
+void ParseBatchGrammarTrace(FILE * TraceFILE, char * zTracePrompt);
+#endif
 
 
 CBatchParser::CBatchParser(CInterpreterContext & context)
@@ -37,6 +40,14 @@ bool CBatchParser::Advance(int tokenId, const SToken &tokenData)
     ParseBatchGrammar(m_parser, tokenId, tokenData, this);
     return !m_isErrorState;
 }
+
+#ifndef NDEBUG
+void CBatchParser::StartDebugTrace(FILE *output)
+{
+    m_tracePrompt = "";
+    ParseBatchGrammarTrace(output, &m_tracePrompt[0]);
+}
+#endif
 
 void CBatchParser::OnError(const SToken &token)
 {

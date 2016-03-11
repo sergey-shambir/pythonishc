@@ -11,6 +11,9 @@ void ParseCalcGrammar(void*, int, SToken, CCalcParser*);
 void ParseCalcGrammarFree(
   void *p,                    /* The parser to be deleted */
   void (*freeProc)(void*)     /* Function used to reclaim memory */);
+#ifndef NDEBUG
+void ParseBatchGrammarTrace(FILE * TraceFILE, char * zTracePrompt);
+#endif
 
 
 CCalcParser::CCalcParser()
@@ -35,6 +38,14 @@ bool CCalcParser::Advance(int tokenId, const SToken &tokenData)
     ParseCalcGrammar(m_parser, tokenId, tokenData, this);
     return !m_isErrorState;
 }
+
+#ifndef NDEBUG
+void CCalcParser::StartDebugTrace(FILE *output)
+{
+    m_tracePrompt = "";
+    ParseBatchGrammarTrace(output, &m_tracePrompt[0]);
+}
+#endif
 
 void CCalcParser::OnError(const SToken &token)
 {

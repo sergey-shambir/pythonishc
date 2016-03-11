@@ -11,20 +11,16 @@ bool ConsumeLine(unsigned lineNo, std::string const& expr,
 {
     CBatchLexer lexer(lineNo, expr, stringPool);
     SToken token;
-    bool ok = true;
     for (int tokenId = lexer.Scan(token); tokenId != 0; tokenId = lexer.Scan(token))
     {
         if (!parser.Advance(tokenId, token))
         {
-            ok = false;
-            break;
+            return false;
         }
     }
-    SToken newline;
-    newline.line = lineNo;
-    newline.column = 1;
-    parser.Advance(TK_NEWLINE, newline);
-    return ok;
+    token.line = lineNo;
+    token.column = 1;
+    return parser.Advance(TK_NEWLINE, token);
 }
 
 void EnterInterpreterLoop()
@@ -35,10 +31,12 @@ void EnterInterpreterLoop()
 
     std::string line;
     unsigned lineNo = 1;
-    while (std::cin)
+    while (std::getline(std::cin, line))
     {
-        std::getline(std::cin, line);
-        ConsumeLine(lineNo, line, stringPool, parser);
+        if (!ConsumeLine(lineNo, line, stringPool, parser))
+        {
+            break;
+        }
     }
 }
 

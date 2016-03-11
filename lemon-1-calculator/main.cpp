@@ -25,10 +25,12 @@ bool ParseExpr(std::string const& expr)
 int main()
 {
     std::string line;
-    while (std::cin)
+    while (std::getline(std::cin, line))
     {
-        std::getline(std::cin, line);
-        ParseExpr(line);
+        if (!ParseExpr(line))
+        {
+            return 1;
+        }
     }
 
     return 0;

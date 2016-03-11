@@ -16,8 +16,19 @@
     (void)yymajor;  // Silence some compiler warnings
     pParse->OnError(TOKEN); // TOKEN has type defined in '%token_type'
 }
+
+// This code runs on LALR stack overflow
 %stack_overflow {
+    (void)yypMinor; // Silence compiler warnings.
     pParse->OnStackOverflow();
+}
+
+// Destructor set just to disable compiler warnings
+//
+%token_destructor {
+    (void)yypParser;
+    (void)yypminor;
+    (void)pParse;
 }
 
 // The name of the generated procedure that implements the parser
