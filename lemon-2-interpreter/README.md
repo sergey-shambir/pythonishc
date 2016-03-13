@@ -22,9 +22,20 @@ result: 122
 - New non-terminals `statement_line`, `statement_lines_list`.
 - `struct SToken` now keeps line/column number and various types in `union`.
 - `CCalcLexer` renamed to `CBatchLexer`, it supplies tokens for *one line of code*.
+
+![include map](img/BatchLexer_includemap.png)
+
 - `CCalcParser` renamed to `CBatchParser`, it has 3 new methods to accept events from generated code.
+
+![include map](img/BatchParser_includemap.png)
+
 - New `class CInterpreterContext` keeps variables and reacts on parser events.
+
+![include map](img/InterpreterContext_includemap.png)
+
 - New `class CStringPool` used to map variable name to unique id (`unsigned int`). It's easy way to avoid C-style union limitations: we can't keep `std::string` to LALR stack, but can keep `unsigned int` key known to string pool. This trick also called "string pooling".
+
+![include map](img/StringPool_includemap.png)
 
 ### LEMON tricks shown in sample
 
