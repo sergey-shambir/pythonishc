@@ -6,11 +6,12 @@ All samples use modern C++ standards (c++ 2011 and higher).
 * `lemon-1-calculator` shows how to use Lemon-generated LALR parser for expression-per-line calculator.
 * `lemon-2-interpreter` shows how to use Lemon-generated LALR parser for multiline calculator with variables.
 * `lemon-3-error-recovery` shows how to recover from syntax errors.
+* `lemon-4-ast` shows how to create and use Abstract Syntax Tree classes.
 
 ### C++ STL samples (lexical analysis)
 * `std-regex` shows how to use `std::regex` to either match input line or scan input line-by-line.
 
-### Learn More
+### Learn More About LEMON
 
 - [implementing C parser with lemon (codeproject.com)](http://www.codeproject.com/Articles/1056460/Generating-a-High-Speed-Parser-Part-Lemon)
 - [Lemon grammar in SQLite source code (github.com)](https://github.com/mackyle/sqlite/blob/master/src/parse.y)
