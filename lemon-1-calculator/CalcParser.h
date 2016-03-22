@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 struct SToken;
 
@@ -11,7 +12,7 @@ public:
 
     bool Advance(int tokenId, SToken const& tokenData);
 #ifndef NDEBUG
-    void StartDebugTrace(FILE *output)
+    void StartDebugTrace(FILE *output);
 #endif
 
     void OnError(SToken const& token);

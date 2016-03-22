@@ -391,6 +391,27 @@ static void yy_destructor(
     ** which appear on the RHS of the rule, but which are not used
     ** inside the C code.
     */
+      /* TERMINAL Destructor */
+    case 1: /* PLUS */
+    case 2: /* MINUS */
+    case 3: /* STAR */
+    case 4: /* SLASH */
+    case 5: /* PERCENT */
+    case 6: /* NEWLINE */
+    case 7: /* ID */
+    case 8: /* ASSIGN */
+    case 9: /* PRINT */
+    case 10: /* LPAREN */
+    case 11: /* RPAREN */
+    case 12: /* NUMBER */
+{
+
+    (void)yypParser;
+    (void)yypminor;
+    (void)pParse;
+
+}
+      break;
     default:  break;   /* If no destructor action specified: do nothing */
   }
 }
@@ -571,6 +592,7 @@ static void yyStackOverflow(yyParser *yypParser, YYMINORTYPE *yypMinor){
    /* Here code is inserted which will execute if the parser
    ** stack every overflows */
 
+    (void)yypMinor; // Silence compiler warnings.
     pParse->OnStackOverflow();
    ParseBatchGrammarARG_STORE; /* Suppress warning about unused %extra_argument var */
 }
@@ -698,54 +720,70 @@ static void yy_reduce(
   **  #line <lineno> <thisfile>
   **     break;
   */
+      case 3: /* statement_line ::= statement NEWLINE */
+{
+  yy_destructor(yypParser,6,&yymsp[0].minor);
+}
+        break;
       case 4: /* statement ::= ID ASSIGN expression */
 {
     pParse->AssignVariable(yymsp[-2].minor.yy0.stringId, yymsp[0].minor.yy3.value);
+  yy_destructor(yypParser,8,&yymsp[-1].minor);
 }
         break;
       case 5: /* statement ::= PRINT expression */
 {
     pParse->PrintResult(yymsp[0].minor.yy3.value);
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
 }
         break;
       case 6: /* expression ::= LPAREN expression RPAREN */
 {
     yygotominor.yy3.value = yymsp[-1].minor.yy3.value;
+  yy_destructor(yypParser,10,&yymsp[-2].minor);
+  yy_destructor(yypParser,11,&yymsp[0].minor);
 }
         break;
       case 7: /* expression ::= expression PLUS expression */
 {
     yygotominor.yy3.value = yymsp[-2].minor.yy3.value + yymsp[0].minor.yy3.value;
+  yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
         break;
       case 8: /* expression ::= expression MINUS expression */
 {
     yygotominor.yy3.value = yymsp[-2].minor.yy3.value - yymsp[0].minor.yy3.value;
+  yy_destructor(yypParser,2,&yymsp[-1].minor);
 }
         break;
       case 9: /* expression ::= expression STAR expression */
 {
     yygotominor.yy3.value = yymsp[-2].minor.yy3.value * yymsp[0].minor.yy3.value;
+  yy_destructor(yypParser,3,&yymsp[-1].minor);
 }
         break;
       case 10: /* expression ::= expression SLASH expression */
 {
     yygotominor.yy3.value = yymsp[-2].minor.yy3.value / yymsp[0].minor.yy3.value;
+  yy_destructor(yypParser,4,&yymsp[-1].minor);
 }
         break;
       case 11: /* expression ::= expression PERCENT expression */
 {
     yygotominor.yy3.value = fmod(yymsp[-2].minor.yy3.value, yymsp[0].minor.yy3.value);
+  yy_destructor(yypParser,5,&yymsp[-1].minor);
 }
         break;
       case 12: /* expression ::= PLUS expression */
 {
     yygotominor.yy3.value = yymsp[0].minor.yy3.value;
+  yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
         break;
       case 13: /* expression ::= MINUS expression */
 {
     yygotominor.yy3.value = -yymsp[0].minor.yy3.value;
+  yy_destructor(yypParser,2,&yymsp[-1].minor);
 }
         break;
       case 14: /* expression ::= NUMBER */
@@ -762,7 +800,6 @@ static void yy_reduce(
       /* (0) translation_unit ::= statement_lines_list */ yytestcase(yyruleno==0);
       /* (1) statement_lines_list ::= statement_line */ yytestcase(yyruleno==1);
       /* (2) statement_lines_list ::= statement_lines_list statement_line */ yytestcase(yyruleno==2);
-      /* (3) statement_line ::= statement NEWLINE */ yytestcase(yyruleno==3);
         break;
   };
   yygoto = yyRuleInfo[yyruleno].lhs;

@@ -28,6 +28,7 @@ void EnterInterpreterLoop()
     CStringPool stringPool;
     CInterpreterContext context(stringPool);
     CBatchParser parser(context);
+    parser.StartDebugTrace(stderr);
 
     std::string line;
     unsigned lineNo = 1;

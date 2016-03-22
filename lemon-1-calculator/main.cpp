@@ -7,6 +7,7 @@ bool ParseExpr(std::string const& expr)
 {
     CCalcLexer lexer(expr);
     CCalcParser parser;
+    parser.StartDebugTrace(stderr);
 
     SToken token;
     int tokenId = 0;
