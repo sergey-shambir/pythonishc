@@ -1,0 +1,146 @@
+// All token codes are small integers with #defines that begin with "TK_"
+%token_prefix TK_
+
+// The type of the data attached to each token is Token.  This is also the
+// default type for non-terminals.
+//
+%token_type {SToken}
+%default_type {SToken}
+
+// The generated parser function takes a 4th argument as follows:
+%extra_argument {CBatchParser *pParse}
+
+// This code runs whenever there is a syntax error
+//
+%syntax_error {
+    (void)yymajor;  // Silence compiler warnings.
+    pParse->OnError(TOKEN); // TOKEN has type defined in '%token_type'
+}
+
+// This code runs on LALR stack overflow
+%stack_overflow {
+    (void)yypMinor; // Silence compiler warnings.
+    pParse->OnStackOverflow();
+}
+
+// This code runs when parser failed and cannot recover.
+%parse_failure {
+    pParse->OnFatalError();
+}
+
+// Destructor set just to disable compiler warnings
+//
+%token_destructor {
+    (void)yypParser;
+    (void)yypminor;
+    (void)pParse;
+}
+
+// The name of the generated procedure that implements the parser
+// is as follows:
+%name ParseBatchGrammar
+
+// The following text is included near the beginning of the C source
+// code file that implements the parser.
+//
+%include {
+// Generated function: void ParseBatchGrammar(void*, int, SToken, CBatchParser*);
+
+#include "Token.h"
+#include "BatchParser.h"
+#include "BatchAST.h"
+#include <assert.h>
+#include <math.h>
+
+// Indicate that ParseBatchGrammarFree() will never be called with a nullptr.
+#define YYPARSEFREENEVERNULL 1
+
+struct SRecord
+{
+    IExpressionAST *expr;
+};
+
+} // end %include
+
+/////////////////////////
+////////////////////////
+///////////////////////
+
+// An IDENTIFIER can be a generic identifier, or one of several
+// keywords.  Any non-standard keyword can also be an identifier.
+//
+%type expression SRecord
+%left PLUS MINUS.
+%left STAR SLASH PERCENT.
+
+translation_unit ::= statement_lines_list.
+
+statement_lines_list ::= statement_line.
+
+statement_lines_list ::= statement_lines_list statement_line.
+
+statement_line ::= statement NEWLINE.
+
+statement_line ::= error NEWLINE.
+
+statement ::= ID(A) ASSIGN expression(B).
+{
+    auto stmt = pParse->MakeAST<CAssignAST>(A.stringId, B.expr);
+    pParse->AddStatement(stmt);
+}
+
+statement ::= PRINT expression(A).
+{
+    auto stmt = pParse->MakeAST<CPrintAST>(A.expr);
+    pParse->AddStatement(stmt);
+}
+
+expression(X) ::= LPAREN expression(A) RPAREN.
+{
+    X.expr = A.expr;
+}
+
+expression(X) ::= expression(A) PLUS expression(B).
+{
+    X.expr = pParse->MakeAST<CBinaryExpressionAST>(A.expr, BinaryOperation::Add, B.expr);
+}
+
+expression(X) ::= expression(A) MINUS expression(B).
+{
+    X.expr = pParse->MakeAST<CBinaryExpressionAST>(A.expr, BinaryOperation::Substract, B.expr);
+}
+
+expression(X) ::= expression(A) STAR expression(B).
+{
+    X.expr = pParse->MakeAST<CBinaryExpressionAST>(A.expr, BinaryOperation::Multiply, B.expr);
+}
+
+expression(X) ::= expression(A) SLASH expression(B).
+{
+    X.expr = pParse->MakeAST<CBinaryExpressionAST>(A.expr, BinaryOperation::Divide, B.expr);
+}
+
+expression(X) ::= expression(A) PERCENT expression(B).
+{
+    X.expr = pParse->MakeAST<CBinaryExpressionAST>(A.expr, BinaryOperation::Modulo, B.expr);
+}
+
+expression(X) ::= PLUS expression(A).
+{
+    X.expr = pParse->MakeAST<CUnaryExpressionAST>(UnaryOperation::Plus, A.expr);
+}
+
+expression(X) ::= MINUS expression(A).
+{
+    X.expr = pParse->MakeAST<CUnaryExpressionAST>(UnaryOperation::Minus, A.expr);
+}
+
+expression(X) ::= NUMBER(A).
+{
+    X.expr = pParse->MakeAST<CLiteralAST>(A.value);
+}
+
+expression(X) ::= ID(A).
+{
+    X.expr = pParse->MakeAST<CVariableRefAST>(A.stringId);
+}
