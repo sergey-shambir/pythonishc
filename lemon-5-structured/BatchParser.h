@@ -26,7 +26,7 @@ public:
     void OnStackOverflow();
     void OnFatalError();
     void AddStatement(IStatementASTUniquePtr &&stmt);
-    void EnterBlock(CAbstractBlockAST *scope);
+    void EnterBlock(CAbstractBlockAST *block);
     void ExitBlock();
 
 private:
@@ -36,6 +36,6 @@ private:
     bool m_isFatalError = false;
     void *m_parser = nullptr;
 
-    std::stack<CAbstractBlockAST *> m_scopes;
+    std::stack<CAbstractBlockAST *> m_blocks;
     CProgramAst m_program;
 };

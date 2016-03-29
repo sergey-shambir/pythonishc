@@ -71,16 +71,16 @@ void CBatchParser::AddStatement(IStatementASTUniquePtr && stmt)
 {
     if (stmt)
     {
-        m_scopes.top()->AddStatement(std::move(stmt));
+        m_blocks.top()->AddStatement(std::move(stmt));
     }
 }
 
-void CBatchParser::EnterBlock(CAbstractBlockAST *scope)
+void CBatchParser::EnterBlock(CAbstractBlockAST *block)
 {
-    m_scopes.push(scope);
+    m_blocks.push(block);
 }
 
 void CBatchParser::ExitBlock()
 {
-    m_scopes.pop();
+    m_blocks.pop();
 }
