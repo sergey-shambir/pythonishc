@@ -8,8 +8,10 @@
 #define TK_ASSIGN                          8
 #define TK_PRINT                           9
 #define TK_END                            10
-#define TK_IF                             11
-#define TK_WHILE                          12
-#define TK_LPAREN                         13
-#define TK_RPAREN                         14
-#define TK_NUMBER                         15
+#define TK_REPEAT                         11
+#define TK_UNTIL                          12
+#define TK_IF                             13
+#define TK_WHILE                          14
+#define TK_LPAREN                         15
+#define TK_RPAREN                         16
+#define TK_NUMBER                         17

@@ -162,3 +162,18 @@ void CWhileAst::Execute(CInterpreterContext &context) const
         result = m_condition->Evaluate(context);
     }
 }
+
+void CRepeatAst::SetCondition(IExpressionASTUniquePtr && condition)
+{
+    m_condition = std::move(condition);
+}
+
+void CRepeatAst::Execute(CInterpreterContext &context) const
+{
+    do
+    {
+        ExecuteBody(context);
+    }
+    while (fabs(m_condition->Evaluate(context)) > std::numeric_limits<double>::epsilon());
+}
+

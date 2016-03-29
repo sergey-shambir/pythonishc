@@ -89,6 +89,15 @@ using block_ptr = CAbstractBlockAST*;
 %type while_condition_line block_ptr
 %destructor while_condition_line { DestroyBlock(pParse, $$); }
 
+%type repeat_head_line block_ptr
+%destructor repeat_head_line { DestroyBlock(pParse, $$); }
+
+%type repeat_head block_ptr
+%destructor repeat_head { DestroyBlock(pParse, $$); }
+
+%type until_condition expression_ptr
+%destructor until_condition { delete $$; $$ = nullptr; }
+
 %left PLUS MINUS.
 %left STAR SLASH PERCENT.
 
@@ -122,8 +131,8 @@ statement ::= if_condition_line(A) statement_lines_list END.
 
 statement ::= if_condition_line(A) END.
 {
-    // Destroy CIfAst to optimize execution.
-    DestroyBlock(pParse, A);
+    pParse->ExitBlock();
+    pParse->AddStatement(IStatementASTUniquePtr(TakeBlock(A)));
 }
 
 statement ::= while_condition_line(A) statement_lines_list END.
@@ -134,8 +143,39 @@ statement ::= while_condition_line(A) statement_lines_list END.
 
 statement ::= while_condition_line(A) END.
 {
-    // Destroy CIfAst to optimize execution.
-    DestroyBlock(pParse, A);
+    pParse->ExitBlock();
+    pParse->AddStatement(IStatementASTUniquePtr(TakeBlock(A)));
+}
+
+statement ::= repeat_head_line(A) statement_lines_list until_condition(B) END.
+{
+    static_cast<CRepeatAst*>(A)->SetCondition(TakeExpr(B));
+    pParse->ExitBlock();
+    pParse->AddStatement(IStatementASTUniquePtr(TakeBlock(A)));
+}
+
+statement ::= repeat_head_line(A) until_condition(B) END.
+{
+    static_cast<CRepeatAst*>(A)->SetCondition(TakeExpr(B));
+    pParse->ExitBlock();
+    pParse->AddStatement(IStatementASTUniquePtr(TakeBlock(A)));
+}
+
+repeat_head_line(X) ::= repeat_head(A) NEWLINE.
+{
+    X = TakeBlock(A).release();
+}
+
+repeat_head(X) ::= REPEAT.
+{
+    auto ast = MakeAST<CRepeatAst>();
+    pParse->EnterBlock(ast.get());
+    X = ast.release();
+}
+
+until_condition(X) ::= UNTIL expression(A).
+{
+    X = TakeExpr(A).release();
 }
 
 if_condition_line(X) ::= if_condition(A) NEWLINE.

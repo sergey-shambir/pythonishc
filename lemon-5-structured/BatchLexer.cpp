@@ -68,6 +68,14 @@ int CBatchLexer::Scan(SToken &data)
         {
             return TK_WHILE;
         }
+        if (id == "repeat")
+        {
+            return TK_REPEAT;
+        }
+        if (id == "until")
+        {
+            return TK_UNTIL;
+        }
         if (id == "end")
         {
             return TK_END;

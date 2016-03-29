@@ -130,6 +130,18 @@ private:
     IExpressionASTUniquePtr m_condition;
 };
 
+class CRepeatAst : public CAbstractBlockAST
+{
+public:
+    void SetCondition(IExpressionASTUniquePtr && condition);
+
+protected:
+    void Execute(CInterpreterContext &context) const override;
+
+private:
+    IExpressionASTUniquePtr m_condition;
+};
+
 class CIfAst : public CAbstractBlockAST
 {
 public:
