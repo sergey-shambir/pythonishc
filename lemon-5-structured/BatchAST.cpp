@@ -147,3 +147,18 @@ void CProgramAst::Execute(CInterpreterContext &context) const
 {
     ExecuteBody(context);
 }
+
+CWhileAst::CWhileAst(IExpressionASTUniquePtr &&condition)
+    : m_condition(std::move(condition))
+{
+}
+
+void CWhileAst::Execute(CInterpreterContext &context) const
+{
+    double result = m_condition->Evaluate(context);
+    while (fabs(result) > std::numeric_limits<double>::epsilon())
+    {
+        ExecuteBody(context);
+        result = m_condition->Evaluate(context);
+    }
+}

@@ -9,6 +9,7 @@
 #define TK_PRINT                           9
 #define TK_END                            10
 #define TK_IF                             11
-#define TK_LPAREN                         12
-#define TK_RPAREN                         13
-#define TK_NUMBER                         14
+#define TK_WHILE                          12
+#define TK_LPAREN                         13
+#define TK_RPAREN                         14
+#define TK_NUMBER                         15

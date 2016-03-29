@@ -64,6 +64,10 @@ int CBatchLexer::Scan(SToken &data)
         {
             return TK_IF;
         }
+        if (id == "while")
+        {
+            return TK_WHILE;
+        }
         if (id == "end")
         {
             return TK_END;

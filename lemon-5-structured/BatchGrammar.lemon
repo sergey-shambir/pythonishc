@@ -83,6 +83,12 @@ using block_ptr = CAbstractBlockAST*;
 %type if_condition_line block_ptr
 %destructor if_condition_line { DestroyBlock(pParse, $$); }
 
+%type while_condition block_ptr
+%destructor while_condition { DestroyBlock(pParse, $$); }
+
+%type while_condition_line block_ptr
+%destructor while_condition_line { DestroyBlock(pParse, $$); }
+
 %left PLUS MINUS.
 %left STAR SLASH PERCENT.
 
@@ -120,6 +126,18 @@ statement ::= if_condition_line(A) END.
     DestroyBlock(pParse, A);
 }
 
+statement ::= while_condition_line(A) statement_lines_list END.
+{
+    pParse->ExitBlock();
+    pParse->AddStatement(IStatementASTUniquePtr(TakeBlock(A)));
+}
+
+statement ::= while_condition_line(A) END.
+{
+    // Destroy CIfAst to optimize execution.
+    DestroyBlock(pParse, A);
+}
+
 if_condition_line(X) ::= if_condition(A) NEWLINE.
 {
     X = TakeBlock(A).release();
@@ -128,6 +146,18 @@ if_condition_line(X) ::= if_condition(A) NEWLINE.
 if_condition(X) ::= IF expression(A).
 {
     auto ast = MakeAST<CIfAst>(TakeExpr(A));
+    pParse->EnterBlock(ast.get());
+    X = ast.release();
+}
+
+while_condition_line(X) ::= while_condition(A) NEWLINE.
+{
+    X = TakeBlock(A).release();
+}
+
+while_condition(X) ::= WHILE expression(A).
+{
+    auto ast = MakeAST<CWhileAst>(TakeExpr(A));
     pParse->EnterBlock(ast.get());
     X = ast.release();
 }

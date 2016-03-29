@@ -118,6 +118,18 @@ private:
     std::vector<IStatementASTUniquePtr> m_body;
 };
 
+class CWhileAst : public CAbstractBlockAST
+{
+public:
+    CWhileAst(IExpressionASTUniquePtr && condition);
+
+protected:
+    void Execute(CInterpreterContext &context) const override;
+
+private:
+    IExpressionASTUniquePtr m_condition;
+};
+
 class CIfAst : public CAbstractBlockAST
 {
 public:
