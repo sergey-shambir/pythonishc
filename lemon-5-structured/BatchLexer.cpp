@@ -80,6 +80,10 @@ int CBatchLexer::Scan(SToken &data)
         {
             return TK_END;
         }
+        if (id == "else")
+        {
+            return TK_ELSE;
+        }
         data.stringId = m_stringPool.Insert(id);
         return TK_ID;
     }

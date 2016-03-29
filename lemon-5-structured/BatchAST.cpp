@@ -123,12 +123,21 @@ CIfAst::CIfAst(IExpressionASTUniquePtr &&condition)
 {
 }
 
+void CIfAst::SetElseStatement(IStatementASTUniquePtr &&elseBlock)
+{
+    m_elseBlock = std::move(elseBlock);
+}
+
 void CIfAst::Execute(CInterpreterContext &context) const
 {
     double result = m_condition->Evaluate(context);
     if (fabs(result) > std::numeric_limits<double>::epsilon())
     {
         ExecuteBody(context);
+    }
+    else
+    {
+        m_elseBlock->Execute(context);
     }
 }
 
@@ -177,3 +186,8 @@ void CRepeatAst::Execute(CInterpreterContext &context) const
     while (fabs(m_condition->Evaluate(context)) > std::numeric_limits<double>::epsilon());
 }
 
+
+void CBlockAst::Execute(CInterpreterContext &context) const
+{
+    ExecuteBody(context);
+}

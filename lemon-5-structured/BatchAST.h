@@ -147,11 +147,20 @@ class CIfAst : public CAbstractBlockAST
 public:
     CIfAst(IExpressionASTUniquePtr && condition);
 
+    void SetElseStatement(IStatementASTUniquePtr && elseBlock);
+
 protected:
     void Execute(CInterpreterContext &context) const override;
 
 private:
     IExpressionASTUniquePtr m_condition;
+    IStatementASTUniquePtr m_elseBlock;
+};
+
+class CBlockAst : public CAbstractBlockAST
+{
+protected:
+    void Execute(CInterpreterContext &context) const override;
 };
 
 class CProgramAst : public CAbstractBlockAST
