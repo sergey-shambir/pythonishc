@@ -7,6 +7,7 @@ All samples use modern C++ standards (c++ 2011 and higher).
 * `lemon-2-interpreter` shows how to use Lemon-generated LALR parser for multiline calculator with variables.
 * `lemon-3-error-recovery` shows how to recover from syntax errors.
 * `lemon-4-ast` shows how to create and use Abstract Syntax Tree classes.
+* `lemon-5-structured` shows how to add the Structural Programming support into language.
 
 ### C++ STL samples (lexical analysis)
 * `std-regex` shows how to use `std::regex` to either match input line or scan input line-by-line.
