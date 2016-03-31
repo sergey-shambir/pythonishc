@@ -1,0 +1,183 @@
+// All token codes are small integers with #defines that begin with "TK_"
+%token_prefix TK_
+
+// The type of the data attached to each token is Token.  This is also the
+// default type for non-terminals.
+//
+%token_type {SToken}
+%default_type {SToken}
+
+// The generated parser function takes a 4th argument as follows:
+%extra_argument {CBatchParser *pParse}
+
+// This code runs whenever there is a syntax error
+//
+%syntax_error
+{
+    (void)yymajor;  // Silence compiler warnings.
+    pParse->OnError(TOKEN); // TOKEN has type defined in '%token_type'
+}
+
+// This code runs on LALR stack overflow
+%stack_overflow
+{
+    (void)yypMinor; // Silence compiler warnings.
+    pParse->OnStackOverflow();
+}
+
+// This code runs when parser failed and cannot recover.
+%parse_failure
+{
+    pParse->OnFatalError();
+}
+
+// Destructor set just to disable compiler warnings
+//
+%token_destructor
+{
+    (void)yypParser;
+    (void)yypminor;
+    (void)pParse;
+}
+
+// The name of the generated procedure that implements the parser
+// is as follows:
+%name ParseBatchGrammar
+
+// The following text is included near the beginning of the C source
+// code file that implements the parser.
+//
+%include
+{
+// Generated function: void ParseBatchGrammar(void*, int, SToken, CBatchParser*);
+
+#include "BatchParser_private.h"
+
+using namespace parser_private;
+using expression_ptr = IExpressionAST*;
+using block_ptr = CAbstractBlockAST*;
+
+// Indicate that ParseBatchGrammarFree() will never be called with a nullptr.
+#define YYPARSEFREENEVERNULL 1
+
+} // end %include
+
+/////////////////////////
+////////////////////////
+///////////////////////
+
+// An IDENTIFIER can be a generic identifier, or one of several
+// keywords.  Any non-standard keyword can also be an identifier.
+//
+%type expression expression_ptr
+
+%destructor expression
+{
+    delete $$;
+    $$ = nullptr;
+}
+
+%type if_condition block_ptr
+%destructor if_condition { DestroyBlock(pParse, $$); }
+
+%type if_condition_line block_ptr
+%destructor if_condition_line { DestroyBlock(pParse, $$); }
+
+%left PLUS MINUS.
+%left STAR SLASH PERCENT.
+
+translation_unit ::= statement_lines_list.
+
+statement_lines_list ::= statement_line.
+
+statement_lines_list ::= statement_lines_list statement_line.
+
+statement_line ::= statement NEWLINE.
+
+statement_line ::= error NEWLINE.
+
+statement ::= ID(A) ASSIGN expression(B).
+{
+    auto stmt = MakeAST<CAssignAST>(A.stringId, TakeExpr(B));
+    pParse->AddStatement(std::move(stmt));
+}
+
+statement ::= PRINT expression(A).
+{
+    auto stmt = MakeAST<CPrintAST>(TakeExpr(A));
+    pParse->AddStatement(std::move(stmt));
+}
+
+statement ::= if_condition_line(A) statement_lines_list END.
+{
+    pParse->ExitBlock();
+    pParse->AddStatement(IStatementASTUniquePtr(TakeBlock(A)));
+}
+
+statement ::= if_condition_line(A) END.
+{
+    // Destroy CIfAst to optimize execution.
+    DestroyBlock(pParse, A);
+}
+
+if_condition_line(X) ::= if_condition(A) NEWLINE.
+{
+    X = TakeBlock(A).release();
+}
+
+if_condition(X) ::= IF expression(A).
+{
+    auto ast = MakeAST<CIfAst>(TakeExpr(A));
+    pParse->EnterBlock(ast.get());
+    X = ast.release();
+}
+
+expression(X) ::= LPAREN expression(A) RPAREN.
+{
+    X = TakeExpr(A).release();
+}
+
+expression(X) ::= expression(A) PLUS expression(B).
+{
+    X = NewAST<CBinaryExpressionAST>(TakeExpr(A), BinaryOperation::Add, TakeExpr(B));
+}
+
+expression(X) ::= expression(A) MINUS expression(B).
+{
+    X = NewAST<CBinaryExpressionAST>(TakeExpr(A), BinaryOperation::Substract, TakeExpr(B));
+}
+
+expression(X) ::= expression(A) STAR expression(B).
+{
+    X = NewAST<CBinaryExpressionAST>(TakeExpr(A), BinaryOperation::Multiply, TakeExpr(B));
+}
+
+expression(X) ::= expression(A) SLASH expression(B).
+{
+    X = NewAST<CBinaryExpressionAST>(TakeExpr(A), BinaryOperation::Divide, TakeExpr(B));
+}
+
+expression(X) ::= expression(A) PERCENT expression(B).
+{
+    X = NewAST<CBinaryExpressionAST>(TakeExpr(A), BinaryOperation::Modulo, TakeExpr(B));
+}
+
+expression(X) ::= PLUS expression(A).
+{
+    X = NewAST<CUnaryExpressionAST>(UnaryOperation::Plus, TakeExpr(A));
+}
+
+expression(X) ::= MINUS expression(A).
+{
+    X = NewAST<CUnaryExpressionAST>(UnaryOperation::Minus, TakeExpr(A));
+}
+
+expression(X) ::= NUMBER(A).
+{
+    X = NewAST<CLiteralAST>(A.value);
+}
+
+expression(X) ::= ID(A).
+{
+    X = NewAST<CVariableRefAST>(A.stringId);
+}
