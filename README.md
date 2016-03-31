@@ -1,19 +1,28 @@
-# C++ samples with Graphviz and Lemon
+# Примеры на C++ для STL и Lemon
 
-All samples use modern C++ standards (c++ 2011 and higher).
+Все примеры используют последний на момент публикации стандарт C++ (**C++ 2014**).
 
-### LEMON samples (syntax analysis)
-* `lemon-1-calculator` shows how to use Lemon-generated LALR parser for expression-per-line calculator.
-* `lemon-2-interpreter` shows how to use Lemon-generated LALR parser for multiline calculator with variables.
-* `lemon-3-error-recovery` shows how to recover from syntax errors.
-* `lemon-4-ast` shows how to create and use Abstract Syntax Tree classes.
-* `lemon-5-structured` shows how to add the Structural Programming support into language.
+### Синтаксический анализ с генератором парсеров Lemon
 
-### C++ STL samples (lexical analysis)
-* `std-regex` shows how to use `std::regex` to either match input line or scan input line-by-line.
+Lemon &mdashl; это генератор парсеров, использующих алгоритм LALR для разбора. Генератор принимает на вход аттрибутную BNF-грамматику. В сравнении с Bison:
 
-### Learn More About LEMON
+- плюсы: Lemon генерирует более чистый код на C, имеет систему деструкторов правил.
+- минусы: Lemon не поддерживает EBNF, только упрощённый BNF. Это раздувает код.
 
-- [implementing C parser with lemon (codeproject.com)](http://www.codeproject.com/Articles/1056460/Generating-a-High-Speed-Parser-Part-Lemon)
-- [Lemon grammar in SQLite source code (github.com)](https://github.com/mackyle/sqlite/blob/master/src/parse.y)
-- [Another Lemon grammar in SQLite source code (github.com)](https://github.com/mackyle/sqlite/blob/master/ext/fts5/fts5parse.y)
+Примеры последовательно шаг за шагом выращивают интерпретатор.
+
+* `lemon-1-calculator` реализует калькулятор арифметических выражений: "`1 + 2*(7 /21)`"
+* `lemon-2-interpreter` реализует многострочный интерпретатор выражений с поддержкой переменных
+* `lemon-3-error-recovery` добавляет восстановление после ошибок разбора
+* `lemon-4-ast` создаёт абстрактное синтаксическое дерево (AST) и интерпретирует его
+* `lemon-5-minimal-structured` добавляет простейший элемент структурного программирования: инструкцию `if` без ветки `else`.
+* `lemon-5-full-structured` добавляет новые элементы структурного программирования: циклы `while` и `repeat .. until`, опциональный `else` для `if`.
+
+#### Подробнее о Lemon
+
+- [Реализация парсера C на Lemon (codeproject.com)](http://www.codeproject.com/Articles/1056460/Generating-a-High-Speed-Parser-Part-Lemon)
+- [Lemon-грамматика в исходном коде SQLite (github.com)](https://github.com/mackyle/sqlite/blob/master/src/parse.y)
+- [Ещё одна Lemon-грамматика в исходном коде SQLite (github.com)](https://github.com/mackyle/sqlite/blob/master/ext/fts5/fts5parse.y)
+
+### Лексический анализ и разбор на базе C++ STL
+* `std-regex` показывает, как применять `std::regex` для сопоставления входной строки с образцом или для построчного сканирования ввода.
