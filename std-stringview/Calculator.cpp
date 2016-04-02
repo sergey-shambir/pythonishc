@@ -1,5 +1,6 @@
 #include "Calculator.h"
 #include <limits>
+#include <cctype>
 
 
 double Calculator::parseExpr(std::string_view &ref)
@@ -36,7 +37,7 @@ double Calculator::parseDouble(std::string_view &ref)
         return value;
     }
     ref.remove_prefix(1);
-    float factor = 1.0;
+    double factor = 1.0;
     while (!ref.empty() && std::isdigit(ref[0]))
     {
         const int digit = ref[0] - '0';

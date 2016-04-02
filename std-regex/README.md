@@ -1,22 +1,19 @@
-# Regex Search Examples
+# Примеры для std::regex
 
-There are 3 examples demonstrating how to use regular expressions from STL &mdash; `std::regex` (`<regex>` header file).
+Здесь размещены три примера, демонстрирующих применение регулярных выражений в составе STL.
+Регулярные выражения в STL представлены классом `std::regex` и несколькими функциями в заголовке `<regex>`.
+Все примеры покрыты тестами на boost.test.
 
-### Identifier matcher (`match-id.cpp`)
+### Распознаватель идентификаторов (`IdMatcher.h`)
 
-This example uses [`std::regex_match`](http://www.cplusplus.com/reference/regex/regex_match/).
-- Scans input line-by-line
-- Each line checked by regular expression
-- If whole line is identifier, program prints `is identifier`
-- Otherwise, it prints `is not identifier`
+Класс CIdMatcher получает строку и проверяет, является ли строка целиком допустимым идентификатором.
+Для реализации класса использована функция [`std::regex_match`](http://www.cplusplus.com/reference/regex/regex_match/).
 
-### Basic Identifier Scanner (`scan-ids.cpp`)
+### Простой сканер идентификаторов (`SimpleIdScanner.h`)
 
-This example uses [`std::regex_seach`](http://www.cplusplus.com/reference/regex/regex_search/).
-
-- Scans input line-by-line
-- Each line parsed from left to right in `while` loop without scanning the same substring twice
-- To achieve that, we use iterator-based function overload:
+Класс CSimpleIdScanner получает текст построчно и извлекает из него идентификаторы.
+Он может вернуть отсортированный список использованных идентификаторов.
+Для реализации класса использована функция [`std::regex_seach`](http://www.cplusplus.com/reference/regex/regex_search/).
 
 ```cpp
 std::regex_search(std::string::iterator begin,
@@ -25,32 +22,7 @@ std::regex_search(std::string::iterator begin,
                   std::regex const& pattern)
 ```
 
-### Improved Identifier Scanner (`scan-ids-not-comments.cpp`)
+### Улучшенный сканер идентификаторов (`AdvancedIdScanner.cpp`)
 
-This example uses [`std::regex_seach`](http://www.cplusplus.com/reference/regex/regex_search/).
-
-- Still scans line-by-line and parses each line from left to right.
-- Does not scan comments in form `/* */`.
-- Member variable `m_isInComment` and 2 new regular expressions added.
-
-##### Input example
-```cpp
-do {
-    x++;
-    counter += 1;
-} while (x != y);
-/* comments are ignored */
-y *= 2;
-/*/ we are in comment
-    in multiline comment
-   */
-```
-
-##### Output
-```
-counter
-do
-while
-x
-y
-```
+В отличие от простого сканера, улучшенный умеет игнорировать комментарии в стиле C: `/* it's comment */`.
+Для реализации класса также использована функция [`std::regex_seach`](http://www.cplusplus.com/reference/regex/regex_search/).
