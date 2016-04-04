@@ -2,6 +2,7 @@
 #include "InterpreterContext.h"
 #include <limits>
 #include <algorithm>
+#include <iostream>
 #include <cmath>
 #include <cassert>
 
@@ -222,4 +223,46 @@ double CCallAST::Evaluate(CInterpreterContext &context) const
         return func->Call(context, args);
     }
     return GetNaN();
+}
+
+CFunctionAST::CFunctionAST(unsigned nameId, StatementsList && body)
+    : m_nameId(nameId)
+    , m_body(std::move(body))
+{
+}
+
+unsigned CFunctionAST::GetNameId() const
+{
+    return m_nameId;
+}
+
+double CFunctionAST::Call(CInterpreterContext &context, const std::vector<double> &arguments) const
+{
+    if (arguments.size() != m_argumentNames.size())
+    {
+        std::cerr << "" << std::endl;
+        return GetNaN();
+    }
+
+    CVariableScope scope(context);
+    auto argumentIt = arguments.begin();
+    for (unsigned nameId : m_argumentNames)
+    {
+        scope.AddVariable(nameId, *argumentIt);
+        ++argumentIt;
+    }
+
+    boost::optional<double> returnedValue;
+    for (IStatementASTUniquePtr const& stmt : m_body)
+    {
+        stmt->Execute(context);
+        returnedValue = context.GetReturnValue();
+        if (returnedValue)
+        {
+            context.SetReturnValue(boost::none);
+            break;
+        }
+    }
+
+    return returnedValue.get_value_or(GetNaN());
 }

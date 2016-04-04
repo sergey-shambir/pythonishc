@@ -12,6 +12,16 @@ void CInterpreterContext::AssignVariable(unsigned nameId, double value)
     m_variables[nameId] = value;
 }
 
+bool CInterpreterContext::HasVariable(unsigned nameId) const
+{
+    return m_variables.count(nameId);
+}
+
+void CInterpreterContext::RemoveVariable(unsigned nameId)
+{
+    m_variables.erase(nameId);
+}
+
 double CInterpreterContext::GetVariableValue(unsigned nameId) const
 {
     try
@@ -49,4 +59,41 @@ void CInterpreterContext::AddFunction(unsigned nameId, IFunctionAST *function)
 void CInterpreterContext::PrintResult(double value)
 {
     std::cout << "result: " << value << std::endl;
+}
+
+void CInterpreterContext::SetReturnValue(boost::optional<double> const& valueOpt)
+{
+    m_returnValueOpt = valueOpt;
+}
+
+boost::optional<double> CInterpreterContext::GetReturnValue() const
+{
+    return m_returnValueOpt;
+}
+
+CVariableScope::CVariableScope(CInterpreterContext &context)
+    : m_context(context)
+{
+}
+
+CVariableScope::~CVariableScope()
+{
+    for (unsigned nameId : m_addedVariables)
+    {
+        m_context.RemoveVariable(nameId);
+    }
+    for (auto pair : m_shadowedVariables)
+    {
+        m_context.AssignVariable(pair.first, pair.second);
+    }
+}
+
+void CVariableScope::AddVariable(unsigned nameId, double value)
+{
+    m_addedVariables.insert(nameId);
+    if (m_context.HasVariable(nameId))
+    {
+        m_shadowedVariables[nameId] = value;
+    }
+    m_context.AssignVariable(nameId, value);
 }

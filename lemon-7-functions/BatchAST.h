@@ -185,6 +185,22 @@ protected:
     void Execute(CInterpreterContext &context) const override;
 };
 
+class CFunctionAST : public IFunctionAST
+{
+public:
+    CFunctionAST(unsigned nameId, StatementsList && body);
+
+    unsigned GetNameId()const;
+
+protected:
+    double Call(CInterpreterContext &context, const std::vector<double> &arguments) const override;
+
+private:
+    unsigned m_nameId;
+    std::vector<unsigned> m_argumentNames;
+    StatementsList m_body;
+};
+
 class CProgramAst : public CAbstractBlockAST
 {
 public:
