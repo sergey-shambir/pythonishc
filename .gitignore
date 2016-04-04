@@ -1,66 +1,73 @@
-# Compiled Object files
-*.slo
-*.lo
+# This file is used to ignore files which are generated
+# ----------------------------------------------------------------------------
+
+*~
+*.autosave
+*.a
+*.core
+*.moc
 *.o
 *.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
+*.orig
+*.rej
 *.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
+*.so.*
+*_pch.h.cpp
+*_resource.rc
+*.qm
+.#*
+*.*#
+core
+!core/
+tags
+.DS_Store
+.directory
+*.debug
+Makefile*
+*.prl
 *.app
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+Thumbs.db
+*.res
+*.rc
+/.qmake.cache
+/.qmake.stash
 
-# QtCreator files.
-*.pro.user
+# qtcreator generated files
+*.pro.user*
 
-# User-specific files
+# xemacs temporary files
+*.flc
+
+# Vim temporary files
+.*.swp
+
+# Visual Studio generated files
+*.ib_pdb_index
+*.idb
+*.ilk
+*.pdb
+*.sln
 *.suo
-*.user
-*.userosscache
-*.sln.docstates
-
-# User-specific files (MonoDevelop/Xamarin Studio)
-*.userprefs
-
-# Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-bld/
-[Bb]in/
-[Oo]bj/
-[Ll]og/
-
-# Visual Studio 2015 cache/options directory
-.vs/
-
-# Visual C++ cache files
-ipch/
-*.aps
+*.vcproj
+*vcproj.*.*.user
 *.ncb
-*.opendb
-*.opensdf
 *.sdf
-*.cachefile
-*.VC.db
-*.VC.VC.opendb
+*.opensdf
+*.vcxproj
+*vcxproj.*
+
+# MinGW generated files
+*.Debug
+*.Release
+
+# Python byte code
+*.pyc
+
+# Binaries
+# --------
+*.dll
+*.exe
+

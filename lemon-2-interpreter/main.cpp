@@ -28,7 +28,9 @@ void EnterInterpreterLoop()
     CStringPool stringPool;
     CInterpreterContext context(stringPool);
     CBatchParser parser(context);
-    parser.StartDebugTrace(stderr);
+
+    /// Строка ниже включает отладочный вывод LALR-парсера.
+    // parser.StartDebugTrace(stderr);
 
     std::string line;
     unsigned lineNo = 1;

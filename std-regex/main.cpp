@@ -11,16 +11,16 @@ private:
 	void test_unit_start(std::ostream &os,
 		boost::unit_test::test_unit const& tu)
 	{
-		os << std::string(m_indent, ' ') <<
+        os << std::string(size_t(m_indent), ' ') <<
 			boost::replace_all_copy(tu.p_name.get(), "_", " ") << std::endl;
 		m_indent += 2;
 	}
 	void test_unit_finish(std::ostream &os,
 		boost::unit_test::test_unit const& tu, unsigned long elapsed)
 	{
-		elapsed;
-		tu;
-		os;
+        (void)elapsed;
+        (void)tu;
+        (void)os;
 		m_indent -= 2;
 	}
 	int m_indent;
