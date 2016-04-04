@@ -54,8 +54,6 @@
 #include "BatchParser_private.h"
 
 using namespace parser_private;
-using expression_ptr = IExpressionAST*;
-using block_ptr = CAbstractBlockAST*;
 
 // Indicate that ParseBatchGrammarFree() will never be called with a nullptr.
 #define YYPARSEFREENEVERNULL 1
@@ -69,7 +67,7 @@ using block_ptr = CAbstractBlockAST*;
 // An IDENTIFIER can be a generic identifier, or one of several
 // keywords.  Any non-standard keyword can also be an identifier.
 //
-%type expression expression_ptr
+%type expression ExpressionPtr
 
 %destructor expression
 {
@@ -77,34 +75,34 @@ using block_ptr = CAbstractBlockAST*;
     $$ = nullptr;
 }
 
-%type if_condition block_ptr
+%type if_condition BlockPtr
 %destructor if_condition { DestroyBlock(pParse, $$); }
 
-%type if_condition_line block_ptr
+%type if_condition_line BlockPtr
 %destructor if_condition_line { DestroyBlock(pParse, $$); }
 
-%type while_condition block_ptr
+%type while_condition BlockPtr
 %destructor while_condition { DestroyBlock(pParse, $$); }
 
-%type while_condition_line block_ptr
+%type while_condition_line BlockPtr
 %destructor while_condition_line { DestroyBlock(pParse, $$); }
 
-%type repeat_head_line block_ptr
+%type repeat_head_line BlockPtr
 %destructor repeat_head_line { DestroyBlock(pParse, $$); }
 
-%type repeat_head block_ptr
+%type repeat_head BlockPtr
 %destructor repeat_head { DestroyBlock(pParse, $$); }
 
-%type until_condition expression_ptr
+%type until_condition ExpressionPtr
 %destructor until_condition { delete $$; $$ = nullptr; }
 
-%type else_block block_ptr
+%type else_block BlockPtr
 %destructor else_block { DestroyBlock(pParse, $$); }
 
-%type else_head_line block_ptr
+%type else_head_line BlockPtr
 %destructor else_head_line { DestroyBlock(pParse, $$); }
 
-%type else_head block_ptr
+%type else_head BlockPtr
 %destructor else_head { DestroyBlock(pParse, $$); }
 
 %type expression_list ExpressionListPtr

@@ -12,30 +12,30 @@ namespace parser_private
 {
 
 template <class T, class ...TArgs>
-T *NewAST(TArgs&&... args)
+T *New(TArgs&&... args)
 {
-    return new T(std::forward<TArgs>(args)...);
+    return new (std::nothrow) T(std::forward<TArgs>(args)...);
 }
 
 template <class T, class ...TArgs>
-std::unique_ptr<T> MakeAST(TArgs&&... args)
+std::unique_ptr<T> Make(TArgs&&... args)
 {
-    return std::unique_ptr<T>(new T(std::forward<TArgs>(args)...));
+    return std::unique_ptr<T>(new (std::nothrow) T(std::forward<TArgs>(args)...));
 }
 
-template <class TRuleRecord>
-std::unique_ptr<IExpressionAST> TakeExpr(TRuleRecord & record)
+template <class T>
+std::unique_ptr<T> Take(T* & stackRecord)
 {
-    std::unique_ptr<IExpressionAST> ret(record);
-    record = nullptr;
+    std::unique_ptr<T> ret(stackRecord);
+    stackRecord = nullptr;
     return ret;
 }
 
-template <class TRuleRecord>
-std::unique_ptr<CAbstractBlockAST> TakeBlock(TRuleRecord & record)
+template <class T>
+T *Move(T *& stackRecord)
 {
-    std::unique_ptr<CAbstractBlockAST> ret(record);
-    record = nullptr;
+    T *ret = stackRecord;
+    stackRecord = nullptr;
     return ret;
 }
 
@@ -49,6 +49,9 @@ void DestroyBlock(CBatchParser *pParser, TRuleRecord & record)
         record = nullptr;
     }
 }
+
+using ExpressionPtr = IExpressionAST*;
+using BlockPtr = CAbstractBlockAST*;
 
 }
 

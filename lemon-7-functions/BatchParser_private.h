@@ -51,6 +51,8 @@ void DestroyBlock(CBatchParser *pParser, TRuleRecord & record)
 }
 
 using ExpressionListPtr = ExpressionList*;
+using ExpressionPtr = IExpressionAST*;
+using BlockPtr = CAbstractBlockAST*;
 
 }
 
