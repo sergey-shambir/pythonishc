@@ -20,7 +20,7 @@ double CInterpreterContext::GetVariableValue(unsigned stringId)
     }
     catch (std::exception const&)
     {
-        std::cerr << "undefined variable " << m_pool.GetString(stringId) << std::endl;
+        std::cerr << "error: unknown variable " << m_pool.GetString(stringId) << std::endl;
         return 0;
     }
 }
