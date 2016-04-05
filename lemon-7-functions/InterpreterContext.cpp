@@ -149,7 +149,7 @@ void CVariableScope::AddVariable(unsigned nameId, double value)
     m_addedVariables.insert(nameId);
     if (m_context.HasVariable(nameId))
     {
-        m_shadowedVariables[nameId] = value;
+        m_shadowedVariables[nameId] = m_context.GetVariableValue(nameId);
     }
     m_context.AssignVariable(nameId, value);
 }
