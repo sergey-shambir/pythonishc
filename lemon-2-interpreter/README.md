@@ -1,8 +1,8 @@
-# Interpreter with LALR parser
+# Интерпретатор с LALR-парсером внутри
 
-Interpreter takes input line-by-line and interprets each line variable assignment or print.
+Интерпретатор получает ввод построчно и интепретирует каждую строку либо как присвоение переменной, либо как команду `print X`.
 
-##### Input
+##### Ввод
 ```
 print 21 + 13 - (1.12 * 2 - 1.51 / 2)
 x = 10
@@ -10,53 +10,53 @@ y = 12.2
 print x*y
 ```
 
-##### Output
+##### Вывод
 ```
 result: 32.515
 result: 122
 ```
 
-### Changes since lemon-1-calculator example
+### Отличия от примера lemon-1-calculator
 
-- New tokens (terminals) `TK_NEWLINE`, `TK_ID`, `TK_ASSIGN`, `TK_PRINT`.
-- New non-terminals `statement_line`, `statement_lines_list`.
-- `struct SToken` now keeps line/column number and various types in `union`.
-- `CCalcLexer` renamed to `CBatchLexer`, it supplies tokens for *one line of code*.
+- Добавлены новые токены (*терминалы*) `TK_NEWLINE`, `TK_ID`, `TK_ASSIGN`, `TK_PRINT`.
+- Добавлены новые правила (*нетерминалы*) `statement_line`, `statement_lines_list`.
+- Структура `struct SToken` хранит номер строки и колонки, где встретился токен, а также дополнительные данные внутри `union`. Хотя `union` и является опасным отступлением к стилю языка C, его использование оправдано, так как сгенерированный утилитой Lemon код всё равно поместит `SToken` в `union`.
+- Класс `CCalcLexer` переименован в `CBatchLexer`, и разбирает на токены одну строку кода.
 
 ![include map](img/BatchLexer_includemap.png)
 
-- `CCalcParser` renamed to `CBatchParser`, it has 3 new methods to accept events from generated code.
+- Класс `CCalcParser` переименован в `CBatchParser`, и получил 3 новых метода, которые вызываются из атрибутных действий в грамматике для Lemon.
 
 ![include map](img/BatchParser_includemap.png)
 
-- New `class CInterpreterContext` keeps variables and reacts on parser events.
+- Новый класс `CInterpreterContext` ведёт список переменных и реагирует на события парсера.
 
 ![include map](img/InterpreterContext_includemap.png)
 
-- New `class CStringPool` used to map variable name to unique id (`unsigned int`). It's easy way to avoid C-style union limitations: we can't keep `std::string` to LALR stack, but can keep `unsigned int` key known to string pool. This trick also called "string pooling".
+- Новый класс `CStringPool` используется, чтобы превратить строковое имя переменной в уникальный ID типа `unsigned int`. Это сделано ради обхода ограничений Lemon: мы не можем поместить в структуру `SToken` ничего, что имеет нетривиальный конструктор, а `std::string` имеет нетривиальный конструктор. Помещение строк в единый пул строк также называется `string pooling` или `interning`. Методика можно применять не только для обхода ограничений, но и в целях оптимизации производительности и потребления памяти.
 
 ![include map](img/StringPool_includemap.png)
 
-### LEMON tricks shown in sample
+### Особенности применения Lemon в примере
 
-- There are no error recovery. Any line with syntax error will break parsing.
-- The rule `statement_line` added just to ensure that `statement` reduce callback called after newline. If you'll remove `statement_line`, than `print` output will be delayed. Example:
+- Обработки ошибок нет, любая ошибка парсера завершает работу интерпретатоа.
+- Правило `statement_line` добавлено, чтобы гарантировать, что свёртка правила `statement` и выполнение атрибутного действия свёртки произойдут сразу после получения токена `NEWLINE`. В отличии от Bison, с Lemon парсер не будет сворачивать правило `statement` сразу при получении токена `NEWLINE` &mdash; он будет ждать, пока выбор свёртки не станет однозначным.
+- Если убрать `statement_line`, тогда команда `print` будет отставать на одну строку. Пример:
 
-##### Input
+##### Ввод
 ```
 print 3
 print 2
-<waiting for the next line>
+<ожидаем ввода>
 ```
 
-##### Output
+##### Вывод
 ```
 3
-<waiting for the next line>
+<ожидаем ввода>
 ```
 
-### Requirements
+### Системные требования
 
-- Ubuntu: Install `lemon` package
-- MS Windows: compile Lemon from [source code (hwaci.com)](http://www.hwaci.com/sw/lemon/). It's just two files, `lemon.c` and `lempar.c`.
-- Use any modern C++ compiler.
+- Для ОС Ubuntu: установите пакет `lemon`
+- Для ОС Windows: соберите Lemon из [исходных кодов (hwaci.com)](http://www.hwaci.com/sw/lemon/). Исходники Lemon состоят всего из двух файлов, `lemon.c` и `lempar.c`. Используйте любой современный компилятор C/C++.

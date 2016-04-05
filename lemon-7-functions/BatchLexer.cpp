@@ -8,12 +8,12 @@ CBatchLexer::CBatchLexer(unsigned lineNo, std::string const& sources, CStringPoo
     , m_peep(m_sources)
     , m_stringPool(stringPool)
     , m_keywords({
-          {"print", TK_PRINT},
-          {"if", TK_IF},
-          {"while", TK_WHILE},
-          {"do", TK_DO},
-          {"end", TK_END},
-          {"else", TK_ELSE},
+        { "do",    TK_DO },
+        { "if",    TK_IF },
+        { "end",   TK_END },
+        { "else",  TK_ELSE },
+        { "while", TK_WHILE },
+        { "print", TK_PRINT },
       })
 {
 }
