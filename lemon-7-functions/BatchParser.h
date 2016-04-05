@@ -25,7 +25,9 @@ public:
     void OnError(SToken const& token);
     void OnStackOverflow();
     void OnFatalError();
+
     void AddStatement(IStatementASTUniquePtr &&stmt);
+    void AddFunction(IFunctionASTUniquePtr && function);
 
 private:
 #ifndef NDEBUG

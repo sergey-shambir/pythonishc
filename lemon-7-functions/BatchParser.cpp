@@ -73,3 +73,11 @@ void CBatchParser::AddStatement(IStatementASTUniquePtr && stmt)
         m_program.AddStatement(std::move(stmt));
     }
 }
+
+void CBatchParser::AddFunction(IFunctionASTUniquePtr &&function)
+{
+    if (function)
+    {
+        m_program.AddFunction(std::move(function));
+    }
+}

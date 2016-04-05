@@ -64,17 +64,18 @@ using namespace parser_private;
 **                       defined, then do no error processing.
 */
 #define YYCODETYPE unsigned char
-#define YYNOCODE 31
+#define YYNOCODE 33
 #define YYACTIONTYPE unsigned char
 #define ParseBatchGrammarTOKENTYPE SToken
 typedef union {
   int yyinit;
   ParseBatchGrammarTOKENTYPE yy0;
-  ExpressionPtr yy35;
-  StatementListPtr yy36;
-  StatementPtr yy48;
-  ExpressionListPtr yy59;
-  int yy61;
+  FunctionPtr yy17;
+  ExpressionPtr yy23;
+  ExpressionListPtr yy24;
+  StatementListPtr yy28;
+  StatementPtr yy44;
+  int yy65;
 } YYMINORTYPE;
 #ifndef YYSTACKDEPTH
 #define YYSTACKDEPTH 100
@@ -83,10 +84,10 @@ typedef union {
 #define ParseBatchGrammarARG_PDECL ,CBatchParser *pParse
 #define ParseBatchGrammarARG_FETCH CBatchParser *pParse = yypParser->pParse
 #define ParseBatchGrammarARG_STORE yypParser->pParse = pParse
-#define YYNSTATE 73
-#define YYNRULE 34
-#define YYERRORSYMBOL 20
-#define YYERRSYMDT yy61
+#define YYNSTATE 81
+#define YYNRULE 36
+#define YYERRORSYMBOL 21
+#define YYERRSYMDT yy65
 #define YY_NO_ACTION      (YYNSTATE+YYNRULE+2)
 #define YY_ACCEPT_ACTION  (YYNSTATE+YYNRULE+1)
 #define YY_ERROR_ACTION   (YYNSTATE+YYNRULE)
@@ -155,76 +156,90 @@ static const YYMINORTYPE yyzerominor = { 0 };
 **                     shifting non-terminals after a reduce.
 **  yy_default[]       Default action for each state.
 */
-#define YY_ACTTAB_COUNT (177)
+#define YY_ACTTAB_COUNT (233)
 static const YYACTIONTYPE yy_action[] = {
- /*     0 */    47,   71,   16,   15,   14,   57,   43,   13,   42,   25,
- /*    10 */    24,   22,   21,   20,    1,   25,   24,   22,   21,   20,
- /*    20 */    54,   70,   25,   24,   22,   21,   20,    1,   26,   22,
- /*    30 */    21,   20,   47,   53,   16,   15,   14,   56,   35,   13,
- /*    40 */    42,   47,   41,   16,   15,   14,   55,   73,   13,   42,
- /*    50 */    44,   59,   45,   60,   47,   10,   16,   15,   14,   58,
- /*    60 */     5,   13,   42,   36,   47,    4,   16,   15,   14,   51,
- /*    70 */    37,   13,   42,   38,   47,  109,   16,   15,   14,   52,
- /*    80 */   109,   13,   42,   25,   24,   22,   21,   20,   25,   24,
- /*    90 */    22,   21,   20,    2,   25,   24,   22,   21,   20,    1,
- /*   100 */    68,   19,   18,   48,  109,   69,   47,   46,   16,   15,
- /*   110 */    14,   72,   49,   12,   42,   31,   67,   23,   62,   64,
- /*   120 */    17,   47,   63,   16,   15,   14,  109,   66,   13,   42,
- /*   130 */    65,   47,   40,   16,   15,   14,   39,   34,   11,   42,
- /*   140 */    48,  109,   69,   33,   19,   18,  108,    3,   50,   49,
- /*   150 */    46,   32,   44,  109,   45,   61,    8,   30,   29,   28,
- /*   160 */    23,   44,   64,   45,   61,    9,   44,  109,   45,   61,
- /*   170 */     6,   44,  109,   45,   61,    7,   27,
+ /*     0 */    47,   79,   78,   63,   81,   18,   17,   16,   45,   15,
+ /*    10 */    44,   53,   47,   24,   23,   22,   37,   18,   17,   16,
+ /*    20 */    43,   15,   44,   27,   26,   24,   23,   22,    2,   48,
+ /*    30 */    51,   49,   74,   60,   66,   27,   26,   24,   23,   22,
+ /*    40 */     2,   52,   50,   19,   47,   59,    6,   75,   73,   18,
+ /*    50 */    17,   16,   72,   15,   44,   28,   47,    5,   12,   62,
+ /*    60 */     4,   18,   17,   16,  119,   15,   44,   38,   47,   39,
+ /*    70 */   119,   61,   40,   18,   17,   16,  119,   15,   44,   33,
+ /*    80 */    47,   70,  119,   57,   69,   18,   17,   16,   68,   15,
+ /*    90 */    44,   42,   47,  119,  119,   58,   41,   18,   17,   16,
+ /*   100 */    36,   15,   44,   35,   34,  119,  119,   54,  119,   77,
+ /*   110 */    32,   21,   20,   76,  118,    1,   56,   55,   46,   25,
+ /*   120 */    65,   53,   47,   31,   30,   29,  119,   18,   17,   16,
+ /*   130 */    67,   15,   44,   27,   26,   24,   23,   22,  119,  119,
+ /*   140 */   119,  119,   71,  119,   27,   26,   24,   23,   22,    3,
+ /*   150 */    27,   26,   24,   23,   22,    2,   47,  119,  119,  119,
+ /*   160 */   119,   18,   17,   16,   47,   14,   44,  119,  119,   18,
+ /*   170 */    17,   16,   47,   15,   44,  119,  119,   18,   17,   16,
+ /*   180 */   119,   13,   44,   27,   26,   24,   23,   22,   21,   20,
+ /*   190 */   119,   54,  119,   77,  119,   46,   25,   76,  119,  119,
+ /*   200 */    80,   55,  119,  119,  119,  119,   48,   67,   49,   64,
+ /*   210 */    10,   48,  119,   49,   64,    9,  119,   48,  119,   49,
+ /*   220 */    64,   11,   48,  119,   49,   64,    7,  119,   48,  119,
+ /*   230 */    49,   64,    8,
 };
 static const YYCODETYPE yy_lookahead[] = {
- /*     0 */     7,    6,    9,   10,   11,   12,   13,   14,   15,    1,
- /*    10 */     2,    3,    4,    5,    6,    1,    2,    3,    4,    5,
- /*    20 */    12,    6,    1,    2,    3,    4,    5,    6,    8,    3,
- /*    30 */     4,    5,    7,   12,    9,   10,   11,   12,   21,   14,
- /*    40 */    15,    7,   25,    9,   10,   11,   12,    0,   14,   15,
- /*    50 */    20,    6,   22,   23,    7,   17,    9,   10,   11,    6,
- /*    60 */     6,   14,   15,   21,    7,    6,    9,   10,   11,   12,
- /*    70 */    21,   14,   15,   21,    7,   30,    9,   10,   11,   12,
- /*    80 */    30,   14,   15,    1,    2,    3,    4,    5,    1,    2,
- /*    90 */     3,    4,    5,    6,    1,    2,    3,    4,    5,    6,
- /*   100 */    18,    1,    2,   20,   30,   22,    7,    7,    9,   10,
- /*   110 */    11,   28,   29,   14,   15,   21,   21,   17,   18,   19,
- /*   120 */    16,    7,   18,    9,   10,   11,   30,   21,   14,   15,
- /*   130 */    21,    7,   21,    9,   10,   11,   21,   21,   14,   15,
- /*   140 */    20,   30,   22,   21,    1,    2,   26,   27,   28,   29,
- /*   150 */     7,   21,   20,   30,   22,   23,   24,   21,   21,   21,
- /*   160 */    17,   20,   19,   22,   23,   24,   20,   30,   22,   23,
- /*   170 */    24,   20,   30,   22,   23,   24,   21,
+ /*     0 */     8,    6,    6,   11,    0,   13,   14,   15,   16,   17,
+ /*    10 */    18,    7,    8,    3,    4,    5,   22,   13,   14,   15,
+ /*    20 */    26,   17,   18,    1,    2,    3,    4,    5,    6,   21,
+ /*    30 */     9,   23,   24,   11,   10,    1,    2,    3,    4,    5,
+ /*    40 */     6,    8,   10,   19,    8,   11,    6,   11,    6,   13,
+ /*    50 */    14,   15,    6,   17,   18,   12,    8,    6,    9,   11,
+ /*    60 */     6,   13,   14,   15,   32,   17,   18,   22,    8,   22,
+ /*    70 */    32,   11,   22,   13,   14,   15,   32,   17,   18,   22,
+ /*    80 */     8,   22,   32,   11,   22,   13,   14,   15,   22,   17,
+ /*    90 */    18,   22,    8,   32,   32,   11,   22,   13,   14,   15,
+ /*   100 */    22,   17,   18,   22,   22,   32,   32,   21,   32,   23,
+ /*   110 */    22,    1,    2,   27,   28,   29,   30,   31,    8,    9,
+ /*   120 */    10,    7,    8,   22,   22,   22,   32,   13,   14,   15,
+ /*   130 */    20,   17,   18,    1,    2,    3,    4,    5,   32,   32,
+ /*   140 */    32,   32,   10,   32,    1,    2,    3,    4,    5,    6,
+ /*   150 */     1,    2,    3,    4,    5,    6,    8,   32,   32,   32,
+ /*   160 */    32,   13,   14,   15,    8,   17,   18,   32,   32,   13,
+ /*   170 */    14,   15,    8,   17,   18,   32,   32,   13,   14,   15,
+ /*   180 */    32,   17,   18,    1,    2,    3,    4,    5,    1,    2,
+ /*   190 */    32,   21,   32,   23,   32,    8,    9,   27,   32,   32,
+ /*   200 */    30,   31,   32,   32,   32,   32,   21,   20,   23,   24,
+ /*   210 */    25,   21,   32,   23,   24,   25,   32,   21,   32,   23,
+ /*   220 */    24,   25,   21,   32,   23,   24,   25,   32,   21,   32,
+ /*   230 */    23,   24,   25,
 };
-#define YY_SHIFT_USE_DFLT (-8)
-#define YY_SHIFT_COUNT (49)
-#define YY_SHIFT_MIN   (-7)
-#define YY_SHIFT_MAX   (143)
+#define YY_SHIFT_USE_DFLT (-9)
+#define YY_SHIFT_COUNT (55)
+#define YY_SHIFT_MIN   (-8)
+#define YY_SHIFT_MAX   (187)
 static const short yy_shift_ofst[] = {
- /*     0 */   114,   67,   57,   47,  124,  114,   -7,   34,   25,   99,
- /*    10 */   100,  143,  143,  143,  143,  143,  143,  143,  143,  143,
- /*    20 */   143,  143,  143,  143,  143,  143,  143,   21,    8,   93,
- /*    30 */    87,   82,   14,   14,   14,   14,   14,   26,   26,   26,
- /*    40 */    26,  104,   59,   54,   53,   45,   38,   20,   15,   -5,
+ /*     0 */   114,    4,   84,   72,  164,  156,  156,   -8,   60,   48,
+ /*    10 */    36,  148,  110,  187,  187,  187,  187,  187,  187,  187,
+ /*    20 */   187,  187,  187,  187,  187,  187,  187,  187,  187,   34,
+ /*    30 */    22,  149,  143,  132,  182,  182,  182,  182,  182,   10,
+ /*    40 */    10,   10,   10,   24,   54,   51,   49,   43,   46,   42,
+ /*    50 */    40,   32,   21,   33,   -4,   -5,
 };
-#define YY_REDUCE_USE_DFLT (-1)
-#define YY_REDUCE_COUNT (26)
-#define YY_REDUCE_MIN   (0)
-#define YY_REDUCE_MAX   (155)
+#define YY_REDUCE_USE_DFLT (-7)
+#define YY_REDUCE_COUNT (28)
+#define YY_REDUCE_MIN   (-6)
+#define YY_REDUCE_MAX   (207)
 static const short yy_reduce_ofst[] = {
- /*     0 */   120,  151,  146,   83,  141,  132,   30,   30,   30,   30,
- /*    10 */    17,  155,  138,  137,  136,  130,  122,  116,  115,  111,
- /*    20 */   109,  106,   95,   94,   52,   49,   42,
+ /*     0 */    86,  170,  207,  201,  196,  190,  185,    8,    8,    8,
+ /*    10 */     8,    8,   -6,  103,  102,  101,   88,   82,   81,   78,
+ /*    20 */    74,   69,   66,   62,   59,   57,   50,   47,   45,
 };
 static const YYACTIONTYPE yy_default[] = {
- /*     0 */   107,  107,  107,  107,  107,  107,  107,  107,  107,  107,
- /*    10 */   107,  107,  107,  107,  107,  107,  107,  107,  107,  107,
- /*    20 */   107,  107,  107,  107,  107,  107,  107,  107,  107,  107,
- /*    30 */   107,  107,   85,   84,   94,   93,   83,   98,   99,  104,
- /*    40 */   103,  107,  107,  107,  107,  107,  106,  107,  107,  107,
- /*    50 */    74,   86,   89,   91,   92,   90,   88,   87,   82,   81,
- /*    60 */    80,   79,   95,   96,  105,  102,  101,  100,   97,   78,
- /*    70 */    77,   76,   75,
+ /*     0 */   117,  117,  117,  117,  117,  117,  117,  117,  117,  117,
+ /*    10 */   117,  117,  117,  117,  117,  117,  117,  117,  117,  117,
+ /*    20 */   117,  117,  117,  117,  117,  117,  117,  117,  117,  117,
+ /*    30 */   117,  117,  117,  117,   95,   94,  104,  103,   93,  108,
+ /*    40 */   109,  114,  113,  117,  117,  117,  116,  117,  117,  117,
+ /*    50 */   117,  117,  117,  117,  117,  117,   82,   96,   99,  101,
+ /*    60 */   102,  100,   98,   97,   89,  105,  106,  115,  112,  111,
+ /*    70 */   110,  107,   92,   91,   90,   88,   87,   86,   85,   84,
+ /*    80 */    83,
 };
 
 /* The next table maps tokens into fallback tokens.  If a construct
@@ -318,13 +333,13 @@ void ParseBatchGrammarTrace(FILE *TraceFILE, char *zTracePrompt){
 ** are required.  The following table supplies these names */
 static const char *const yyTokenName[] = { 
   "$",             "PLUS",          "MINUS",         "STAR",        
-  "SLASH",         "PERCENT",       "NEWLINE",       "ID",          
+  "SLASH",         "PERCENT",       "NEWLINE",       "FUNCTION",    
+  "ID",            "LPAREN",        "RPAREN",        "END",         
   "ASSIGN",        "PRINT",         "RETURN",        "IF",          
-  "END",           "ELSE",          "WHILE",         "DO",          
-  "COMMA",         "LPAREN",        "RPAREN",        "NUMBER",      
-  "error",         "expression",    "statement",     "statement_line",
-  "statement_list",  "expression_list",  "translation_unit",  "toplevel_list",
-  "toplevel_line",  "toplevel_statement",
+  "ELSE",          "WHILE",         "DO",            "COMMA",       
+  "NUMBER",        "error",         "expression",    "statement",   
+  "statement_line",  "statement_list",  "expression_list",  "function_declaration",
+  "translation_unit",  "toplevel_list",  "toplevel_line",  "toplevel_statement",
 };
 #endif /* NDEBUG */
 
@@ -338,34 +353,36 @@ static const char *const yyRuleName[] = {
  /*   3 */ "toplevel_line ::= toplevel_statement NEWLINE",
  /*   4 */ "toplevel_line ::= error NEWLINE",
  /*   5 */ "toplevel_statement ::= statement",
- /*   6 */ "statement_list ::= statement_line",
- /*   7 */ "statement_list ::= statement_list statement_line",
- /*   8 */ "statement_line ::= statement NEWLINE",
- /*   9 */ "statement_line ::= error NEWLINE",
- /*  10 */ "statement ::= ID ASSIGN expression",
- /*  11 */ "statement ::= PRINT expression",
- /*  12 */ "statement ::= RETURN expression",
- /*  13 */ "statement ::= IF expression NEWLINE END",
- /*  14 */ "statement ::= IF expression NEWLINE statement_list END",
- /*  15 */ "statement ::= IF expression NEWLINE statement_list ELSE NEWLINE statement_list END",
- /*  16 */ "statement ::= WHILE expression NEWLINE END",
- /*  17 */ "statement ::= WHILE expression NEWLINE statement_list END",
- /*  18 */ "statement ::= DO NEWLINE WHILE expression END",
- /*  19 */ "statement ::= DO NEWLINE statement_list WHILE expression END",
- /*  20 */ "expression_list ::= expression",
- /*  21 */ "expression_list ::= expression_list COMMA expression",
- /*  22 */ "expression ::= ID LPAREN RPAREN",
- /*  23 */ "expression ::= ID LPAREN expression_list RPAREN",
- /*  24 */ "expression ::= LPAREN expression RPAREN",
- /*  25 */ "expression ::= expression PLUS expression",
- /*  26 */ "expression ::= expression MINUS expression",
- /*  27 */ "expression ::= expression STAR expression",
- /*  28 */ "expression ::= expression SLASH expression",
- /*  29 */ "expression ::= expression PERCENT expression",
- /*  30 */ "expression ::= PLUS expression",
- /*  31 */ "expression ::= MINUS expression",
- /*  32 */ "expression ::= NUMBER",
- /*  33 */ "expression ::= ID",
+ /*   6 */ "toplevel_statement ::= function_declaration",
+ /*   7 */ "function_declaration ::= FUNCTION ID LPAREN RPAREN NEWLINE statement_list END",
+ /*   8 */ "statement_list ::= statement_line",
+ /*   9 */ "statement_list ::= statement_list statement_line",
+ /*  10 */ "statement_line ::= statement NEWLINE",
+ /*  11 */ "statement_line ::= error NEWLINE",
+ /*  12 */ "statement ::= ID ASSIGN expression",
+ /*  13 */ "statement ::= PRINT expression",
+ /*  14 */ "statement ::= RETURN expression",
+ /*  15 */ "statement ::= IF expression NEWLINE END",
+ /*  16 */ "statement ::= IF expression NEWLINE statement_list END",
+ /*  17 */ "statement ::= IF expression NEWLINE statement_list ELSE NEWLINE statement_list END",
+ /*  18 */ "statement ::= WHILE expression NEWLINE END",
+ /*  19 */ "statement ::= WHILE expression NEWLINE statement_list END",
+ /*  20 */ "statement ::= DO NEWLINE WHILE expression END",
+ /*  21 */ "statement ::= DO NEWLINE statement_list WHILE expression END",
+ /*  22 */ "expression_list ::= expression",
+ /*  23 */ "expression_list ::= expression_list COMMA expression",
+ /*  24 */ "expression ::= ID LPAREN RPAREN",
+ /*  25 */ "expression ::= ID LPAREN expression_list RPAREN",
+ /*  26 */ "expression ::= LPAREN expression RPAREN",
+ /*  27 */ "expression ::= expression PLUS expression",
+ /*  28 */ "expression ::= expression MINUS expression",
+ /*  29 */ "expression ::= expression STAR expression",
+ /*  30 */ "expression ::= expression SLASH expression",
+ /*  31 */ "expression ::= expression PERCENT expression",
+ /*  32 */ "expression ::= PLUS expression",
+ /*  33 */ "expression ::= MINUS expression",
+ /*  34 */ "expression ::= NUMBER",
+ /*  35 */ "expression ::= ID",
 };
 #endif /* NDEBUG */
 
@@ -451,19 +468,20 @@ static void yy_destructor(
     case 4: /* SLASH */
     case 5: /* PERCENT */
     case 6: /* NEWLINE */
-    case 7: /* ID */
-    case 8: /* ASSIGN */
-    case 9: /* PRINT */
-    case 10: /* RETURN */
-    case 11: /* IF */
-    case 12: /* END */
-    case 13: /* ELSE */
-    case 14: /* WHILE */
-    case 15: /* DO */
-    case 16: /* COMMA */
-    case 17: /* LPAREN */
-    case 18: /* RPAREN */
-    case 19: /* NUMBER */
+    case 7: /* FUNCTION */
+    case 8: /* ID */
+    case 9: /* LPAREN */
+    case 10: /* RPAREN */
+    case 11: /* END */
+    case 12: /* ASSIGN */
+    case 13: /* PRINT */
+    case 14: /* RETURN */
+    case 15: /* IF */
+    case 16: /* ELSE */
+    case 17: /* WHILE */
+    case 18: /* DO */
+    case 19: /* COMMA */
+    case 20: /* NUMBER */
 {
 
     (void)yypParser;
@@ -472,25 +490,30 @@ static void yy_destructor(
 
 }
       break;
-    case 21: /* expression */
+    case 22: /* expression */
 {
- Destroy((yypminor->yy35)); 
+ Destroy((yypminor->yy23)); 
 }
       break;
-    case 22: /* statement */
-    case 23: /* statement_line */
+    case 23: /* statement */
+    case 24: /* statement_line */
 {
- Destroy((yypminor->yy48)); 
+ Destroy((yypminor->yy44)); 
 }
       break;
-    case 24: /* statement_list */
+    case 25: /* statement_list */
 {
- Destroy((yypminor->yy36)); 
+ Destroy((yypminor->yy28)); 
 }
       break;
-    case 25: /* expression_list */
+    case 26: /* expression_list */
 {
- Destroy((yypminor->yy59)); 
+ Destroy((yypminor->yy24)); 
+}
+      break;
+    case 27: /* function_declaration */
+{
+ Destroy((yypminor->yy17)); 
 }
       break;
     default:  break;   /* If no destructor action specified: do nothing */
@@ -731,40 +754,42 @@ static const struct {
   YYCODETYPE lhs;         /* Symbol on the left-hand side of the rule */
   unsigned char nrhs;     /* Number of right-hand side symbols in the rule */
 } yyRuleInfo[] = {
-  { 26, 1 },
-  { 27, 1 },
-  { 27, 2 },
-  { 28, 2 },
-  { 28, 2 },
+  { 28, 1 },
   { 29, 1 },
-  { 24, 1 },
+  { 29, 2 },
+  { 30, 2 },
+  { 30, 2 },
+  { 31, 1 },
+  { 31, 1 },
+  { 27, 7 },
+  { 25, 1 },
+  { 25, 2 },
   { 24, 2 },
+  { 24, 2 },
+  { 23, 3 },
   { 23, 2 },
   { 23, 2 },
+  { 23, 4 },
+  { 23, 5 },
+  { 23, 8 },
+  { 23, 4 },
+  { 23, 5 },
+  { 23, 5 },
+  { 23, 6 },
+  { 26, 1 },
+  { 26, 3 },
+  { 22, 3 },
+  { 22, 4 },
+  { 22, 3 },
+  { 22, 3 },
+  { 22, 3 },
+  { 22, 3 },
+  { 22, 3 },
   { 22, 3 },
   { 22, 2 },
   { 22, 2 },
-  { 22, 4 },
-  { 22, 5 },
-  { 22, 8 },
-  { 22, 4 },
-  { 22, 5 },
-  { 22, 5 },
-  { 22, 6 },
-  { 25, 1 },
-  { 25, 3 },
-  { 21, 3 },
-  { 21, 4 },
-  { 21, 3 },
-  { 21, 3 },
-  { 21, 3 },
-  { 21, 3 },
-  { 21, 3 },
-  { 21, 3 },
-  { 21, 2 },
-  { 21, 2 },
-  { 21, 1 },
-  { 21, 1 },
+  { 22, 1 },
+  { 22, 1 },
 };
 
 static void yy_accept(yyParser*);  /* Forward Declaration */
@@ -827,197 +852,213 @@ static void yy_reduce(
         break;
       case 5: /* toplevel_statement ::= statement */
 {
-    pParse->AddStatement(Take(yymsp[0].minor.yy48));
+    pParse->AddStatement(Take(yymsp[0].minor.yy44));
 }
         break;
-      case 6: /* statement_list ::= statement_line */
+      case 6: /* toplevel_statement ::= function_declaration */
 {
-    CreateList(yygotominor.yy36, yymsp[0].minor.yy48);
+    pParse->AddFunction(Take(yymsp[0].minor.yy17));
 }
         break;
-      case 7: /* statement_list ::= statement_list statement_line */
+      case 7: /* function_declaration ::= FUNCTION ID LPAREN RPAREN NEWLINE statement_list END */
 {
-    ConcatList(yygotominor.yy36, yymsp[-1].minor.yy36, yymsp[0].minor.yy48);
+    auto pBody = Take(yymsp[-1].minor.yy28);
+    EmplaceAST<CFunctionAST>(yygotominor.yy17, yymsp[-5].minor.yy0.stringId, std::vector<unsigned>(), std::move(*pBody));
+  yy_destructor(yypParser,7,&yymsp[-6].minor);
+  yy_destructor(yypParser,9,&yymsp[-4].minor);
+  yy_destructor(yypParser,10,&yymsp[-3].minor);
+  yy_destructor(yypParser,6,&yymsp[-2].minor);
+  yy_destructor(yypParser,11,&yymsp[0].minor);
 }
         break;
-      case 8: /* statement_line ::= statement NEWLINE */
+      case 8: /* statement_list ::= statement_line */
 {
-    MovePointer(yymsp[-1].minor.yy48, yygotominor.yy48);
+    CreateList(yygotominor.yy28, yymsp[0].minor.yy44);
+}
+        break;
+      case 9: /* statement_list ::= statement_list statement_line */
+{
+    ConcatList(yygotominor.yy28, yymsp[-1].minor.yy28, yymsp[0].minor.yy44);
+}
+        break;
+      case 10: /* statement_line ::= statement NEWLINE */
+{
+    MovePointer(yymsp[-1].minor.yy44, yygotominor.yy44);
   yy_destructor(yypParser,6,&yymsp[0].minor);
 }
         break;
-      case 9: /* statement_line ::= error NEWLINE */
+      case 11: /* statement_line ::= error NEWLINE */
 {
-    yygotominor.yy48 = nullptr;
+    yygotominor.yy44 = nullptr;
   yy_destructor(yypParser,6,&yymsp[0].minor);
 }
         break;
-      case 10: /* statement ::= ID ASSIGN expression */
+      case 12: /* statement ::= ID ASSIGN expression */
 {
-    EmplaceAST<CAssignAST>(yygotominor.yy48, yymsp[-2].minor.yy0.stringId, Take(yymsp[0].minor.yy35));
-  yy_destructor(yypParser,8,&yymsp[-1].minor);
+    EmplaceAST<CAssignAST>(yygotominor.yy44, yymsp[-2].minor.yy0.stringId, Take(yymsp[0].minor.yy23));
+  yy_destructor(yypParser,12,&yymsp[-1].minor);
 }
         break;
-      case 11: /* statement ::= PRINT expression */
+      case 13: /* statement ::= PRINT expression */
 {
-    EmplaceAST<CPrintAST>(yygotominor.yy48, Take(yymsp[0].minor.yy35));
-  yy_destructor(yypParser,9,&yymsp[-1].minor);
+    EmplaceAST<CPrintAST>(yygotominor.yy44, Take(yymsp[0].minor.yy23));
+  yy_destructor(yypParser,13,&yymsp[-1].minor);
 }
         break;
-      case 12: /* statement ::= RETURN expression */
+      case 14: /* statement ::= RETURN expression */
 {
-    EmplaceAST<CReturnAST>(yygotominor.yy48, Take(yymsp[0].minor.yy35));
-  yy_destructor(yypParser,10,&yymsp[-1].minor);
+    EmplaceAST<CReturnAST>(yygotominor.yy44, Take(yymsp[0].minor.yy23));
+  yy_destructor(yypParser,14,&yymsp[-1].minor);
 }
         break;
-      case 13: /* statement ::= IF expression NEWLINE END */
+      case 15: /* statement ::= IF expression NEWLINE END */
 {
-    EmplaceAST<CIfAst>(yygotominor.yy48, Take(yymsp[-2].minor.yy35));
-  yy_destructor(yypParser,11,&yymsp[-3].minor);
+    EmplaceAST<CIfAst>(yygotominor.yy44, Take(yymsp[-2].minor.yy23));
+  yy_destructor(yypParser,15,&yymsp[-3].minor);
   yy_destructor(yypParser,6,&yymsp[-1].minor);
-  yy_destructor(yypParser,12,&yymsp[0].minor);
+  yy_destructor(yypParser,11,&yymsp[0].minor);
 }
         break;
-      case 14: /* statement ::= IF expression NEWLINE statement_list END */
+      case 16: /* statement ::= IF expression NEWLINE statement_list END */
 {
-    auto pThenBody = Take(yymsp[-1].minor.yy36);
-    EmplaceAST<CIfAst>(yygotominor.yy48, Take(yymsp[-3].minor.yy35), std::move(*pThenBody));
-  yy_destructor(yypParser,11,&yymsp[-4].minor);
-  yy_destructor(yypParser,6,&yymsp[-2].minor);
-  yy_destructor(yypParser,12,&yymsp[0].minor);
-}
-        break;
-      case 15: /* statement ::= IF expression NEWLINE statement_list ELSE NEWLINE statement_list END */
-{
-    auto pThenBody = Take(yymsp[-4].minor.yy36);
-    auto pElseBody = Take(yymsp[-1].minor.yy36);
-    EmplaceAST<CIfAst>(yygotominor.yy48, Take(yymsp[-6].minor.yy35), std::move(*pThenBody), std::move(*pElseBody));
-  yy_destructor(yypParser,11,&yymsp[-7].minor);
-  yy_destructor(yypParser,6,&yymsp[-5].minor);
-  yy_destructor(yypParser,13,&yymsp[-3].minor);
-  yy_destructor(yypParser,6,&yymsp[-2].minor);
-  yy_destructor(yypParser,12,&yymsp[0].minor);
-}
-        break;
-      case 16: /* statement ::= WHILE expression NEWLINE END */
-{
-    EmplaceAST<CWhileAst>(yygotominor.yy48, Take(yymsp[-2].minor.yy35));
-  yy_destructor(yypParser,14,&yymsp[-3].minor);
-  yy_destructor(yypParser,6,&yymsp[-1].minor);
-  yy_destructor(yypParser,12,&yymsp[0].minor);
-}
-        break;
-      case 17: /* statement ::= WHILE expression NEWLINE statement_list END */
-{
-    auto pBody = Take(yymsp[-1].minor.yy36);
-    EmplaceAST<CWhileAst>(yygotominor.yy48, Take(yymsp[-3].minor.yy35), std::move(*pBody));
-  yy_destructor(yypParser,14,&yymsp[-4].minor);
-  yy_destructor(yypParser,6,&yymsp[-2].minor);
-  yy_destructor(yypParser,12,&yymsp[0].minor);
-}
-        break;
-      case 18: /* statement ::= DO NEWLINE WHILE expression END */
-{
-    EmplaceAST<CRepeatAst>(yygotominor.yy48, Take(yymsp[-1].minor.yy35));
+    auto pThenBody = Take(yymsp[-1].minor.yy28);
+    EmplaceAST<CIfAst>(yygotominor.yy44, Take(yymsp[-3].minor.yy23), std::move(*pThenBody));
   yy_destructor(yypParser,15,&yymsp[-4].minor);
+  yy_destructor(yypParser,6,&yymsp[-2].minor);
+  yy_destructor(yypParser,11,&yymsp[0].minor);
+}
+        break;
+      case 17: /* statement ::= IF expression NEWLINE statement_list ELSE NEWLINE statement_list END */
+{
+    auto pThenBody = Take(yymsp[-4].minor.yy28);
+    auto pElseBody = Take(yymsp[-1].minor.yy28);
+    EmplaceAST<CIfAst>(yygotominor.yy44, Take(yymsp[-6].minor.yy23), std::move(*pThenBody), std::move(*pElseBody));
+  yy_destructor(yypParser,15,&yymsp[-7].minor);
+  yy_destructor(yypParser,6,&yymsp[-5].minor);
+  yy_destructor(yypParser,16,&yymsp[-3].minor);
+  yy_destructor(yypParser,6,&yymsp[-2].minor);
+  yy_destructor(yypParser,11,&yymsp[0].minor);
+}
+        break;
+      case 18: /* statement ::= WHILE expression NEWLINE END */
+{
+    EmplaceAST<CWhileAst>(yygotominor.yy44, Take(yymsp[-2].minor.yy23));
+  yy_destructor(yypParser,17,&yymsp[-3].minor);
+  yy_destructor(yypParser,6,&yymsp[-1].minor);
+  yy_destructor(yypParser,11,&yymsp[0].minor);
+}
+        break;
+      case 19: /* statement ::= WHILE expression NEWLINE statement_list END */
+{
+    auto pBody = Take(yymsp[-1].minor.yy28);
+    EmplaceAST<CWhileAst>(yygotominor.yy44, Take(yymsp[-3].minor.yy23), std::move(*pBody));
+  yy_destructor(yypParser,17,&yymsp[-4].minor);
+  yy_destructor(yypParser,6,&yymsp[-2].minor);
+  yy_destructor(yypParser,11,&yymsp[0].minor);
+}
+        break;
+      case 20: /* statement ::= DO NEWLINE WHILE expression END */
+{
+    EmplaceAST<CRepeatAst>(yygotominor.yy44, Take(yymsp[-1].minor.yy23));
+  yy_destructor(yypParser,18,&yymsp[-4].minor);
   yy_destructor(yypParser,6,&yymsp[-3].minor);
-  yy_destructor(yypParser,14,&yymsp[-2].minor);
-  yy_destructor(yypParser,12,&yymsp[0].minor);
+  yy_destructor(yypParser,17,&yymsp[-2].minor);
+  yy_destructor(yypParser,11,&yymsp[0].minor);
 }
         break;
-      case 19: /* statement ::= DO NEWLINE statement_list WHILE expression END */
+      case 21: /* statement ::= DO NEWLINE statement_list WHILE expression END */
 {
-    auto pBody = Take(yymsp[-3].minor.yy36);
-    EmplaceAST<CRepeatAst>(yygotominor.yy48, Take(yymsp[-1].minor.yy35), std::move(*pBody));
-  yy_destructor(yypParser,15,&yymsp[-5].minor);
+    auto pBody = Take(yymsp[-3].minor.yy28);
+    EmplaceAST<CRepeatAst>(yygotominor.yy44, Take(yymsp[-1].minor.yy23), std::move(*pBody));
+  yy_destructor(yypParser,18,&yymsp[-5].minor);
   yy_destructor(yypParser,6,&yymsp[-4].minor);
-  yy_destructor(yypParser,14,&yymsp[-2].minor);
-  yy_destructor(yypParser,12,&yymsp[0].minor);
-}
-        break;
-      case 20: /* expression_list ::= expression */
-{
-    CreateList(yygotominor.yy59, yymsp[0].minor.yy35);
-}
-        break;
-      case 21: /* expression_list ::= expression_list COMMA expression */
-{
-    ConcatList(yygotominor.yy59, yymsp[-2].minor.yy59, yymsp[0].minor.yy35);
-  yy_destructor(yypParser,16,&yymsp[-1].minor);
-}
-        break;
-      case 22: /* expression ::= ID LPAREN RPAREN */
-{
-    EmplaceAST<CCallAST>(yygotominor.yy35, yymsp[-2].minor.yy0.stringId, ExpressionList());
-  yy_destructor(yypParser,17,&yymsp[-1].minor);
-  yy_destructor(yypParser,18,&yymsp[0].minor);
-}
-        break;
-      case 23: /* expression ::= ID LPAREN expression_list RPAREN */
-{
-    auto pList = Take(yymsp[-1].minor.yy59);
-    EmplaceAST<CCallAST>(yygotominor.yy35, yymsp[-3].minor.yy0.stringId, std::move(*pList));
   yy_destructor(yypParser,17,&yymsp[-2].minor);
-  yy_destructor(yypParser,18,&yymsp[0].minor);
+  yy_destructor(yypParser,11,&yymsp[0].minor);
 }
         break;
-      case 24: /* expression ::= LPAREN expression RPAREN */
+      case 22: /* expression_list ::= expression */
 {
-    MovePointer(yymsp[-1].minor.yy35, yygotominor.yy35);
-  yy_destructor(yypParser,17,&yymsp[-2].minor);
-  yy_destructor(yypParser,18,&yymsp[0].minor);
+    CreateList(yygotominor.yy24, yymsp[0].minor.yy23);
 }
         break;
-      case 25: /* expression ::= expression PLUS expression */
+      case 23: /* expression_list ::= expression_list COMMA expression */
 {
-    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy35, Take(yymsp[-2].minor.yy35), BinaryOperation::Add, Take(yymsp[0].minor.yy35));
+    ConcatList(yygotominor.yy24, yymsp[-2].minor.yy24, yymsp[0].minor.yy23);
+  yy_destructor(yypParser,19,&yymsp[-1].minor);
+}
+        break;
+      case 24: /* expression ::= ID LPAREN RPAREN */
+{
+    EmplaceAST<CCallAST>(yygotominor.yy23, yymsp[-2].minor.yy0.stringId, ExpressionList());
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
+  yy_destructor(yypParser,10,&yymsp[0].minor);
+}
+        break;
+      case 25: /* expression ::= ID LPAREN expression_list RPAREN */
+{
+    auto pList = Take(yymsp[-1].minor.yy24);
+    EmplaceAST<CCallAST>(yygotominor.yy23, yymsp[-3].minor.yy0.stringId, std::move(*pList));
+  yy_destructor(yypParser,9,&yymsp[-2].minor);
+  yy_destructor(yypParser,10,&yymsp[0].minor);
+}
+        break;
+      case 26: /* expression ::= LPAREN expression RPAREN */
+{
+    MovePointer(yymsp[-1].minor.yy23, yygotominor.yy23);
+  yy_destructor(yypParser,9,&yymsp[-2].minor);
+  yy_destructor(yypParser,10,&yymsp[0].minor);
+}
+        break;
+      case 27: /* expression ::= expression PLUS expression */
+{
+    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy23, Take(yymsp[-2].minor.yy23), BinaryOperation::Add, Take(yymsp[0].minor.yy23));
   yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
         break;
-      case 26: /* expression ::= expression MINUS expression */
+      case 28: /* expression ::= expression MINUS expression */
 {
-    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy35, Take(yymsp[-2].minor.yy35), BinaryOperation::Substract, Take(yymsp[0].minor.yy35));
+    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy23, Take(yymsp[-2].minor.yy23), BinaryOperation::Substract, Take(yymsp[0].minor.yy23));
   yy_destructor(yypParser,2,&yymsp[-1].minor);
 }
         break;
-      case 27: /* expression ::= expression STAR expression */
+      case 29: /* expression ::= expression STAR expression */
 {
-    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy35, Take(yymsp[-2].minor.yy35), BinaryOperation::Multiply, Take(yymsp[0].minor.yy35));
+    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy23, Take(yymsp[-2].minor.yy23), BinaryOperation::Multiply, Take(yymsp[0].minor.yy23));
   yy_destructor(yypParser,3,&yymsp[-1].minor);
 }
         break;
-      case 28: /* expression ::= expression SLASH expression */
+      case 30: /* expression ::= expression SLASH expression */
 {
-    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy35, Take(yymsp[-2].minor.yy35), BinaryOperation::Divide, Take(yymsp[0].minor.yy35));
+    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy23, Take(yymsp[-2].minor.yy23), BinaryOperation::Divide, Take(yymsp[0].minor.yy23));
   yy_destructor(yypParser,4,&yymsp[-1].minor);
 }
         break;
-      case 29: /* expression ::= expression PERCENT expression */
+      case 31: /* expression ::= expression PERCENT expression */
 {
-    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy35, Take(yymsp[-2].minor.yy35), BinaryOperation::Modulo, Take(yymsp[0].minor.yy35));
+    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy23, Take(yymsp[-2].minor.yy23), BinaryOperation::Modulo, Take(yymsp[0].minor.yy23));
   yy_destructor(yypParser,5,&yymsp[-1].minor);
 }
         break;
-      case 30: /* expression ::= PLUS expression */
+      case 32: /* expression ::= PLUS expression */
 {
-    EmplaceAST<CUnaryExpressionAST>(yygotominor.yy35, UnaryOperation::Plus, Take(yymsp[0].minor.yy35));
+    EmplaceAST<CUnaryExpressionAST>(yygotominor.yy23, UnaryOperation::Plus, Take(yymsp[0].minor.yy23));
   yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
         break;
-      case 31: /* expression ::= MINUS expression */
+      case 33: /* expression ::= MINUS expression */
 {
-    EmplaceAST<CUnaryExpressionAST>(yygotominor.yy35, UnaryOperation::Minus, Take(yymsp[0].minor.yy35));
+    EmplaceAST<CUnaryExpressionAST>(yygotominor.yy23, UnaryOperation::Minus, Take(yymsp[0].minor.yy23));
   yy_destructor(yypParser,2,&yymsp[-1].minor);
 }
         break;
-      case 32: /* expression ::= NUMBER */
+      case 34: /* expression ::= NUMBER */
 {
-    EmplaceAST<CLiteralAST>(yygotominor.yy35, yymsp[0].minor.yy0.value);
+    EmplaceAST<CLiteralAST>(yygotominor.yy23, yymsp[0].minor.yy0.value);
 }
         break;
-      case 33: /* expression ::= ID */
+      case 35: /* expression ::= ID */
 {
-    EmplaceAST<CVariableRefAST>(yygotominor.yy35, yymsp[0].minor.yy0.stringId);
+    EmplaceAST<CVariableRefAST>(yygotominor.yy23, yymsp[0].minor.yy0.stringId);
 }
         break;
       default:

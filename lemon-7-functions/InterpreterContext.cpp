@@ -16,6 +16,11 @@ public:
         }
         return sin(arguments[0]);
     }
+
+    unsigned GetNameId() const override
+    {
+        return 0;
+    }
 };
 
 class CRandFunction : public IFunctionAST
@@ -36,6 +41,11 @@ public:
         }
         double rand0to1 = double(std::rand()) / std::numeric_limits<unsigned>::max();
         return (arguments[1] - arguments[0]) * rand0to1 + arguments[0];
+    }
+
+    unsigned GetNameId() const override
+    {
+        return 0;
     }
 };
 

@@ -83,6 +83,7 @@ using ExpressionListPtr = ExpressionList*;
 using StatementListPtr = StatementsList*;
 using StatementPtr = IStatementAST*;
 using ExpressionPtr = IExpressionAST*;
+using FunctionPtr = IFunctionAST*;
 
 }
 

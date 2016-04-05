@@ -5,12 +5,15 @@
 
 class IExpressionAST;
 class IStatementAST;
+class IFunctionAST;
 class CInterpreterContext;
 
 using IExpressionASTUniquePtr = std::unique_ptr<IExpressionAST>;
 using IStatementASTUniquePtr = std::unique_ptr<IStatementAST>;
+using IFunctionASTUniquePtr = std::unique_ptr<IFunctionAST>;
 using ExpressionList = std::vector<IExpressionASTUniquePtr>;
 using StatementsList = std::vector<IStatementASTUniquePtr>;
+using FunctionList = std::vector<IFunctionASTUniquePtr>;
 
 class IExpressionAST
 {
@@ -31,6 +34,7 @@ class IFunctionAST
 public:
     virtual ~IFunctionAST() = default;
     virtual double Call(CInterpreterContext & context, std::vector<double> const& arguments)const = 0;
+    virtual unsigned GetNameId()const = 0;
 };
 
 enum class BinaryOperation
@@ -188,7 +192,7 @@ class CFunctionAST : public IFunctionAST
 public:
     CFunctionAST(unsigned nameId, std::vector<unsigned> argumentNames, StatementsList && body);
 
-    unsigned GetNameId()const;
+    unsigned GetNameId()const override;
 
 protected:
     double Call(CInterpreterContext &context, const std::vector<double> &arguments) const override;
@@ -205,7 +209,9 @@ public:
     CProgramAst(CInterpreterContext &context);
 
     void AddStatement(IStatementASTUniquePtr && stmt);
+    void AddFunction(IFunctionASTUniquePtr && function);
 
 private:
     CInterpreterContext &m_context;
+    FunctionList m_functions;
 };

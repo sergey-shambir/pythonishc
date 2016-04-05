@@ -82,6 +82,9 @@ using namespace parser_private;
 %type expression_list ExpressionListPtr
 %destructor expression_list { Destroy($$); }
 
+%type function_declaration FunctionPtr
+%destructor function_declaration { Destroy($$); }
+
 %left PLUS MINUS.
 %left STAR SLASH PERCENT.
 
@@ -98,6 +101,17 @@ toplevel_line ::= error NEWLINE.
 toplevel_statement ::= statement(A).
 {
     pParse->AddStatement(Take(A));
+}
+
+toplevel_statement ::= function_declaration(A).
+{
+    pParse->AddFunction(Take(A));
+}
+
+function_declaration(X) ::= FUNCTION ID(A) LPAREN RPAREN NEWLINE statement_list(B) END.
+{
+    auto pBody = Take(B);
+    EmplaceAST<CFunctionAST>(X, A.stringId, std::vector<unsigned>(), std::move(*pBody));
 }
 
 statement_list(X) ::= statement_line(A).

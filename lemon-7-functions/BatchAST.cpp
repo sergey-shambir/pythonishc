@@ -149,6 +149,13 @@ void CProgramAst::AddStatement(IStatementASTUniquePtr &&stmt)
     stmt->Execute(m_context);
 }
 
+void CProgramAst::AddFunction(IFunctionASTUniquePtr &&function)
+{
+    unsigned nameId = function->GetNameId();
+    m_context.AddFunction(nameId, function.get());
+    m_functions.emplace_back(std::move(function));
+}
+
 CWhileAst::CWhileAst(IExpressionASTUniquePtr &&condition, StatementsList &&body)
     : m_condition(std::move(condition))
     , m_body(std::move(body))
