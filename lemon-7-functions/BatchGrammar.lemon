@@ -87,9 +87,13 @@ using namespace parser_private;
 
 translation_unit ::= toplevel_list .
 
-toplevel_list ::= toplevel_statement NEWLINE.
+toplevel_list ::= toplevel_line.
 
-toplevel_list ::= toplevel_list toplevel_statement NEWLINE.
+toplevel_list ::= toplevel_list toplevel_line.
+
+toplevel_line ::= toplevel_statement NEWLINE.
+
+toplevel_line ::= error NEWLINE.
 
 toplevel_statement ::= statement(A).
 {
