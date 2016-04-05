@@ -108,7 +108,7 @@ statement_list(X) ::= statement_list(A) statement_line(B).
 
 statement_line(X) ::= statement(A) NEWLINE.
 {
-    MoveAST(A, X);
+    MovePointer(A, X);
 }
 
 statement_line(X) ::= error NEWLINE.
@@ -184,7 +184,7 @@ expression(X) ::= ID(A) LPAREN expression_list(B) RPAREN.
 
 expression(X) ::= LPAREN expression(A) RPAREN.
 {
-    MoveAST(A, X);
+    MovePointer(A, X);
 }
 
 expression(X) ::= expression(A) PLUS expression(B).

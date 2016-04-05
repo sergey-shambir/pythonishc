@@ -827,7 +827,7 @@ static void yy_reduce(
         break;
       case 6: /* statement_line ::= statement NEWLINE */
 {
-    MoveAST(yymsp[-1].minor.yy12, yygotominor.yy12);
+    MovePointer(yymsp[-1].minor.yy12, yygotominor.yy12);
   yy_destructor(yypParser,6,&yymsp[0].minor);
 }
         break;
@@ -935,7 +935,7 @@ static void yy_reduce(
         break;
       case 20: /* expression ::= LPAREN expression RPAREN */
 {
-    MoveAST(yymsp[-1].minor.yy7, yygotominor.yy7);
+    MovePointer(yymsp[-1].minor.yy7, yygotominor.yy7);
   yy_destructor(yypParser,16,&yymsp[-2].minor);
   yy_destructor(yypParser,17,&yymsp[0].minor);
 }
