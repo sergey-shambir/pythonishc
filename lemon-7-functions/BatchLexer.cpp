@@ -7,6 +7,14 @@ CBatchLexer::CBatchLexer(unsigned lineNo, std::string const& sources, CStringPoo
     , m_sources(sources)
     , m_peep(m_sources)
     , m_stringPool(stringPool)
+    , m_keywords({
+          {"print", TK_PRINT},
+          {"if", TK_IF},
+          {"while", TK_WHILE},
+          {"do", TK_DO},
+          {"end", TK_END},
+          {"else", TK_ELSE},
+      })
 {
 }
 
@@ -56,36 +64,7 @@ int CBatchLexer::Scan(SToken &data)
     std::string id = ParseIdentifier();
     if (!id.empty())
     {
-        if (id == "print")
-        {
-            return TK_PRINT;
-        }
-        if (id == "if")
-        {
-            return TK_IF;
-        }
-        if (id == "while")
-        {
-            return TK_WHILE;
-        }
-        if (id == "repeat")
-        {
-            return TK_REPEAT;
-        }
-        if (id == "until")
-        {
-            return TK_UNTIL;
-        }
-        if (id == "end")
-        {
-            return TK_END;
-        }
-        if (id == "else")
-        {
-            return TK_ELSE;
-        }
-        data.stringId = m_stringPool.Insert(id);
-        return TK_ID;
+        return AcceptIdOrKeyword(data, std::move(id));
     }
 
     // on error, return EOF
@@ -145,4 +124,16 @@ void CBatchLexer::SkipSpaces()
         ++count;
     }
     m_peep.remove_prefix(count);
+}
+
+int CBatchLexer::AcceptIdOrKeyword(SToken &data, std::string && id)
+{
+    auto it = m_keywords.find(id);
+    if (it != m_keywords.end())
+    {
+        return it->second;
+    }
+
+    data.stringId = m_stringPool.Insert(id);
+    return TK_ID;
 }

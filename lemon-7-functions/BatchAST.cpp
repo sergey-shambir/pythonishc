@@ -17,8 +17,15 @@ bool IsNonZero(double value)
 {
     return fabs(value) > std::numeric_limits<double>::epsilon();
 }
-}
 
+void ExecuteAll(StatementsList const& list, CInterpreterContext & context)
+{
+    for (auto const& stmt : list)
+    {
+        stmt->Execute(context);
+    }
+}
+}
 
 CPrintAST::CPrintAST(IExpressionASTUniquePtr &&expr)
     : m_expr(std::move(expr))
@@ -112,35 +119,11 @@ double CVariableRefAST::Evaluate(CInterpreterContext &context) const
     return context.GetVariableValue(m_nameId);
 }
 
-void CAbstractBlockAST::AddStatement(IStatementASTUniquePtr &&stmt)
-{
-    m_body.push_back(std::move(stmt));
-}
-
-void CAbstractBlockAST::ExecuteBody(CInterpreterContext & context) const
-{
-    for (IStatementASTUniquePtr const& stmt : m_body)
-    {
-        stmt->Execute(context);
-    }
-}
-
-void CAbstractBlockAST::ExecuteLast(CInterpreterContext &context) const
-{
-    if (!m_body.empty())
-    {
-        m_body.back()->Execute(context);
-    }
-}
-
-CIfAst::CIfAst(IExpressionASTUniquePtr &&condition)
+CIfAst::CIfAst(IExpressionASTUniquePtr &&condition, StatementsList &&thenBody, StatementsList &&elseBody)
     : m_condition(std::move(condition))
+    , m_thenBody(std::move(thenBody))
+    , m_elseBody(std::move(elseBody))
 {
-}
-
-void CIfAst::SetElseStatement(IStatementASTUniquePtr &&elseBlock)
-{
-    m_elseBlock = std::move(elseBlock);
 }
 
 void CIfAst::Execute(CInterpreterContext &context) const
@@ -148,11 +131,11 @@ void CIfAst::Execute(CInterpreterContext &context) const
     double result = m_condition->Evaluate(context);
     if (IsNonZero(result))
     {
-        ExecuteBody(context);
+        ExecuteAll(m_thenBody, context);
     }
     else
     {
-        m_elseBlock->Execute(context);
+        ExecuteAll(m_elseBody, context);
     }
 }
 
@@ -163,47 +146,36 @@ CProgramAst::CProgramAst(CInterpreterContext &context)
 
 void CProgramAst::AddStatement(IStatementASTUniquePtr &&stmt)
 {
-    CAbstractBlockAST::AddStatement(std::move(stmt));
-    ExecuteLast(m_context);
+    stmt->Execute(m_context);
 }
 
-void CProgramAst::Execute(CInterpreterContext &context) const
-{
-    ExecuteBody(context);
-}
-
-CWhileAst::CWhileAst(IExpressionASTUniquePtr &&condition)
+CWhileAst::CWhileAst(IExpressionASTUniquePtr &&condition, StatementsList &&body)
     : m_condition(std::move(condition))
+    , m_body(std::move(body))
 {
 }
 
 void CWhileAst::Execute(CInterpreterContext &context) const
 {
-    double result = m_condition->Evaluate(context);
-    while (IsNonZero(result))
+    while (IsNonZero(m_condition->Evaluate(context)))
     {
-        ExecuteBody(context);
-        result = m_condition->Evaluate(context);
+        ExecuteAll(m_body, context);
     }
 }
 
-void CRepeatAst::SetCondition(IExpressionASTUniquePtr && condition)
+CRepeatAst::CRepeatAst(IExpressionASTUniquePtr &&condition, StatementsList &&body)
+    : m_condition(std::move(condition))
+    , m_body(std::move(body))
 {
-    m_condition = std::move(condition);
 }
 
 void CRepeatAst::Execute(CInterpreterContext &context) const
 {
     do
     {
-        ExecuteBody(context);
+        ExecuteAll(m_body, context);
     }
     while (IsNonZero(m_condition->Evaluate(context)));
-}
-
-void CBlockAst::Execute(CInterpreterContext &context) const
-{
-    ExecuteBody(context);
 }
 
 CCallAST::CCallAST(unsigned nameId, ExpressionList && arguments)

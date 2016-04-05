@@ -68,240 +68,166 @@ using namespace parser_private;
 // keywords.  Any non-standard keyword can also be an identifier.
 //
 %type expression ExpressionPtr
+%destructor expression { Destroy($$); }
 
-%destructor expression
-{
-    delete $$;
-    $$ = nullptr;
-}
+%type statement StatementPtr
+%destructor statement { Destroy($$); }
 
-%type if_condition BlockPtr
-%destructor if_condition { DestroyBlock(pParse, $$); }
+%type statement_line StatementPtr
+%destructor statement_line { Destroy($$); }
 
-%type if_condition_line BlockPtr
-%destructor if_condition_line { DestroyBlock(pParse, $$); }
-
-%type while_condition BlockPtr
-%destructor while_condition { DestroyBlock(pParse, $$); }
-
-%type while_condition_line BlockPtr
-%destructor while_condition_line { DestroyBlock(pParse, $$); }
-
-%type repeat_head_line BlockPtr
-%destructor repeat_head_line { DestroyBlock(pParse, $$); }
-
-%type repeat_head BlockPtr
-%destructor repeat_head { DestroyBlock(pParse, $$); }
-
-%type until_condition ExpressionPtr
-%destructor until_condition { delete $$; $$ = nullptr; }
-
-%type else_block BlockPtr
-%destructor else_block { DestroyBlock(pParse, $$); }
-
-%type else_head_line BlockPtr
-%destructor else_head_line { DestroyBlock(pParse, $$); }
-
-%type else_head BlockPtr
-%destructor else_head { DestroyBlock(pParse, $$); }
+%type statement_list StatementListPtr
+%destructor statement_list { Destroy($$); }
 
 %type expression_list ExpressionListPtr
+%destructor expression_list { Destroy($$); }
 
 %left PLUS MINUS.
 %left STAR SLASH PERCENT.
 
-translation_unit ::= statement_lines_list.
+translation_unit ::= toplevel_list .
 
-statement_lines_list ::= statement_line.
+toplevel_list ::= toplevel_statement NEWLINE.
 
-statement_lines_list ::= statement_lines_list statement_line.
+toplevel_list ::= toplevel_list toplevel_statement NEWLINE.
 
-statement_line ::= statement NEWLINE.
-
-statement_line ::= error NEWLINE.
-
-statement ::= ID(A) ASSIGN expression(B).
+toplevel_statement ::= statement(A).
 {
-    auto stmt = Make<CAssignAST>(A.stringId, Take(B));
-    pParse->AddStatement(std::move(stmt));
+    pParse->AddStatement(Take(A));
 }
 
-statement ::= PRINT expression(A).
+statement_list(X) ::= statement_line(A).
 {
-    auto stmt = Make<CPrintAST>(Take(A));
-    pParse->AddStatement(std::move(stmt));
+    CreateList(X, A);
 }
 
-statement ::= if_condition_line(A) statement_lines_list END.
+statement_list(X) ::= statement_list(A) statement_line(B).
 {
-    pParse->ExitBlock();
-    pParse->AddStatement(IStatementASTUniquePtr(Take(A)));
+    ConcatList(X, A, B);
 }
 
-statement ::= if_condition_line(A) END.
+statement_line(X) ::= statement(A) NEWLINE.
 {
-    pParse->ExitBlock();
-    pParse->AddStatement(IStatementASTUniquePtr(Take(A)));
+    MoveAST(A, X);
 }
 
-statement ::= if_condition_line(A) statement_lines_list else_block(B).
+statement_line(X) ::= error NEWLINE.
 {
-    static_cast<CIfAst*>(A)->SetElseStatement(Take(B));
-    pParse->ExitBlock();
-    pParse->AddStatement(IStatementASTUniquePtr(Take(A)));
+    X = nullptr;
 }
 
-else_block(X) ::= else_head_line(A) statement_lines_list END.
+statement(X) ::= ID(A) ASSIGN expression(B).
 {
-    X = Take(A).release();
-    pParse->ExitBlock();
+    EmplaceAST<CAssignAST>(X, A.stringId, Take(B));
 }
 
-else_head_line(X) ::= else_head(A) NEWLINE.
+statement(X) ::= PRINT expression(A).
 {
-    X = Take(A).release();
+    EmplaceAST<CPrintAST>(X, Take(A));
 }
 
-else_head(X) ::= ELSE.
+statement(X) ::= IF expression(A) NEWLINE END.
 {
-    auto ast = Make<CBlockAst>();
-    pParse->EnterBlock(ast.get());
-    X = ast.release();
+    EmplaceAST<CIfAst>(X, Take(A));
 }
 
-statement ::= while_condition_line(A) statement_lines_list END.
+statement(X) ::= IF expression(A) NEWLINE statement_list(B) END.
 {
-    pParse->ExitBlock();
-    pParse->AddStatement(IStatementASTUniquePtr(Take(A)));
+    auto pThenBody = Take(B);
+    EmplaceAST<CIfAst>(X, Take(A), std::move(*pThenBody));
 }
 
-statement ::= while_condition_line(A) END.
+statement(X) ::= IF expression(A) NEWLINE statement_list(B) ELSE NEWLINE statement_list(C) END.
 {
-    pParse->ExitBlock();
-    pParse->AddStatement(IStatementASTUniquePtr(Take(A)));
+    auto pThenBody = Take(B);
+    auto pElseBody = Take(C);
+    EmplaceAST<CIfAst>(X, Take(A), std::move(*pThenBody), std::move(*pElseBody));
 }
 
-statement ::= repeat_head_line(A) statement_lines_list until_condition(B) END.
+statement(X) ::= WHILE expression(A) NEWLINE END.
 {
-    static_cast<CRepeatAst*>(A)->SetCondition(Take(B));
-    pParse->ExitBlock();
-    pParse->AddStatement(IStatementASTUniquePtr(Take(A)));
+    EmplaceAST<CWhileAst>(X, Take(A));
 }
 
-statement ::= repeat_head_line(A) until_condition(B) END.
+statement(X) ::= WHILE expression(A) NEWLINE statement_list(B) END.
 {
-    static_cast<CRepeatAst*>(A)->SetCondition(Take(B));
-    pParse->ExitBlock();
-    pParse->AddStatement(IStatementASTUniquePtr(Take(A)));
+    auto pBody = Take(B);
+    EmplaceAST<CWhileAst>(X, Take(A), std::move(*pBody));
 }
 
-repeat_head_line(X) ::= repeat_head(A) NEWLINE.
+statement(X) ::= DO NEWLINE WHILE expression(A) END.
 {
-    X = Take(A).release();
+    EmplaceAST<CRepeatAst>(X, Take(A));
 }
 
-repeat_head(X) ::= REPEAT.
+statement(X) ::= DO NEWLINE statement_list(A) WHILE expression(B) END.
 {
-    auto ast = Make<CRepeatAst>();
-    pParse->EnterBlock(ast.get());
-    X = ast.release();
-}
-
-until_condition(X) ::= UNTIL expression(A).
-{
-    X = Take(A).release();
-}
-
-if_condition_line(X) ::= if_condition(A) NEWLINE.
-{
-    X = Take(A).release();
-}
-
-if_condition(X) ::= IF expression(A).
-{
-    auto ast = Make<CIfAst>(Take(A));
-    pParse->EnterBlock(ast.get());
-    X = ast.release();
-}
-
-while_condition_line(X) ::= while_condition(A) NEWLINE.
-{
-    X = Take(A).release();
-}
-
-while_condition(X) ::= WHILE expression(A).
-{
-    auto ast = Make<CWhileAst>(Take(A));
-    pParse->EnterBlock(ast.get());
-    X = ast.release();
+    auto pBody = Take(A);
+    EmplaceAST<CRepeatAst>(X, Take(B), std::move(*pBody));
 }
 
 expression_list(X) ::= expression(A).
 {
-    auto list = Make<ExpressionList>();
-    list->emplace_back(Take(A));
-    X = list.release();
+    CreateList(X, A);
 }
 
 expression_list(X) ::= expression_list(A) COMMA expression(B).
 {
-    auto list = Take(A);
-    list->emplace_back(Take(B));
-    X = list.release();
+    ConcatList(X, A, B);
 }
 
 expression(X) ::= ID(A) LPAREN expression_list(B) RPAREN.
 {
-    auto list = Move(B);
-    X = New<CCallAST>(A.stringId, std::move(*list));
+    auto pList = Take(B);
+    EmplaceAST<CCallAST>(X, A.stringId, std::move(*pList));
 }
 
 expression(X) ::= LPAREN expression(A) RPAREN.
 {
-    X = Take(A).release();
+    MoveAST(A, X);
 }
 
 expression(X) ::= expression(A) PLUS expression(B).
 {
-    X = New<CBinaryExpressionAST>(Take(A), BinaryOperation::Add, Take(B));
+    EmplaceAST<CBinaryExpressionAST>(X, Take(A), BinaryOperation::Add, Take(B));
 }
 
 expression(X) ::= expression(A) MINUS expression(B).
 {
-    X = New<CBinaryExpressionAST>(Take(A), BinaryOperation::Substract, Take(B));
+    EmplaceAST<CBinaryExpressionAST>(X, Take(A), BinaryOperation::Substract, Take(B));
 }
 
 expression(X) ::= expression(A) STAR expression(B).
 {
-    X = New<CBinaryExpressionAST>(Take(A), BinaryOperation::Multiply, Take(B));
+    EmplaceAST<CBinaryExpressionAST>(X, Take(A), BinaryOperation::Multiply, Take(B));
 }
 
 expression(X) ::= expression(A) SLASH expression(B).
 {
-    X = New<CBinaryExpressionAST>(Take(A), BinaryOperation::Divide, Take(B));
+    EmplaceAST<CBinaryExpressionAST>(X, Take(A), BinaryOperation::Divide, Take(B));
 }
 
 expression(X) ::= expression(A) PERCENT expression(B).
 {
-    X = New<CBinaryExpressionAST>(Take(A), BinaryOperation::Modulo, Take(B));
+    EmplaceAST<CBinaryExpressionAST>(X, Take(A), BinaryOperation::Modulo, Take(B));
 }
 
 expression(X) ::= PLUS expression(A).
 {
-    X = New<CUnaryExpressionAST>(UnaryOperation::Plus, Take(A));
+    EmplaceAST<CUnaryExpressionAST>(X, UnaryOperation::Plus, Take(A));
 }
 
 expression(X) ::= MINUS expression(A).
 {
-    X = New<CUnaryExpressionAST>(UnaryOperation::Minus, Take(A));
+    EmplaceAST<CUnaryExpressionAST>(X, UnaryOperation::Minus, Take(A));
 }
 
 expression(X) ::= NUMBER(A).
 {
-    X = New<CLiteralAST>(A.value);
+    EmplaceAST<CLiteralAST>(X, A.value);
 }
 
 expression(X) ::= ID(A).
 {
-    X = New<CVariableRefAST>(A.stringId);
+    EmplaceAST<CVariableRefAST>(X, A.stringId);
 }

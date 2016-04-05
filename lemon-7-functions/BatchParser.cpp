@@ -24,7 +24,6 @@ CBatchParser::CBatchParser(CInterpreterContext & context)
         return new (std::nothrow) char[size];
     };
     m_parser = ParseBatchGrammarAlloc(allocate);
-    EnterBlock(&m_program);
 }
 
 CBatchParser::~CBatchParser()
@@ -71,16 +70,6 @@ void CBatchParser::AddStatement(IStatementASTUniquePtr && stmt)
 {
     if (stmt)
     {
-        m_blocks.top()->AddStatement(std::move(stmt));
+        m_program.AddStatement(std::move(stmt));
     }
-}
-
-void CBatchParser::EnterBlock(CAbstractBlockAST *block)
-{
-    m_blocks.push(block);
-}
-
-void CBatchParser::ExitBlock()
-{
-    m_blocks.pop();
 }

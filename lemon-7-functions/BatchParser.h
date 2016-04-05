@@ -26,8 +26,6 @@ public:
     void OnStackOverflow();
     void OnFatalError();
     void AddStatement(IStatementASTUniquePtr &&stmt);
-    void EnterBlock(CAbstractBlockAST *block);
-    void ExitBlock();
 
 private:
 #ifndef NDEBUG
@@ -36,6 +34,5 @@ private:
     bool m_isFatalError = false;
     void *m_parser = nullptr;
 
-    std::stack<CAbstractBlockAST *> m_blocks;
     CProgramAst m_program;
 };

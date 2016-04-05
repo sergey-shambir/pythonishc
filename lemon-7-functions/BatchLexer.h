@@ -4,6 +4,7 @@
 #include <boost/utility/string_ref.hpp>
 #include "Token.h"
 #include "StringPool.h"
+#include <map>
 
 class CBatchLexer
 {
@@ -19,9 +20,11 @@ private:
     double ParseDouble();
     std::string ParseIdentifier();
     void SkipSpaces();
+    int AcceptIdOrKeyword(SToken &data, std::string && id);
 
     const unsigned m_lineNo;
     const std::string m_sources;
     boost::string_ref m_peep;
     CStringPool & m_stringPool;
+    const std::map<std::string, int> m_keywords;
 };

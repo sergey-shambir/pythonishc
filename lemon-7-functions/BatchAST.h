@@ -127,62 +127,48 @@ private:
     IExpressionASTUniquePtr m_value;
 };
 
-class CAbstractBlockAST : public IStatementAST
+class CWhileAst : public IStatementAST
 {
 public:
-    virtual void AddStatement(IStatementASTUniquePtr && stmt);
+    CWhileAst(IExpressionASTUniquePtr && condition,
+              StatementsList && body = StatementsList());
 
 protected:
-    void ExecuteBody(CInterpreterContext &context) const;
-    void ExecuteLast(CInterpreterContext &context) const;
+    void Execute(CInterpreterContext &context) const override;
 
 private:
+    IExpressionASTUniquePtr m_condition;
     StatementsList m_body;
 };
 
-class CWhileAst : public CAbstractBlockAST
+class CRepeatAst : public IStatementAST
 {
 public:
-    CWhileAst(IExpressionASTUniquePtr && condition);
+    CRepeatAst(IExpressionASTUniquePtr && condition,
+               StatementsList && body = StatementsList());
 
 protected:
     void Execute(CInterpreterContext &context) const override;
 
 private:
     IExpressionASTUniquePtr m_condition;
+    StatementsList m_body;
 };
 
-class CRepeatAst : public CAbstractBlockAST
+class CIfAst : public IStatementAST
 {
 public:
-    void SetCondition(IExpressionASTUniquePtr && condition);
+    CIfAst(IExpressionASTUniquePtr && condition,
+           StatementsList && thenBody = StatementsList(),
+           StatementsList && elseBody = StatementsList());
 
 protected:
     void Execute(CInterpreterContext &context) const override;
 
 private:
     IExpressionASTUniquePtr m_condition;
-};
-
-class CIfAst : public CAbstractBlockAST
-{
-public:
-    CIfAst(IExpressionASTUniquePtr && condition);
-
-    void SetElseStatement(IStatementASTUniquePtr && elseBlock);
-
-protected:
-    void Execute(CInterpreterContext &context) const override;
-
-private:
-    IExpressionASTUniquePtr m_condition;
-    IStatementASTUniquePtr m_elseBlock;
-};
-
-class CBlockAst : public CAbstractBlockAST
-{
-protected:
-    void Execute(CInterpreterContext &context) const override;
+    StatementsList m_thenBody;
+    StatementsList m_elseBody;
 };
 
 class CFunctionAST : public IFunctionAST
@@ -201,15 +187,12 @@ private:
     StatementsList m_body;
 };
 
-class CProgramAst : public CAbstractBlockAST
+class CProgramAst
 {
 public:
     CProgramAst(CInterpreterContext &context);
 
-    void AddStatement(IStatementASTUniquePtr && stmt) override;
-
-protected:
-    void Execute(CInterpreterContext &context) const override;
+    void AddStatement(IStatementASTUniquePtr && stmt);
 
 private:
     CInterpreterContext &m_context;

@@ -11,10 +11,10 @@
 namespace parser_private
 {
 
-template <class T, class ...TArgs>
-T *New(TArgs&&... args)
+template <class TNode, class TRuleNode, class ...TArgs>
+void EmplaceAST(TRuleNode *& stackRecord, TArgs&&... args)
 {
-    return new (std::nothrow) T(std::forward<TArgs>(args)...);
+    stackRecord = new (std::nothrow) TNode(std::forward<TArgs>(args)...);
 }
 
 template <class T, class ...TArgs>
@@ -32,27 +32,45 @@ std::unique_ptr<T> Take(T* & stackRecord)
 }
 
 template <class T>
-T *Move(T *& stackRecord)
+void MoveAST(T *& stackRecord, T *& targetRecord)
 {
-    T *ret = stackRecord;
+    targetRecord = stackRecord;
     stackRecord = nullptr;
-    return ret;
 }
 
-template <class TRuleRecord>
-void DestroyBlock(CBatchParser *pParser, TRuleRecord & record)
+template <class T>
+void Destroy(T *& stackRecord)
 {
-    if (record)
-    {
-        pParser->ExitBlock();
-        delete record;
-        record = nullptr;
-    }
+    delete stackRecord;
+    stackRecord = nullptr;
 }
+
+template <class TTarget, class TItem>
+void CreateList(TTarget *& target, TItem *& item)
+{
+    auto list = Make<TTarget>();
+    if (item)
+    {
+        list->emplace_back(Take(item));
+    }
+    target = list.release();
+};
+
+template <class TTarget, class TItem>
+void ConcatList(TTarget *& target, TTarget *& list, TItem *& item)
+{
+    auto pList = Take(list);
+    if (item)
+    {
+        pList->emplace_back(Take(item));
+    }
+    target = pList.release();
+};
 
 using ExpressionListPtr = ExpressionList*;
+using StatementListPtr = StatementsList*;
+using StatementPtr = IStatementAST*;
 using ExpressionPtr = IExpressionAST*;
-using BlockPtr = CAbstractBlockAST*;
 
 }
 
