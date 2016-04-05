@@ -197,8 +197,9 @@ double CCallAST::Evaluate(CInterpreterContext &context) const
     return GetNaN();
 }
 
-CFunctionAST::CFunctionAST(unsigned nameId, StatementsList && body)
+CFunctionAST::CFunctionAST(unsigned nameId, std::vector<unsigned> argumentNames, StatementsList && body)
     : m_nameId(nameId)
+    , m_argumentNames(argumentNames)
     , m_body(std::move(body))
 {
 }
@@ -212,7 +213,7 @@ double CFunctionAST::Call(CInterpreterContext &context, const std::vector<double
 {
     if (arguments.size() != m_argumentNames.size())
     {
-        std::cerr << "" << std::endl;
+        std::cerr << "arguments and parameters count mismatch" << std::endl;
         return GetNaN();
     }
 
@@ -237,4 +238,15 @@ double CFunctionAST::Call(CInterpreterContext &context, const std::vector<double
     }
 
     return returnedValue.get_value_or(GetNaN());
+}
+
+CReturnAST::CReturnAST(IExpressionASTUniquePtr &&value)
+    : m_value(std::move(value))
+{
+}
+
+void CReturnAST::Execute(CInterpreterContext &context) const
+{
+    double result = m_value->Evaluate(context);
+    context.SetReturnValue(result);
 }

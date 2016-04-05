@@ -126,6 +126,11 @@ statement(X) ::= PRINT expression(A).
     EmplaceAST<CPrintAST>(X, Take(A));
 }
 
+statement(X) ::= RETURN expression(A).
+{
+    EmplaceAST<CReturnAST>(X, Take(A));
+}
+
 statement(X) ::= IF expression(A) NEWLINE END.
 {
     EmplaceAST<CIfAst>(X, Take(A));

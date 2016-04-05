@@ -127,6 +127,18 @@ private:
     IExpressionASTUniquePtr m_value;
 };
 
+class CReturnAST : public IStatementAST
+{
+public:
+    CReturnAST(IExpressionASTUniquePtr && value);
+
+protected:
+    void Execute(CInterpreterContext &context)const override;
+
+private:
+    IExpressionASTUniquePtr m_value;
+};
+
 class CWhileAst : public IStatementAST
 {
 public:
@@ -174,7 +186,7 @@ private:
 class CFunctionAST : public IFunctionAST
 {
 public:
-    CFunctionAST(unsigned nameId, StatementsList && body);
+    CFunctionAST(unsigned nameId, std::vector<unsigned> argumentNames, StatementsList && body);
 
     unsigned GetNameId()const;
 

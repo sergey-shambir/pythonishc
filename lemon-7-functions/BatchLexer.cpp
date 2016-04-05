@@ -14,6 +14,7 @@ CBatchLexer::CBatchLexer(unsigned lineNo, std::string const& sources, CStringPoo
         { "else",  TK_ELSE },
         { "while", TK_WHILE },
         { "print", TK_PRINT },
+        { "return", TK_RETURN },
       })
 {
 }
