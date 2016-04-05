@@ -5,6 +5,7 @@
 #include "Token.h"
 #include "BatchGrammar.h"
 #include <iostream>
+#include <cstdlib>
 
 bool ConsumeLine(unsigned lineNo, std::string const& expr,
                  CStringPool & stringPool, CBatchParser & parser)
@@ -45,6 +46,7 @@ void EnterInterpreterLoop()
 
 int main()
 {
+    std::srand(static_cast<unsigned>(time(nullptr)));
     EnterInterpreterLoop();
     return 0;
 }

@@ -1,10 +1,54 @@
+#include "BatchAST.h"
 #include "InterpreterContext.h"
 #include "StringPool.h"
 #include <iostream>
 
-CInterpreterContext::CInterpreterContext(const CStringPool &pool)
+class CSinFunction : public IFunctionAST
+{
+public:
+    double Call(CInterpreterContext &context, const std::vector<double> &arguments) const override
+    {
+        (void)context;
+        if (arguments.size() != 1)
+        {
+            std::cerr << "sin needs exactly 1 argument" << std::endl;
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return sin(arguments[0]);
+    }
+};
+
+class CRandFunction : public IFunctionAST
+{
+public:
+    double Call(CInterpreterContext &context, const std::vector<double> &arguments) const override
+    {
+        (void)context;
+        if (arguments.size() != 2)
+        {
+            std::cerr << "rand needs exactly 2 argument" << std::endl;
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        if (arguments[0] > arguments[1])
+        {
+            std::cerr << "rand: first argument must be less than or equal to second" << std::endl;
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        double rand0to1 = double(std::rand()) / std::numeric_limits<unsigned>::max();
+        return (arguments[1] - arguments[0]) * rand0to1 + arguments[0];
+    }
+};
+
+CInterpreterContext::CInterpreterContext(CStringPool &pool)
     : m_pool(pool)
 {
+    m_builtins.emplace_back(new CSinFunction);
+    unsigned nameSin = m_pool.Insert("sin");
+    m_functions[nameSin] = m_builtins.back().get();
+
+    m_builtins.emplace_back(new CRandFunction);
+    unsigned nameRand = m_pool.Insert("rand");
+    m_functions[nameRand] = m_builtins.back().get();
 }
 
 void CInterpreterContext::AssignVariable(unsigned nameId, double value)

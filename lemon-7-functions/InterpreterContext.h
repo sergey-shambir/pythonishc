@@ -1,6 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include <unordered_set>
+#include <memory>
 #include <boost/optional.hpp>
 
 class CStringPool;
@@ -25,12 +26,13 @@ private:
 class CInterpreterContext
 {
 public:
-    CInterpreterContext(CStringPool const& pool);
+    CInterpreterContext(CStringPool & pool);
 
     void AssignVariable(unsigned nameId, double value);
     bool HasVariable(unsigned nameId)const;
     void RemoveVariable(unsigned nameId);
     double GetVariableValue(unsigned nameId)const;
+
     IFunctionAST *GetFunction(unsigned nameId)const;
     void AddFunction(unsigned nameId, IFunctionAST *function);
 
@@ -42,6 +44,7 @@ public:
 private:
     std::unordered_map<unsigned, double> m_variables;
     std::unordered_map<unsigned, IFunctionAST*> m_functions;
-    CStringPool const& m_pool;
+    CStringPool & m_pool;
     boost::optional<double> m_returnValueOpt;
+    std::vector<std::unique_ptr<IFunctionAST>> m_builtins;
 };

@@ -48,6 +48,9 @@ int CBatchLexer::Scan(SToken &data)
     case '/':
         m_peep.remove_prefix(1);
         return TK_SLASH;
+    case ',':
+        m_peep.remove_prefix(1);
+        return TK_COMMA;
     case '%':
         m_peep.remove_prefix(1);
         return TK_PERCENT;

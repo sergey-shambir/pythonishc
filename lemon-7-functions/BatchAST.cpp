@@ -188,7 +188,7 @@ double CCallAST::Evaluate(CInterpreterContext &context) const
 {
     if (IFunctionAST *func = context.GetFunction(m_nameId))
     {
-        std::vector<double> args;
+        std::vector<double> args(m_arguments.size());
         std::transform(m_arguments.begin(), m_arguments.end(), args.begin(), [&](IExpressionASTUniquePtr const& ast) {
             return ast->Evaluate(context);
         });
