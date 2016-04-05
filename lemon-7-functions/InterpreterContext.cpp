@@ -42,13 +42,8 @@ public:
 CInterpreterContext::CInterpreterContext(CStringPool &pool)
     : m_pool(pool)
 {
-    m_builtins.emplace_back(new CSinFunction);
-    unsigned nameSin = m_pool.Insert("sin");
-    m_functions[nameSin] = m_builtins.back().get();
-
-    m_builtins.emplace_back(new CRandFunction);
-    unsigned nameRand = m_pool.Insert("rand");
-    m_functions[nameRand] = m_builtins.back().get();
+    AddBuiltin("sin", std::unique_ptr<IFunctionAST>(new CSinFunction));
+    AddBuiltin("rand", std::unique_ptr<IFunctionAST>(new CRandFunction));
 }
 
 void CInterpreterContext::AssignVariable(unsigned nameId, double value)
@@ -113,6 +108,13 @@ void CInterpreterContext::SetReturnValue(boost::optional<double> const& valueOpt
 boost::optional<double> CInterpreterContext::GetReturnValue() const
 {
     return m_returnValueOpt;
+}
+
+void CInterpreterContext::AddBuiltin(const std::string &name, std::unique_ptr<IFunctionAST> &&function)
+{
+    m_builtins.emplace_back(std::move(function));
+    unsigned nameRand = m_pool.Insert(name);
+    m_functions[nameRand] = m_builtins.back().get();
 }
 
 CVariableScope::CVariableScope(CInterpreterContext &context)

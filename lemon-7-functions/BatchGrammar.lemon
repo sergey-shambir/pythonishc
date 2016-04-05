@@ -176,6 +176,11 @@ expression_list(X) ::= expression_list(A) COMMA expression(B).
     ConcatList(X, A, B);
 }
 
+expression(X) ::= ID(A) LPAREN RPAREN.
+{
+    EmplaceAST<CCallAST>(X, A.stringId, ExpressionList());
+}
+
 expression(X) ::= ID(A) LPAREN expression_list(B) RPAREN.
 {
     auto pList = Take(B);

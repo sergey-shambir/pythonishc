@@ -83,8 +83,8 @@ typedef union {
 #define ParseBatchGrammarARG_PDECL ,CBatchParser *pParse
 #define ParseBatchGrammarARG_FETCH CBatchParser *pParse = yypParser->pParse
 #define ParseBatchGrammarARG_STORE yypParser->pParse = pParse
-#define YYNSTATE 68
-#define YYNRULE 30
+#define YYNSTATE 69
+#define YYNRULE 31
 #define YYERRORSYMBOL 19
 #define YYERRSYMDT yy57
 #define YY_NO_ACTION      (YYNSTATE+YYNRULE+2)
@@ -155,71 +155,73 @@ static const YYMINORTYPE yyzerominor = { 0 };
 **                     shifting non-terminals after a reduce.
 **  yy_default[]       Default action for each state.
 */
-#define YY_ACTTAB_COUNT (157)
+#define YY_ACTTAB_COUNT (164)
 static const YYACTIONTYPE yy_action[] = {
  /*     0 */    24,   23,   21,   20,   19,    1,   21,   20,   19,   16,
- /*    10 */    52,   60,   24,   23,   21,   20,   19,    1,   67,   57,
- /*    20 */    10,   46,   51,   15,   14,   55,   42,   13,   41,   24,
+ /*    10 */    52,   61,   24,   23,   21,   20,   19,    1,   68,   57,
+ /*    20 */     9,   46,   51,   15,   14,   55,   42,   13,   41,   24,
  /*    30 */    23,   21,   20,   19,   24,   23,   21,   20,   19,    2,
- /*    40 */    24,   23,   21,   20,   19,   65,   25,   24,   23,   21,
- /*    50 */    20,   19,    1,   68,   43,   56,   44,   59,    7,  100,
- /*    60 */    46,   33,   15,   14,    4,   39,   13,   41,   46,    3,
- /*    70 */    15,   14,   54,   48,   13,   41,   46,   34,   15,   14,
- /*    80 */    53,  100,   13,   41,   46,   35,   15,   14,   49,  100,
- /*    90 */    13,   41,   46,   36,   15,   14,   50,   66,   13,   41,
- /*   100 */    18,   17,   46,   47,   15,   14,   45,   30,   12,   41,
- /*   110 */    43,  100,   44,   59,    8,   22,   46,   61,   15,   14,
- /*   120 */    64,   63,   13,   41,   46,   62,   15,   14,   38,  100,
- /*   130 */    11,   41,   43,  100,   44,   59,    5,   43,  100,   44,
- /*   140 */    59,    6,   37,   43,   66,   44,   58,   32,   99,    9,
- /*   150 */    40,   31,   29,   28,  100,   27,   26,
+ /*    40 */    18,   17,   25,   34,   56,   66,   45,   24,   23,   21,
+ /*    50 */    20,   19,    1,   69,    4,   22,   60,   62,   67,  102,
+ /*    60 */    46,   33,   15,   14,   47,   39,   13,   41,   46,    3,
+ /*    70 */    15,   14,   54,   48,   13,   41,   46,   35,   15,   14,
+ /*    80 */    53,  102,   13,   41,   46,   36,   15,   14,   49,  102,
+ /*    90 */    13,   41,   46,   30,   15,   14,   50,  102,   13,   41,
+ /*   100 */    24,   23,   21,   20,   19,   18,   17,   46,   65,   15,
+ /*   110 */    14,   45,   64,   12,   41,   43,  102,   44,   59,    7,
+ /*   120 */    22,   46,   62,   15,   14,   63,   38,   13,   41,   46,
+ /*   130 */    37,   15,   14,   32,  102,   11,   41,   43,  102,   44,
+ /*   140 */    59,    8,   43,  102,   44,   59,    5,   43,  102,   44,
+ /*   150 */    59,    6,   43,   67,   44,   58,   31,  101,   10,   40,
+ /*   160 */    29,   28,   27,   26,
 };
 static const YYCODETYPE yy_lookahead[] = {
  /*     0 */     1,    2,    3,    4,    5,    6,    3,    4,    5,   15,
  /*    10 */    11,   17,    1,    2,    3,    4,    5,    6,    6,    6,
  /*    20 */    16,    7,   11,    9,   10,   11,   12,   13,   14,    1,
  /*    30 */     2,    3,    4,    5,    1,    2,    3,    4,    5,    6,
- /*    40 */     1,    2,    3,    4,    5,   17,    8,    1,    2,    3,
- /*    50 */     4,    5,    6,    0,   19,    6,   21,   22,   23,   28,
- /*    60 */     7,   20,    9,   10,    6,   24,   13,   14,    7,    6,
+ /*    40 */     1,    2,    8,   20,    6,   17,    7,    1,    2,    3,
+ /*    50 */     4,    5,    6,    0,    6,   16,   17,   18,   21,   28,
+ /*    60 */     7,   20,    9,   10,   27,   24,   13,   14,    7,    6,
  /*    70 */     9,   10,   11,    6,   13,   14,    7,   20,    9,   10,
  /*    80 */    11,   28,   13,   14,    7,   20,    9,   10,   11,   28,
- /*    90 */    13,   14,    7,   20,    9,   10,   11,   21,   13,   14,
- /*   100 */     1,    2,    7,   27,    9,   10,    7,   20,   13,   14,
- /*   110 */    19,   28,   21,   22,   23,   16,    7,   18,    9,   10,
- /*   120 */    20,   20,   13,   14,    7,   20,    9,   10,   20,   28,
- /*   130 */    13,   14,   19,   28,   21,   22,   23,   19,   28,   21,
- /*   140 */    22,   23,   20,   19,   21,   21,   22,   20,   25,   26,
- /*   150 */    27,   20,   20,   20,   28,   20,   20,
+ /*    90 */    13,   14,    7,   20,    9,   10,   11,   28,   13,   14,
+ /*   100 */     1,    2,    3,    4,    5,    1,    2,    7,   20,    9,
+ /*   110 */    10,    7,   20,   13,   14,   19,   28,   21,   22,   23,
+ /*   120 */    16,    7,   18,    9,   10,   20,   20,   13,   14,    7,
+ /*   130 */    20,    9,   10,   20,   28,   13,   14,   19,   28,   21,
+ /*   140 */    22,   23,   19,   28,   21,   22,   23,   19,   28,   21,
+ /*   150 */    22,   23,   19,   21,   21,   22,   20,   25,   26,   27,
+ /*   160 */    20,   20,   20,   20,
 };
 #define YY_SHIFT_USE_DFLT (-7)
 #define YY_SHIFT_COUNT (47)
 #define YY_SHIFT_MIN   (-6)
-#define YY_SHIFT_MAX   (117)
+#define YY_SHIFT_MAX   (122)
 static const signed char yy_shift_ofst[] = {
- /*     0 */   109,   85,   77,  117,  109,   14,   69,   61,   95,   53,
- /*    10 */    99,   99,   99,   99,   99,   99,   99,   99,   99,   99,
- /*    20 */    99,   99,   99,   99,   99,   99,   11,   -1,   46,   33,
- /*    30 */    28,   39,   39,   39,   39,    3,    3,    3,    3,   -6,
- /*    40 */    67,   63,   58,   49,   13,    4,   38,   12,
+ /*     0 */   114,   85,   77,  122,  114,   14,   69,   61,  100,   39,
+ /*    10 */    53,  104,  104,  104,  104,  104,  104,  104,  104,  104,
+ /*    20 */   104,  104,  104,  104,  104,  104,   11,   -1,   46,   33,
+ /*    30 */    28,   99,   99,   99,   99,    3,    3,    3,    3,   -6,
+ /*    40 */    67,   63,   48,   38,   13,    4,   34,   12,
 };
 #define YY_REDUCE_USE_DFLT (-1)
 #define YY_REDUCE_COUNT (25)
 #define YY_REDUCE_MIN   (0)
-#define YY_REDUCE_MAX   (136)
+#define YY_REDUCE_MAX   (143)
 static const short yy_reduce_ofst[] = {
- /*     0 */   123,  118,  113,   91,   35,  124,  124,  124,  124,   76,
- /*    10 */    41,  136,  135,  133,  132,  131,  127,  122,  108,  105,
- /*    20 */   101,  100,   87,   73,   65,   57,
+ /*     0 */   132,  128,  123,  118,   96,  133,  133,  133,  133,   41,
+ /*    10 */    37,  143,  142,  141,  140,  136,  113,  110,  106,  105,
+ /*    20 */    92,   88,   73,   65,   57,   23,
 };
 static const YYACTIONTYPE yy_default[] = {
- /*     0 */    98,   98,   98,   98,   98,   98,   98,   98,   98,   98,
- /*    10 */    98,   98,   98,   98,   98,   98,   98,   98,   98,   98,
- /*    20 */    98,   98,   98,   98,   98,   98,   98,   98,   98,   98,
- /*    30 */    98,   77,   86,   85,   76,   89,   90,   95,   94,   98,
- /*    40 */    98,   98,   98,   98,   98,   97,   98,   98,   69,   78,
- /*    50 */    81,   83,   84,   82,   80,   79,   75,   74,   73,   72,
- /*    60 */    87,   96,   93,   92,   91,   88,   71,   70,
+ /*     0 */   100,  100,  100,  100,  100,  100,  100,  100,  100,  100,
+ /*    10 */   100,  100,  100,  100,  100,  100,  100,  100,  100,  100,
+ /*    20 */   100,  100,  100,  100,  100,  100,  100,  100,  100,  100,
+ /*    30 */   100,   78,   87,   86,   77,   91,   92,   97,   96,  100,
+ /*    40 */   100,  100,  100,  100,  100,   99,  100,  100,   70,   79,
+ /*    50 */    82,   84,   85,   83,   81,   80,   76,   75,   74,   73,
+ /*    60 */    88,   89,   98,   95,   94,   93,   90,   72,   71,
 };
 
 /* The next table maps tokens into fallback tokens.  If a construct
@@ -345,17 +347,18 @@ static const char *const yyRuleName[] = {
  /*  16 */ "statement ::= DO NEWLINE statement_list WHILE expression END",
  /*  17 */ "expression_list ::= expression",
  /*  18 */ "expression_list ::= expression_list COMMA expression",
- /*  19 */ "expression ::= ID LPAREN expression_list RPAREN",
- /*  20 */ "expression ::= LPAREN expression RPAREN",
- /*  21 */ "expression ::= expression PLUS expression",
- /*  22 */ "expression ::= expression MINUS expression",
- /*  23 */ "expression ::= expression STAR expression",
- /*  24 */ "expression ::= expression SLASH expression",
- /*  25 */ "expression ::= expression PERCENT expression",
- /*  26 */ "expression ::= PLUS expression",
- /*  27 */ "expression ::= MINUS expression",
- /*  28 */ "expression ::= NUMBER",
- /*  29 */ "expression ::= ID",
+ /*  19 */ "expression ::= ID LPAREN RPAREN",
+ /*  20 */ "expression ::= ID LPAREN expression_list RPAREN",
+ /*  21 */ "expression ::= LPAREN expression RPAREN",
+ /*  22 */ "expression ::= expression PLUS expression",
+ /*  23 */ "expression ::= expression MINUS expression",
+ /*  24 */ "expression ::= expression STAR expression",
+ /*  25 */ "expression ::= expression SLASH expression",
+ /*  26 */ "expression ::= expression PERCENT expression",
+ /*  27 */ "expression ::= PLUS expression",
+ /*  28 */ "expression ::= MINUS expression",
+ /*  29 */ "expression ::= NUMBER",
+ /*  30 */ "expression ::= ID",
 };
 #endif /* NDEBUG */
 
@@ -739,6 +742,7 @@ static const struct {
   { 21, 6 },
   { 24, 1 },
   { 24, 3 },
+  { 20, 3 },
   { 20, 4 },
   { 20, 3 },
   { 20, 3 },
@@ -925,7 +929,14 @@ static void yy_reduce(
   yy_destructor(yypParser,15,&yymsp[-1].minor);
 }
         break;
-      case 19: /* expression ::= ID LPAREN expression_list RPAREN */
+      case 19: /* expression ::= ID LPAREN RPAREN */
+{
+    EmplaceAST<CCallAST>(yygotominor.yy7, yymsp[-2].minor.yy0.stringId, ExpressionList());
+  yy_destructor(yypParser,16,&yymsp[-1].minor);
+  yy_destructor(yypParser,17,&yymsp[0].minor);
+}
+        break;
+      case 20: /* expression ::= ID LPAREN expression_list RPAREN */
 {
     auto pList = Take(yymsp[-1].minor.yy39);
     EmplaceAST<CCallAST>(yygotominor.yy7, yymsp[-3].minor.yy0.stringId, std::move(*pList));
@@ -933,61 +944,61 @@ static void yy_reduce(
   yy_destructor(yypParser,17,&yymsp[0].minor);
 }
         break;
-      case 20: /* expression ::= LPAREN expression RPAREN */
+      case 21: /* expression ::= LPAREN expression RPAREN */
 {
     MovePointer(yymsp[-1].minor.yy7, yygotominor.yy7);
   yy_destructor(yypParser,16,&yymsp[-2].minor);
   yy_destructor(yypParser,17,&yymsp[0].minor);
 }
         break;
-      case 21: /* expression ::= expression PLUS expression */
+      case 22: /* expression ::= expression PLUS expression */
 {
     EmplaceAST<CBinaryExpressionAST>(yygotominor.yy7, Take(yymsp[-2].minor.yy7), BinaryOperation::Add, Take(yymsp[0].minor.yy7));
   yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
         break;
-      case 22: /* expression ::= expression MINUS expression */
+      case 23: /* expression ::= expression MINUS expression */
 {
     EmplaceAST<CBinaryExpressionAST>(yygotominor.yy7, Take(yymsp[-2].minor.yy7), BinaryOperation::Substract, Take(yymsp[0].minor.yy7));
   yy_destructor(yypParser,2,&yymsp[-1].minor);
 }
         break;
-      case 23: /* expression ::= expression STAR expression */
+      case 24: /* expression ::= expression STAR expression */
 {
     EmplaceAST<CBinaryExpressionAST>(yygotominor.yy7, Take(yymsp[-2].minor.yy7), BinaryOperation::Multiply, Take(yymsp[0].minor.yy7));
   yy_destructor(yypParser,3,&yymsp[-1].minor);
 }
         break;
-      case 24: /* expression ::= expression SLASH expression */
+      case 25: /* expression ::= expression SLASH expression */
 {
     EmplaceAST<CBinaryExpressionAST>(yygotominor.yy7, Take(yymsp[-2].minor.yy7), BinaryOperation::Divide, Take(yymsp[0].minor.yy7));
   yy_destructor(yypParser,4,&yymsp[-1].minor);
 }
         break;
-      case 25: /* expression ::= expression PERCENT expression */
+      case 26: /* expression ::= expression PERCENT expression */
 {
     EmplaceAST<CBinaryExpressionAST>(yygotominor.yy7, Take(yymsp[-2].minor.yy7), BinaryOperation::Modulo, Take(yymsp[0].minor.yy7));
   yy_destructor(yypParser,5,&yymsp[-1].minor);
 }
         break;
-      case 26: /* expression ::= PLUS expression */
+      case 27: /* expression ::= PLUS expression */
 {
     EmplaceAST<CUnaryExpressionAST>(yygotominor.yy7, UnaryOperation::Plus, Take(yymsp[0].minor.yy7));
   yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
         break;
-      case 27: /* expression ::= MINUS expression */
+      case 28: /* expression ::= MINUS expression */
 {
     EmplaceAST<CUnaryExpressionAST>(yygotominor.yy7, UnaryOperation::Minus, Take(yymsp[0].minor.yy7));
   yy_destructor(yypParser,2,&yymsp[-1].minor);
 }
         break;
-      case 28: /* expression ::= NUMBER */
+      case 29: /* expression ::= NUMBER */
 {
     EmplaceAST<CLiteralAST>(yygotominor.yy7, yymsp[0].minor.yy0.value);
 }
         break;
-      case 29: /* expression ::= ID */
+      case 30: /* expression ::= ID */
 {
     EmplaceAST<CVariableRefAST>(yygotominor.yy7, yymsp[0].minor.yy0.stringId);
 }

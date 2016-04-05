@@ -42,6 +42,8 @@ public:
     boost::optional<double> GetReturnValue()const;
 
 private:
+    void AddBuiltin(const std::string &name, std::unique_ptr<IFunctionAST> && function);
+
     std::unordered_map<unsigned, double> m_variables;
     std::unordered_map<unsigned, IFunctionAST*> m_functions;
     CStringPool & m_pool;
