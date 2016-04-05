@@ -84,6 +84,8 @@ using StatementListPtr = StatementsList*;
 using StatementPtr = IStatementAST*;
 using ExpressionPtr = IExpressionAST*;
 using FunctionPtr = IFunctionAST*;
+using NamesList = std::vector<unsigned>;
+using NamesListPtr = NamesList*;
 
 }
 

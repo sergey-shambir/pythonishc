@@ -85,6 +85,9 @@ using namespace parser_private;
 %type function_declaration FunctionPtr
 %destructor function_declaration { Destroy($$); }
 
+%type parameter_list NamesListPtr
+%destructor function_declaration { Destroy($$); }
+
 %left PLUS MINUS.
 %left STAR SLASH PERCENT.
 
@@ -112,6 +115,27 @@ function_declaration(X) ::= FUNCTION ID(A) LPAREN RPAREN NEWLINE statement_list(
 {
     auto pBody = Take(B);
     EmplaceAST<CFunctionAST>(X, A.stringId, std::vector<unsigned>(), std::move(*pBody));
+}
+
+function_declaration(X) ::= FUNCTION ID(A) LPAREN parameter_list(B) RPAREN NEWLINE statement_list(C) END.
+{
+    auto pParameters = Take(B);
+    auto pBody = Take(C);
+    EmplaceAST<CFunctionAST>(X, A.stringId, std::move(*pParameters), std::move(*pBody));
+}
+
+parameter_list(X) ::= ID(A).
+{
+    auto list = Make<NamesList>();
+    list->emplace_back(A.stringId);
+    X = list.release();
+}
+
+parameter_list(X) ::= parameter_list(A) COMMA ID(B).
+{
+    auto pList = Take(A);
+    pList->emplace_back(B.stringId);
+    X = pList.release();
 }
 
 statement_list(X) ::= statement_line(A).
