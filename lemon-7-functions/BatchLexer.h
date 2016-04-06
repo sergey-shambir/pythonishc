@@ -1,10 +1,11 @@
 #pragma once
 
+#include <cctype>
 #include <string>
+#include <map>
 #include <boost/utility/string_ref.hpp>
 #include "Token.h"
 #include "StringPool.h"
-#include <map>
 
 class CBatchLexer
 {

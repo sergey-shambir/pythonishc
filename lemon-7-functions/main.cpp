@@ -5,7 +5,7 @@
 #include "Token.h"
 #include "BatchGrammar.h"
 #include <iostream>
-#include <cstdlib>
+#include <time.h>
 
 bool ConsumeLine(unsigned lineNo, std::string const& expr,
                  CStringPool & stringPool, CBatchParser & parser)
