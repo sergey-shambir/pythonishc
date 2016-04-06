@@ -56,6 +56,16 @@ CInterpreterContext::CInterpreterContext(CStringPool &pool)
     AddBuiltin("rand", std::unique_ptr<IFunctionAST>(new CRandFunction));
 }
 
+std::unique_ptr<CVariablesScope> CInterpreterContext::MakeScope()
+{
+    return std::unique_ptr<CVariablesScope>(new CVariablesScope(*this));
+}
+
+CVariablesScope &CInterpreterContext::GetCurrentScope()
+{
+    return *m_scopes.top();
+}
+
 void CInterpreterContext::AssignVariable(unsigned nameId, double value)
 {
     m_variables[nameId] = value;
@@ -127,29 +137,12 @@ void CInterpreterContext::AddBuiltin(const std::string &name, std::unique_ptr<IF
     m_functions[nameRand] = m_builtins.back().get();
 }
 
-CVariableScope::CVariableScope(CInterpreterContext &context)
-    : m_context(context)
+void CInterpreterContext::EnterScope(CVariablesScope &scope)
 {
+    m_scopes.push(&scope);
 }
 
-CVariableScope::~CVariableScope()
+void CInterpreterContext::ExitScope()
 {
-    for (unsigned nameId : m_addedVariables)
-    {
-        m_context.RemoveVariable(nameId);
-    }
-    for (auto pair : m_shadowedVariables)
-    {
-        m_context.AssignVariable(pair.first, pair.second);
-    }
-}
-
-void CVariableScope::AddVariable(unsigned nameId, double value)
-{
-    m_addedVariables.insert(nameId);
-    if (m_context.HasVariable(nameId))
-    {
-        m_shadowedVariables[nameId] = m_context.GetVariableValue(nameId);
-    }
-    m_context.AssignVariable(nameId, value);
+    m_scopes.pop();
 }

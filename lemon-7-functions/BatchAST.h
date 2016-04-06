@@ -3,10 +3,12 @@
 #include <memory>
 #include <vector>
 
+class CInterpreterContext;
+class CVariablesScope;
+
 class IExpressionAST;
 class IStatementAST;
 class IFunctionAST;
-class CInterpreterContext;
 
 using IExpressionASTUniquePtr = std::unique_ptr<IExpressionAST>;
 using IStatementASTUniquePtr = std::unique_ptr<IStatementAST>;
@@ -207,11 +209,13 @@ class CProgramAst
 {
 public:
     CProgramAst(CInterpreterContext &context);
+    ~CProgramAst();
 
     void AddStatement(IStatementASTUniquePtr && stmt);
     void AddFunction(IFunctionASTUniquePtr && function);
 
 private:
     CInterpreterContext &m_context;
+    std::unique_ptr<CVariablesScope> m_pScope;
     FunctionList m_functions;
 };

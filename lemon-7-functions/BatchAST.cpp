@@ -47,7 +47,7 @@ CAssignAST::CAssignAST(unsigned nameId, IExpressionASTUniquePtr &&value)
 void CAssignAST::Execute(CInterpreterContext &context)const
 {
     const double value = m_value->Evaluate(context);
-    context.AssignVariable(m_nameId, value);
+    context.GetCurrentScope().AssignVariable(m_nameId, value);
 }
 
 CBinaryExpressionAST::CBinaryExpressionAST(IExpressionASTUniquePtr &&left, BinaryOperation op, IExpressionASTUniquePtr &&right)
@@ -116,7 +116,7 @@ CVariableRefAST::CVariableRefAST(unsigned nameId)
 
 double CVariableRefAST::Evaluate(CInterpreterContext &context) const
 {
-    return context.GetVariableValue(m_nameId);
+    return context.GetCurrentScope().GetVariableValue(m_nameId);
 }
 
 CIfAst::CIfAst(IExpressionASTUniquePtr &&condition, StatementsList &&thenBody, StatementsList &&elseBody)
@@ -141,6 +141,11 @@ void CIfAst::Execute(CInterpreterContext &context) const
 
 CProgramAst::CProgramAst(CInterpreterContext &context)
     : m_context(context)
+    , m_pScope(std::move(context.MakeScope()))
+{
+}
+
+CProgramAst::~CProgramAst()
 {
 }
 
@@ -224,11 +229,11 @@ double CFunctionAST::Call(CInterpreterContext &context, const std::vector<double
         return GetNaN();
     }
 
-    CVariableScope scope(context);
+    std::unique_ptr<CVariablesScope> scope = context.MakeScope();
     auto argumentIt = arguments.begin();
     for (unsigned nameId : m_argumentNames)
     {
-        scope.AddVariable(nameId, *argumentIt);
+        scope->AssignVariable(nameId, *argumentIt);
         ++argumentIt;
     }
 
