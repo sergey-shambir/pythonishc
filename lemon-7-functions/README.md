@@ -46,12 +46,27 @@ result: 2016
 - CRandFunction реализует встроенную функцию `rand(min, max)`
 - CSinFunction реализует встроенную функцию `sin(x)`
 
-Изменения в `BatchGrammar.lemon`
+Рефакторинг обработки вложенных statements:
 
-- **пока не описаны**
+- из класса CBatchParser убраны методы EnterBlock и ExitBlock, больше не хранится стек текущих блоков
+- вместо этого некоторые правила Lemon-грамматики хранят в своей ячейке стека тип данных "`std::vector<T> *`"
+- для гарантии безопасности работы со списками в `CBatchParser_private.h` описаны шаблонные функции, автоматически выводящие свои типы из типов ячеек стека, переданных как аргументы. Это позволило сжать действия атрибутной грамматики до 1-й строки в большинстве правил
+- удалось избавится от дополнительных правил, необходимых для раннего формирования родительского AST (до свёртки дочерних statements), так как теперь можно свернуть дочерние statements перед созданием родительского AST.
+- количество правил и нетерминалов в Lemon-грамматике заметно уменьшилось
 
-### Requirements
+Новые нетерминалы в `BatchGrammar.lemon`:
 
-- Ubuntu: Install `lemon` package
-- MS Windows: compile Lemon from [source code (hwaci.com)](http://www.hwaci.com/sw/lemon/). It's just two files, `lemon.c` and `lempar.c`.
-- Use any modern C++ compiler.
+- `function_declaration` для определения пользовательской функции
+- `parameter_list` для сборки списка параметров функции
+- `expression_list` для сборки списка аргументов функции
+- `toplevel_list`, `toplevel_line`, `toplevel_statement` позволяют интерпретатору автоматически выполнять инструкции, расположенные на верхнем уровне, а также не дают объявлять вложенные куда-либо функции
+
+Новые отдельные правила:
+
+- вызов функции: `expression ::= ID LPAREN expression_list RPAREN.`
+- инструкция return: `statement ::= RETURN expression.`
+
+### Системные требования
+
+- Для ОС Ubuntu: установите пакет `lemon`
+- Для ОС Windows: соберите Lemon из [исходных кодов (hwaci.com)](http://www.hwaci.com/sw/lemon/). Исходники Lemon состоят всего из двух файлов, `lemon.c` и `lempar.c`. Используйте любой современный компилятор C/C++.
