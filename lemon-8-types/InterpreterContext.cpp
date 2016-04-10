@@ -73,7 +73,7 @@ void CInterpreterContext::AssignVariable(unsigned nameId, double value)
 
 bool CInterpreterContext::HasVariable(unsigned nameId) const
 {
-    return m_variables.count(nameId);
+    return (0 != m_variables.count(nameId));
 }
 
 void CInterpreterContext::RemoveVariable(unsigned nameId)
