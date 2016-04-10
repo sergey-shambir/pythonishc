@@ -1,61 +1,72 @@
-# Structured language interpreter with LALR Parser and AST
+# Минимальная поддержка процедурного стиля в интерпретаторе
 
-Interpreter takes input line-by-line, builds AST for each line and then interprets it.
+Интерпретатор по-прежнему читает ввод построчно, строит AST и с его помощью выполняет инструкции.
 
-Interpreter supports expressions, variables and structured programming.
+С предыдущей итерации поддерживаются переменные, присваивания, печать выражений, управляющие инструкции `if`, `if .. else`, `while`, `do .. while`. В данном примере добавлена минимальная поддержка процедурного подхода:
 
-##### Input
+- пользовательские функции, принимающие (0..∞) аргументов
+- встроенные функции `sin(x)` и `rand(min, max)`
+- вызов функций
+- инструкция `return`
+- смена области видимости переменных внутри функции
+
+##### Ввод
 ```
-print 21 + 13 - (1.12 * 2 - 1.51 / 2)
-x = 10
-y = 12.2
-pinrt x*y
-print x*y
-if x
-  x = x + 1
+def sqr(x)
+  result = x * x
+  return result
 end
+
+result = 2016
+x = 2016
+y = sqr(10)
+print y
 print x
+print result
 ```
 
-##### Output
+##### Вывод
 ```
-result: 32.515
-Syntax error at (1,7).
-result: 122
-result: 11
-```
-
-### Changes since lemon-4-ast example
-
-New AST nodes:
-
-- CProgramAST
-- CIfAST
-
-Changes in `CBatchParser` class:
-
-- AST object pool removed since we use `%destructor` directive in LEMON and no longer need object pool idiom.
-- new methods added: `EnterBlock`, `ExitBlock`.
-- parser creates `CProgramAST` instance and just puts statements into the last block. `CProgramAST` executes statements, other blocks do not.
-
-After introducing blocks, only top-level statements are executed automatically since only top-level `CProgramAST` block runs execution. In the following example `print 1` executed only when parent `if`-statement runs it:
-
-```
-if 0
-  print 1
-end
+result: 100
+result: 2016
+result: 2016
 ```
 
-Changes in `BatchGrammar.lemon`
+### Изменения в сравнении с lemon-6-full-structured
 
-- rule `if_condition` added to create AST for `"if"` and enter if-block
-- rule `if_condition_line` added to garantue that rule `if_condition` reduced before any nested statement
-- new variant of `statement` added to reduce whole if statement and exit if-block.
-- LEMON "destructors" feature now used to garantue correct AST deletion. See `%destructor` directives.
-- New header file `BatchParser_private.h` added to move C++ code away from of LEMON file.
+Новые узлы AST:
 
-### Requirements
+- CReturnAST (подкласс IStatementAST)
+- CCallAST (подкласс IExpressionAST)
+- CFunctionAST (подкласс IFunctionAST)
 
-- Ubuntu: Install `lemon` package
-- MS Windows: compile Lemon from [source code (hwaci.com)](http://www.hwaci.com/sw/lemon/). It's just two files, `lemon.c` and `lempar.c`.
-- Use any modern C++ compiler.
+Новые классы:
+
+- CVariablesScope реализует область видимости переменных. Создаётся узлами `CProgramAST` и `CFunctionAST`.
+- CRandFunction реализует встроенную функцию `rand(min, max)`
+- CSinFunction реализует встроенную функцию `sin(x)`
+
+Рефакторинг обработки вложенных statements:
+
+- из класса CBatchParser убраны методы EnterBlock и ExitBlock, больше не хранится стек текущих блоков
+- вместо этого некоторые правила Lemon-грамматики хранят в своей ячейке стека тип данных "`std::vector<T> *`"
+- для гарантии безопасности работы со списками в `CBatchParser_private.h` описаны шаблонные функции, автоматически выводящие свои типы из типов ячеек стека, переданных как аргументы. Это позволило сжать действия атрибутной грамматики до 1-й строки в большинстве правил
+- удалось избавится от дополнительных правил, необходимых для раннего формирования родительского AST (до свёртки дочерних statements), так как теперь можно свернуть дочерние statements перед созданием родительского AST.
+- количество правил и нетерминалов в Lemon-грамматике заметно уменьшилось
+
+Новые нетерминалы в `BatchGrammar.lemon`:
+
+- `function_declaration` для определения пользовательской функции
+- `parameter_list` для сборки списка параметров функции
+- `expression_list` для сборки списка аргументов функции
+- `toplevel_list`, `toplevel_line`, `toplevel_statement` позволяют интерпретатору автоматически выполнять инструкции, расположенные на верхнем уровне, а также не дают объявлять вложенные куда-либо функции
+
+Новые отдельные правила:
+
+- вызов функции: `expression ::= ID LPAREN expression_list RPAREN.`
+- инструкция return: `statement ::= RETURN expression.`
+
+### Системные требования
+
+- Для ОС Ubuntu: установите пакет `lemon`
+- Для ОС Windows: соберите Lemon из [исходных кодов (hwaci.com)](http://www.hwaci.com/sw/lemon/). Исходники Lemon состоят всего из двух файлов, `lemon.c` и `lempar.c`. Используйте любой современный компилятор C/C++.
