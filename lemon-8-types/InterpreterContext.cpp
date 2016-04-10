@@ -3,18 +3,32 @@
 #include "StringPool.h"
 #include <iostream>
 
+namespace
+{
+
+template <class TFunction>
+CValue ExecuteSafely(TFunction && fn)
+{
+    try
+    {
+        return fn();
+    }
+    catch (std::exception const&)
+    {
+        return CValue::FromError(std::current_exception());
+    }
+}
+
 class CSinFunction : public IFunctionAST
 {
 public:
-    double Call(CInterpreterContext &context, const std::vector<double> &arguments) const override
+    CValue Call(CInterpreterContext &context, const std::vector<CValue> &arguments) const override
     {
         (void)context;
-        if (arguments.size() != 1)
-        {
-            std::cerr << "sin needs exactly 1 argument" << std::endl;
-            return std::numeric_limits<double>::quiet_NaN();
-        }
-        return sin(arguments[0]);
+        return ExecuteSafely([&] {
+            double radians = arguments.at(0).AsDouble();
+            return CValue::FromDouble(sin(radians));
+        });
     }
 
     unsigned GetNameId() const override
@@ -26,21 +40,21 @@ public:
 class CRandFunction : public IFunctionAST
 {
 public:
-    double Call(CInterpreterContext &context, const std::vector<double> &arguments) const override
+    CValue Call(CInterpreterContext &context, const std::vector<CValue> &arguments) const override
     {
+
         (void)context;
-        if (arguments.size() != 2)
-        {
-            std::cerr << "rand needs exactly 2 argument" << std::endl;
-            return std::numeric_limits<double>::quiet_NaN();
-        }
-        if (arguments[0] > arguments[1])
-        {
-            std::cerr << "rand: first argument must be less than or equal to second" << std::endl;
-            return std::numeric_limits<double>::quiet_NaN();
-        }
-        double rand0to1 = double(std::rand()) / std::numeric_limits<unsigned>::max();
-        return (arguments[1] - arguments[0]) * rand0to1 + arguments[0];
+        return ExecuteSafely([&] {
+            double minimum = arguments.at(0).AsDouble();
+            double maximum = arguments.at(1).AsDouble();
+            if (minimum > maximum)
+            {
+                return CValue::FromErrorMessage("invalid arguments for rand - range maximum is lesser than minimum.");
+            }
+            double rand0to1 = double(std::rand()) / std::numeric_limits<unsigned>::max();
+
+            return CValue::FromDouble((maximum - minimum) * rand0to1 + minimum);
+        });
     }
 
     unsigned GetNameId() const override
@@ -49,11 +63,17 @@ public:
     }
 };
 
+}
+
 CInterpreterContext::CInterpreterContext(CStringPool &pool)
     : m_pool(pool)
 {
     AddBuiltin("sin", std::unique_ptr<IFunctionAST>(new CSinFunction));
     AddBuiltin("rand", std::unique_ptr<IFunctionAST>(new CRandFunction));
+}
+
+CInterpreterContext::~CInterpreterContext()
+{
 }
 
 std::unique_ptr<CVariablesScope> CInterpreterContext::MakeScope()
@@ -66,9 +86,16 @@ CVariablesScope &CInterpreterContext::GetCurrentScope()
     return *m_scopes.top();
 }
 
-void CInterpreterContext::AssignVariable(unsigned nameId, double value)
+void CInterpreterContext::AssignVariable(unsigned nameId, CValue const& value)
 {
-    m_variables[nameId] = value;
+    if (value.IsError())
+    {
+        std::cerr << "  " << value << std::endl;
+    }
+    else
+    {
+        m_variables[nameId] = value;
+    }
 }
 
 bool CInterpreterContext::HasVariable(unsigned nameId) const
@@ -81,7 +108,7 @@ void CInterpreterContext::RemoveVariable(unsigned nameId)
     m_variables.erase(nameId);
 }
 
-double CInterpreterContext::GetVariableValue(unsigned nameId) const
+CValue CInterpreterContext::GetVariableValue(unsigned nameId) const
 {
     try
     {
@@ -89,8 +116,8 @@ double CInterpreterContext::GetVariableValue(unsigned nameId) const
     }
     catch (std::exception const&)
     {
-        std::cerr << "error: unknown variable " << m_pool.GetString(nameId) << std::endl;
-        return 0;
+        std::string message = "unknown variable " + m_pool.GetString(nameId);
+        return CValue::FromErrorMessage(message);
     }
 }
 
@@ -102,7 +129,6 @@ IFunctionAST *CInterpreterContext::GetFunction(unsigned nameId) const
     }
     catch (std::exception const&)
     {
-        std::cerr << "error: unknown function " << m_pool.GetString(nameId) << std::endl;
         return nullptr;
     }
 }
@@ -115,17 +141,17 @@ void CInterpreterContext::AddFunction(unsigned nameId, IFunctionAST *function)
     }
 }
 
-void CInterpreterContext::PrintResult(double value)
+void CInterpreterContext::PrintResult(CValue const& value)
 {
-    std::cout << "result: " << value << std::endl;
+    std::cerr << "  " << value << std::endl;
 }
 
-void CInterpreterContext::SetReturnValue(boost::optional<double> const& valueOpt)
+void CInterpreterContext::SetReturnValue(boost::optional<CValue> const& valueOpt)
 {
     m_returnValueOpt = valueOpt;
 }
 
-boost::optional<double> CInterpreterContext::GetReturnValue() const
+boost::optional<CValue> CInterpreterContext::GetReturnValue() const
 {
     return m_returnValueOpt;
 }

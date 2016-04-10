@@ -1090,7 +1090,7 @@ static void yy_reduce(
         break;
       case 37: /* expression ::= NUMBER */
 {
-    EmplaceAST<CLiteralAST>(yygotominor.yy29, yymsp[0].minor.yy0.value);
+    EmplaceAST<CLiteralAST>(yygotominor.yy29, CValue::FromDouble(yymsp[0].minor.yy0.value));
 }
         break;
       case 38: /* expression ::= ID */

@@ -13,7 +13,7 @@ double GetNaN()
     return std::numeric_limits<double>::quiet_NaN();
 }
 
-bool IsNonZero(double value)
+bool IsTrueConvertible(double value)
 {
     return fabs(value) > std::numeric_limits<double>::epsilon();
 }
@@ -129,7 +129,7 @@ CIfAst::CIfAst(IExpressionASTUniquePtr &&condition, StatementsList &&thenBody, S
 void CIfAst::Execute(CInterpreterContext &context) const
 {
     double result = m_condition->Evaluate(context);
-    if (IsNonZero(result))
+    if (IsTrueConvertible(result))
     {
         ExecuteAll(m_thenBody, context);
     }
@@ -169,7 +169,7 @@ CWhileAst::CWhileAst(IExpressionASTUniquePtr &&condition, StatementsList &&body)
 
 void CWhileAst::Execute(CInterpreterContext &context) const
 {
-    while (IsNonZero(m_condition->Evaluate(context)))
+    while (IsTrueConvertible(m_condition->Evaluate(context)))
     {
         ExecuteAll(m_body, context);
     }
@@ -187,7 +187,7 @@ void CRepeatAst::Execute(CInterpreterContext &context) const
     {
         ExecuteAll(m_body, context);
     }
-    while (IsNonZero(m_condition->Evaluate(context)));
+    while (IsTrueConvertible(m_condition->Evaluate(context)));
 }
 
 CCallAST::CCallAST(unsigned nameId, ExpressionList && arguments)

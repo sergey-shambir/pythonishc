@@ -276,7 +276,7 @@ expression(X) ::= MINUS expression(A).
 
 expression(X) ::= NUMBER(A).
 {
-    EmplaceAST<CLiteralAST>(X, A.value);
+    EmplaceAST<CLiteralAST>(X, CValue::FromDouble(A.value));
 }
 
 expression(X) ::= ID(A).

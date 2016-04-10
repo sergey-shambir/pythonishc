@@ -19,7 +19,7 @@ CVariablesScope::~CVariablesScope()
     m_context.ExitScope();
 }
 
-void CVariablesScope::AssignVariable(unsigned nameId, double value)
+void CVariablesScope::AssignVariable(unsigned nameId, CValue const& value)
 {
     if (!m_addedVariables.count(nameId))
     {
@@ -32,7 +32,7 @@ void CVariablesScope::AssignVariable(unsigned nameId, double value)
     m_context.AssignVariable(nameId, value);
 }
 
-double CVariablesScope::GetVariableValue(unsigned nameId) const
+CValue CVariablesScope::GetVariableValue(unsigned nameId) const
 {
     return m_context.GetVariableValue(nameId);
 }

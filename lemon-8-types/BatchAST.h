@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include "Value.h"
 
 class CInterpreterContext;
 class CVariablesScope;
@@ -17,11 +18,13 @@ using ExpressionList = std::vector<IExpressionASTUniquePtr>;
 using StatementsList = std::vector<IStatementASTUniquePtr>;
 using FunctionList = std::vector<IFunctionASTUniquePtr>;
 
+struct SErrorValue {};
+
 class IExpressionAST
 {
 public:
     virtual ~IExpressionAST() = default;
-    virtual double Evaluate(CInterpreterContext & context)const = 0;
+    virtual CValue Evaluate(CInterpreterContext & context)const = 0;
 };
 
 class IStatementAST
@@ -35,7 +38,7 @@ class IFunctionAST
 {
 public:
     virtual ~IFunctionAST() = default;
-    virtual double Call(CInterpreterContext & context, std::vector<double> const& arguments)const = 0;
+    virtual CValue Call(CInterpreterContext & context, std::vector<CValue> const& arguments)const = 0;
     virtual unsigned GetNameId()const = 0;
 };
 
@@ -52,7 +55,7 @@ class CBinaryExpressionAST : public IExpressionAST
 {
 public:
     CBinaryExpressionAST(IExpressionASTUniquePtr && left, BinaryOperation op, IExpressionASTUniquePtr && right);
-    double Evaluate(CInterpreterContext & context)const override;
+    CValue Evaluate(CInterpreterContext & context)const override;
 
 private:
     IExpressionASTUniquePtr m_left;
@@ -70,7 +73,7 @@ class CUnaryExpressionAST : public IExpressionAST
 {
 public:
     CUnaryExpressionAST(UnaryOperation op, IExpressionASTUniquePtr && value);
-    double Evaluate(CInterpreterContext & context)const override;
+    CValue Evaluate(CInterpreterContext & context)const override;
 
 private:
     const UnaryOperation m_operation;
@@ -80,18 +83,18 @@ private:
 class CLiteralAST : public IExpressionAST
 {
 public:
-    CLiteralAST(double value);
-    double Evaluate(CInterpreterContext & context)const override;
+    CLiteralAST(CValue value);
+    CValue Evaluate(CInterpreterContext & context)const override;
 
 private:
-    const double m_value;
+    const CValue m_value;
 };
 
 class CCallAST : public IExpressionAST
 {
 public:
     CCallAST(unsigned nameId, ExpressionList &&arguments);
-    double Evaluate(CInterpreterContext & context)const override;
+    CValue Evaluate(CInterpreterContext & context)const override;
 
 private:
     const unsigned m_nameId;
@@ -102,7 +105,7 @@ class CVariableRefAST : public IExpressionAST
 {
 public:
     CVariableRefAST(unsigned nameId);
-    double Evaluate(CInterpreterContext & context)const override;
+    CValue Evaluate(CInterpreterContext & context)const override;
 
 private:
     const unsigned m_nameId;
@@ -197,7 +200,7 @@ public:
     unsigned GetNameId()const override;
 
 protected:
-    double Call(CInterpreterContext &context, const std::vector<double> &arguments) const override;
+    CValue Call(CInterpreterContext &context, const std::vector<CValue> &arguments) const override;
 
 private:
     unsigned m_nameId;
