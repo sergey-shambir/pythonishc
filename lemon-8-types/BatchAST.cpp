@@ -55,6 +55,8 @@ CValue CBinaryExpressionAST::Evaluate(CInterpreterContext &context) const
     const CValue b = m_right->Evaluate(context);
     switch (m_operation)
     {
+    case BinaryOperation::Less:
+        return a < b;
     case BinaryOperation::Add:
         return a + b;
     case BinaryOperation::Substract:

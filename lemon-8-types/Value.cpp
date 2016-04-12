@@ -132,6 +132,11 @@ CValue CValue::FromDouble(const double &value)
     return Value(value);
 }
 
+CValue CValue::FromBoolean(bool value)
+{
+    return Value(value);
+}
+
 CValue CValue::FromString(const std::string &value)
 {
     return Value(value);
@@ -181,6 +186,28 @@ CValue CValue::operator -() const
     });
 }
 
+CValue CValue::operator <(const CValue &other) const
+{
+    return ExecuteSafely([&] {
+        if (m_value.type() == typeid(std::string))
+        {
+            return CValue::FromBoolean(AsString() < other.AsString());
+        }
+        else if (m_value.type() == typeid(bool))
+        {
+            throw std::runtime_error("Cannot use '<' with Boolean values.");
+        }
+        else if (m_value.type() == typeid(double))
+        {
+            return CValue::FromBoolean(AsDouble() < other.AsDouble());
+        }
+        else // exception_ptr.
+        {
+            return *this;
+        }
+    });
+}
+
 CValue CValue::operator +(const CValue &other) const
 {
     return ExecuteSafely([&] {
@@ -191,11 +218,12 @@ CValue CValue::operator +(const CValue &other) const
         // Transform Value+String to String+Value.
         if (other.m_value.type() == typeid(std::string))
         {
+            // BUG: returns "BA" instead of "AB".
             return other + *this;
         }
         else if (m_value.type() == typeid(bool))
         {
-            throw std::runtime_error("Cannot use '-' with Boolean values.");
+            throw std::runtime_error("Cannot use '+' with Boolean values.");
         }
         else if (m_value.type() == typeid(double))
         {

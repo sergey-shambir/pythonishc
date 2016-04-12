@@ -19,6 +19,7 @@ CValue ExecuteSafely(TFunction && fn)
     }
 }
 
+// TODO: make CUnaryNumericFunction to implement 'sin', 'cos', 'tn', 'sqrt'.
 class CSinFunction : public IFunctionAST
 {
 public:
@@ -42,7 +43,6 @@ class CRandFunction : public IFunctionAST
 public:
     CValue Call(CInterpreterContext &context, const std::vector<CValue> &arguments) const override
     {
-
         (void)context;
         return ExecuteSafely([&] {
             double minimum = arguments.at(0).AsDouble();

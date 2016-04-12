@@ -3,10 +3,10 @@
 #include <cctype>
 
 
-double Calculator::parseExpr(std::string_view &ref)
+double CCalculator::ParseExpr(std::string_view &ref)
 {
-    double value = parseExprSum(ref);
-    skipSpaces(ref);
+    double value = ParseExprSum(ref);
+    SkipSpaces(ref);
     if (!ref.empty())
     {
         value = std::numeric_limits<double>::quiet_NaN();
@@ -14,9 +14,9 @@ double Calculator::parseExpr(std::string_view &ref)
     return value;
 }
 
-double Calculator::parseDouble(std::string_view &ref)
+double CCalculator::ParseDouble(std::string_view &ref)
 {
-    skipSpaces(ref);
+    SkipSpaces(ref);
 
     double value = 0;
     bool parsedAny = false;
@@ -49,21 +49,21 @@ double Calculator::parseDouble(std::string_view &ref)
     return value;
 }
 
-double Calculator::parseExprMul(std::string_view &ref)
+double CCalculator::ParseExprMul(std::string_view &ref)
 {
-    double value = parseDouble(ref);
+    double value = ParseDouble(ref);
     while (true)
     {
-        skipSpaces(ref);
+        SkipSpaces(ref);
         if (!ref.empty() && ref[0] == '*')
         {
             ref.remove_prefix(1);
-            value *= parseDouble(ref);
+            value *= ParseDouble(ref);
         }
         else if (!ref.empty() && ref[0] == '/')
         {
             ref.remove_prefix(1);
-            value /= parseDouble(ref);
+            value /= ParseDouble(ref);
         }
         else
         {
@@ -74,22 +74,22 @@ double Calculator::parseExprMul(std::string_view &ref)
     return value;
 }
 
-double Calculator::parseExprSum(std::string_view &ref)
+double CCalculator::ParseExprSum(std::string_view &ref)
 {
-    double value = parseDouble(ref);
+    double value = ParseDouble(ref);
     while (true)
     {
-        skipSpaces(ref);
+        SkipSpaces(ref);
 
         if (!ref.empty() && ref[0] == '+')
         {
             ref.remove_prefix(1);
-            value += parseDouble(ref);
+            value += ParseDouble(ref);
         }
         else if (!ref.empty() && ref[0] == '-')
         {
             ref.remove_prefix(1);
-            value -= parseDouble(ref);
+            value -= ParseDouble(ref);
         }
         else
         {
@@ -100,7 +100,7 @@ double Calculator::parseExprSum(std::string_view &ref)
     return value;
 }
 
-void Calculator::skipSpaces(std::string_view &ref)
+void CCalculator::SkipSpaces(std::string_view &ref)
 {
     size_t i = 0;
     while (i < ref.size() && std::isspace(ref[i]))

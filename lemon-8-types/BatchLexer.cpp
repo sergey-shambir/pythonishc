@@ -38,6 +38,9 @@ int CBatchLexer::Scan(SToken &data)
     }
     switch (m_peep[0])
     {
+    case '<':
+        m_peep.remove_prefix(1);
+        return TK_LESS;
     case '+':
         m_peep.remove_prefix(1);
         return TK_PLUS;

@@ -88,6 +88,7 @@ using namespace parser_private;
 %type parameter_list NamesListPtr
 %destructor function_declaration { Destroy($$); }
 
+%left LESS.
 %left PLUS MINUS.
 %left STAR SLASH PERCENT.
 
@@ -237,6 +238,11 @@ expression(X) ::= ID(A) LPAREN expression_list(B) RPAREN.
 expression(X) ::= LPAREN expression(A) RPAREN.
 {
     MovePointer(A, X);
+}
+
+expression(X) ::= expression(A) LESS expression(B).
+{
+    EmplaceAST<CBinaryExpressionAST>(X, Take(A), BinaryOperation::Less, Take(B));
 }
 
 expression(X) ::= expression(A) PLUS expression(B).

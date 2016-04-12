@@ -17,7 +17,7 @@ public:
     static CValue FromError(std::exception_ptr const& value);
     static CValue FromErrorMessage(std::string const& message);
     static CValue FromDouble(double const& value);
-    static CValue FromBoolean(bool const& value);
+    static CValue FromBoolean(bool value);
     static CValue FromString(std::string const& value);
 
     // Конвертирующее приведение типов, никогда не бросает исключений.
@@ -34,6 +34,7 @@ public:
     // Унарные и бинарные операции с проверкой типов.
     CValue operator +()const;
     CValue operator -()const;
+    CValue operator <(const CValue &other)const;
     CValue operator +(const CValue &other)const;
     CValue operator -(const CValue &other)const;
     CValue operator *(const CValue &other)const;

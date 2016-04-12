@@ -44,6 +44,7 @@ public:
 
 enum class BinaryOperation
 {
+    Less,
     Add,
     Substract,
     Multiply,
