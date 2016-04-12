@@ -35,15 +35,12 @@ public:
     CValue operator +()const;
     CValue operator -()const;
     CValue operator <(const CValue &other)const;
+    CValue operator ==(const CValue &other)const;
     CValue operator +(const CValue &other)const;
     CValue operator -(const CValue &other)const;
     CValue operator *(const CValue &other)const;
     CValue operator /(const CValue &other)const;
     CValue operator %(const CValue &other)const;
-
-    // TODO: bool LessThan().
-
-    // TODO: bool FuzzyEquals().
 
 private:
     CValue(Value const& value);

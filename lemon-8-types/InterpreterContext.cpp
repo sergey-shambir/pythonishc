@@ -19,7 +19,6 @@ CValue ExecuteSafely(TFunction && fn)
     }
 }
 
-// TODO: make CUnaryNumericFunction to implement 'sin', 'cos', 'tn', 'sqrt'.
 class CSinFunction : public IFunctionAST
 {
 public:

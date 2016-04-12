@@ -70,6 +70,11 @@ int CBatchLexer::Scan(SToken &data)
         m_peep.remove_prefix(1);
         return TK_RPAREN;
     case '=':
+        if (m_peep.length() >= 2 && (m_peep[1] == '='))
+        {
+            m_peep.remove_prefix(2);
+            return TK_EQUALS;
+        }
         m_peep.remove_prefix(1);
         return TK_ASSIGN;
     }

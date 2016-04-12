@@ -57,6 +57,8 @@ CValue CBinaryExpressionAST::Evaluate(CInterpreterContext &context) const
     {
     case BinaryOperation::Less:
         return a < b;
+    case BinaryOperation::Equals:
+        return a == b;
     case BinaryOperation::Add:
         return a + b;
     case BinaryOperation::Substract:

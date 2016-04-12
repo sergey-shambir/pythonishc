@@ -208,6 +208,31 @@ CValue CValue::operator <(const CValue &other) const
     });
 }
 
+CValue CValue::operator ==(const CValue &other) const
+{
+    return ExecuteSafely([&] {
+        if (m_value.type() == typeid(std::string))
+        {
+            return CValue::FromBoolean(AsString() == other.AsString());
+        }
+        else if (m_value.type() == typeid(bool))
+        {
+            return CValue::FromBoolean(AsBool() == other.AsBool());
+        }
+        else if (m_value.type() == typeid(double))
+        {
+            double left = AsDouble();
+            double right = other.AsDouble();
+            bool result = fabs(left - right) < std::numeric_limits<double>::epsilon();
+            return CValue::FromBoolean(result);
+        }
+        else // exception_ptr.
+        {
+            return *this;
+        }
+    });
+}
+
 CValue CValue::operator +(const CValue &other) const
 {
     return ExecuteSafely([&] {
