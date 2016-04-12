@@ -290,6 +290,11 @@ expression(X) ::= STRING(A).
     EmplaceAST<CLiteralAST>(X, pParse->GetStringLiteral(A.stringId));
 }
 
+expression(X) ::= BOOL(A).
+{
+    EmplaceAST<CLiteralAST>(X, CValue::FromBoolean(A.boolValue));
+}
+
 expression(X) ::= ID(A).
 {
     EmplaceAST<CVariableRefAST>(X, A.stringId);

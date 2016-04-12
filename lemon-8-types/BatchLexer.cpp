@@ -164,6 +164,17 @@ bool CBatchLexer::ParseString(SToken &data)
 
 int CBatchLexer::AcceptIdOrKeyword(SToken &data, std::string && id)
 {
+    if (id == "true")
+    {
+        data.boolValue = true;
+        return TK_BOOL;
+    }
+    else if (id == "false")
+    {
+        data.boolValue = false;
+        return TK_BOOL;
+    }
+
     auto it = m_keywords.find(id);
     if (it != m_keywords.end())
     {

@@ -20,3 +20,4 @@
 #define TK_DO                             20
 #define TK_NUMBER                         21
 #define TK_STRING                         22
+#define TK_BOOL                           23
