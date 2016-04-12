@@ -66,6 +66,12 @@ void CBatchParser::OnFatalError()
     m_isFatalError = true;
 }
 
+CValue CBatchParser::GetStringLiteral(unsigned stringId) const
+{
+    std::string str = m_program.GetStringLiteral(stringId);
+    return CValue::FromString(str);
+}
+
 void CBatchParser::AddStatement(IStatementASTUniquePtr && stmt)
 {
     if (stmt)

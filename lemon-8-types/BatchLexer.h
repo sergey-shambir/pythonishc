@@ -21,6 +21,7 @@ private:
     double ParseDouble();
     std::string ParseIdentifier();
     void SkipSpaces();
+    bool ParseString(SToken &data);
     int AcceptIdOrKeyword(SToken &data, std::string && id);
 
     const unsigned m_lineNo;

@@ -19,3 +19,4 @@
 #define TK_WHILE                          19
 #define TK_DO                             20
 #define TK_NUMBER                         21
+#define TK_STRING                         22

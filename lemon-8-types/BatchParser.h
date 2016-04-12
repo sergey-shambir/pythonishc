@@ -26,6 +26,8 @@ public:
     void OnStackOverflow();
     void OnFatalError();
 
+    CValue GetStringLiteral(unsigned stringId)const;
+
     void AddStatement(IStatementASTUniquePtr &&stmt);
     void AddFunction(IFunctionASTUniquePtr && function);
 

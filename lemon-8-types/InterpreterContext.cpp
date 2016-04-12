@@ -141,6 +141,11 @@ void CInterpreterContext::AddFunction(unsigned nameId, IFunctionAST *function)
     }
 }
 
+std::string CInterpreterContext::GetStringLiteral(unsigned stringId) const
+{
+    return m_pool.GetString(stringId);
+}
+
 void CInterpreterContext::PrintResult(CValue const& value)
 {
     std::cerr << "  " << value << std::endl;

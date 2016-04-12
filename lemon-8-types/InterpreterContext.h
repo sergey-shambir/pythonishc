@@ -22,6 +22,8 @@ public:
     IFunctionAST *GetFunction(unsigned nameId)const;
     void AddFunction(unsigned nameId, IFunctionAST *function);
 
+    std::string GetStringLiteral(unsigned stringId)const;
+
     void SetReturnValue(const boost::optional<CValue> &valueOpt);
     boost::optional<CValue> GetReturnValue()const;
 

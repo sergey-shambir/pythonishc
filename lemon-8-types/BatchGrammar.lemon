@@ -285,6 +285,11 @@ expression(X) ::= NUMBER(A).
     EmplaceAST<CLiteralAST>(X, CValue::FromDouble(A.value));
 }
 
+expression(X) ::= STRING(A).
+{
+    EmplaceAST<CLiteralAST>(X, pParse->GetStringLiteral(A.stringId));
+}
+
 expression(X) ::= ID(A).
 {
     EmplaceAST<CVariableRefAST>(X, A.stringId);

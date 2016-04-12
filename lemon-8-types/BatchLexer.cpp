@@ -36,6 +36,10 @@ int CBatchLexer::Scan(SToken &data)
         data.value = value;
         return TK_NUMBER;
     }
+    if (ParseString(data))
+    {
+        return TK_STRING;
+    }
     switch (m_peep[0])
     {
     case '<':
@@ -132,6 +136,30 @@ void CBatchLexer::SkipSpaces()
         ++count;
     }
     m_peep.remove_prefix(count);
+}
+
+bool CBatchLexer::ParseString(SToken &data)
+{
+    if (m_peep[0] != '\"')
+    {
+        return false;
+    }
+    m_peep.remove_prefix(1);
+    size_t quotePos = m_peep.find('\"');
+    if (quotePos == boost::string_ref::npos)
+    {
+        std::cerr << "Lexical error: missed end quote at (" << data.line << "," << data.column << ")." << std::endl;
+        data.stringId = m_stringPool.Insert(m_peep.to_string());
+        m_peep.clear();
+
+        return true;
+    }
+
+    boost::string_ref value = m_peep.substr(0, quotePos);
+    data.stringId = m_stringPool.Insert(value.to_string());
+    m_peep.remove_prefix(quotePos + 1);
+
+    return true;
 }
 
 int CBatchLexer::AcceptIdOrKeyword(SToken &data, std::string && id)
