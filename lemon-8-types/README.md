@@ -19,20 +19,20 @@ def sqr(x)
   result = x * x
   return result
 end
-
-result = 2016
-x = 2016
-y = sqr(10)
-print y
-print x
-print result
+print sqr("10")
+print sqr(10)
+flag = 10 < 20
+if flag
+  print flag
+end
 ```
 
 ##### Вывод
 ```
-result: 100
-result: 2016
-result: 2016
+  Error: Cannot use '*' with String values.
+  Error: unknown variable result
+  100.000000
+  true
 ```
 
 ### Изменения в сравнении с lemon-7-functions
