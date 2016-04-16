@@ -6,12 +6,13 @@
 class CInterpreter
 {
 public:
-    CInterpreter();
+    CInterpreter(std::ostream &output, std::ostream &errors);
     ~CInterpreter();
 
-    void EnterLoop(std::istream &input, std::ostream &output, std::ostream &errors);
+    void StartDebugTrace();
+    void EnterLoop(std::istream &input);
 
 private:
     class Impl;
-    std::unique_ptr<Impl> m_pImp;
+    std::unique_ptr<Impl> m_pImpl;
 };

@@ -13,8 +13,8 @@ using namespace std::placeholders;
 class CInterpreter::Impl
 {
 public:
-    Impl()
-        : m_context(m_stringPool)
+    Impl(std::ostream &output, std::ostream &errors)
+        : m_context(output, errors, m_stringPool)
         , m_parser(m_context)
     {
     }
@@ -37,6 +37,13 @@ public:
         return m_parser.Advance(TK_NEWLINE, token);
     }
 
+    void StartDebugTrace()
+    {
+#ifndef NDEBUG
+        m_parser.StartDebugTrace(stderr);
+#endif
+    }
+
 private:
     CStringPool m_stringPool;
     CInterpreterContext m_context;
@@ -44,8 +51,8 @@ private:
     unsigned m_lineNo = 0;
 };
 
-CInterpreter::CInterpreter()
-    : m_pImp(new Impl)
+CInterpreter::CInterpreter(std::ostream &output, std::ostream &errors)
+    : m_pImpl(new Impl(output, errors))
 {
 }
 
@@ -53,18 +60,17 @@ CInterpreter::~CInterpreter()
 {
 }
 
-void CInterpreter::EnterLoop(std::istream &input, std::ostream &output, std::ostream &errors)
+void CInterpreter::StartDebugTrace()
 {
-    (void)output;
-    (void)errors;
+    m_pImpl->StartDebugTrace();
+}
 
-    // Uncomment code below to trace LALR parser shift/reduce.
-//    parser.StartDebugTrace(stderr);
-
+void CInterpreter::EnterLoop(std::istream &input)
+{
     std::string line;
     while (std::getline(input, line))
     {
-        if (!m_pImp->ConsumeLine(line))
+        if (!m_pImpl->ConsumeLine(line))
         {
             return;
         }

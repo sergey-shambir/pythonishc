@@ -13,7 +13,7 @@ class IFunctionAST;
 class CInterpreterContext : protected IInterpreterContext
 {
 public:
-    CInterpreterContext(CStringPool & pool);
+    CInterpreterContext(std::ostream &output, std::ostream &errors, CStringPool & pool);
     ~CInterpreterContext();
 
     std::unique_ptr<CVariablesScope> MakeScope();
@@ -47,4 +47,6 @@ private:
     boost::optional<CValue> m_returnValueOpt;
     std::vector<std::unique_ptr<IFunctionAST>> m_builtins;
     std::stack<CVariablesScope *> m_scopes;
+    std::ostream &m_output;
+    std::ostream &m_errors;
 };

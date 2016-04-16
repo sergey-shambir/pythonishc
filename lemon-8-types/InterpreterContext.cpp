@@ -64,8 +64,10 @@ public:
 
 }
 
-CInterpreterContext::CInterpreterContext(CStringPool &pool)
+CInterpreterContext::CInterpreterContext(std::ostream &output, std::ostream &errors, CStringPool &pool)
     : m_pool(pool)
+    , m_output(output)
+    , m_errors(errors)
 {
     AddBuiltin("sin", std::unique_ptr<IFunctionAST>(new CSinFunction));
     AddBuiltin("rand", std::unique_ptr<IFunctionAST>(new CRandFunction));
@@ -156,7 +158,7 @@ void CInterpreterContext::PrintResult(CValue const& value)
 {
     try
     {
-        std::cout << "  " << value.ToString() << std::endl;
+        m_output << "  " << value.ToString() << std::endl;
     }
     catch (const std::exception &ex)
     {
@@ -166,7 +168,7 @@ void CInterpreterContext::PrintResult(CValue const& value)
 
 void CInterpreterContext::PrintError(const std::string &message)
 {
-    std::cerr << "  Error: " << message << std::endl;
+    m_errors << "  Error: " << message << std::endl;
 }
 
 void CInterpreterContext::SetReturnValue(boost::optional<CValue> const& valueOpt)

@@ -10,9 +10,9 @@
 int main()
 {
     std::srand(static_cast<unsigned>(time(nullptr)));
-    CInterpreter interpreter;
+    CInterpreter interpreter(std::cout, std::cerr);
 
-    interpreter.EnterLoop(std::cin, std::cout, std::cerr);
+    interpreter.EnterLoop(std::cin);
 
     return 0;
 }
