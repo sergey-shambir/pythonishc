@@ -7,10 +7,10 @@
 #include "Token.h"
 #include "StringPool.h"
 
-class CBatchLexer
+class CLexer
 {
 public:
-    CBatchLexer(unsigned lineNo, std::string const& sources, CStringPool & stringPool);
+    CLexer(unsigned lineNo, std::string const& sources, CStringPool & stringPool);
 
     // returns next token or 0 on EOF
     // tokens defined in CalcGrammar.h

@@ -5,8 +5,8 @@
 #include <utility>
 #include <memory>
 #include "Token.h"
-#include "BatchParser.h"
-#include "BatchAST.h"
+#include "Parser.h"
+#include "AST.h"
 
 namespace parser_private
 {

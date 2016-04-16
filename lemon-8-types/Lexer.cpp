@@ -1,8 +1,8 @@
-#include "BatchLexer.h"
-#include "BatchGrammar.h"
+#include "Lexer.h"
+#include "Grammar.h"
 #include <iostream>
 
-CBatchLexer::CBatchLexer(unsigned lineNo, std::string const& sources, CStringPool &stringPool)
+CLexer::CLexer(unsigned lineNo, std::string const& sources, CStringPool &stringPool)
     : m_lineNo(lineNo)
     , m_sources(sources)
     , m_peep(m_sources)
@@ -20,7 +20,7 @@ CBatchLexer::CBatchLexer(unsigned lineNo, std::string const& sources, CStringPoo
 {
 }
 
-int CBatchLexer::Scan(SToken &data)
+int CLexer::Scan(SToken &data)
 {
     SkipSpaces();
     data.line = m_lineNo;
@@ -89,7 +89,7 @@ int CBatchLexer::Scan(SToken &data)
     return 0;
 }
 
-double CBatchLexer::ParseDouble()
+double CLexer::ParseDouble()
 {
     double value = 0;
     bool parsedAny = false;
@@ -121,7 +121,7 @@ double CBatchLexer::ParseDouble()
     return value;
 }
 
-std::string CBatchLexer::ParseIdentifier()
+std::string CLexer::ParseIdentifier()
 {
     size_t size = 0;
     while (!m_peep.empty() && std::isalnum(m_peep[size]))
@@ -133,7 +133,7 @@ std::string CBatchLexer::ParseIdentifier()
     return value;
 }
 
-void CBatchLexer::SkipSpaces()
+void CLexer::SkipSpaces()
 {
     size_t count = 0;
     while (count < m_peep.size() && std::isspace(m_peep[count]))
@@ -143,7 +143,7 @@ void CBatchLexer::SkipSpaces()
     m_peep.remove_prefix(count);
 }
 
-bool CBatchLexer::ParseString(SToken &data)
+bool CLexer::ParseString(SToken &data)
 {
     if (m_peep[0] != '\"')
     {
@@ -167,7 +167,7 @@ bool CBatchLexer::ParseString(SToken &data)
     return true;
 }
 
-int CBatchLexer::AcceptIdOrKeyword(SToken &data, std::string && id)
+int CLexer::AcceptIdOrKeyword(SToken &data, std::string && id)
 {
     if (id == "true")
     {

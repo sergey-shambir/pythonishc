@@ -1,4 +1,4 @@
-#include "BatchParser.h"
+#include "Parser.h"
 #include "Token.h"
 #include "InterpreterContext.h"
 #include <stdlib.h>
@@ -7,72 +7,72 @@
 
 
 // pre-declaration of generated functions.
-void *ParseBatchGrammarAlloc(void *(*mallocProc)(size_t));
-void ParseBatchGrammar(void*, int, SToken, CBatchParser*);
-void ParseBatchGrammarFree(
+void *ParseGrammarAlloc(void *(*mallocProc)(size_t));
+void ParseGrammar(void*, int, SToken, CParser*);
+void ParseGrammarFree(
   void *p,                    /* The parser to be deleted */
   void (*freeProc)(void*)     /* Function used to reclaim memory */);
 #ifndef NDEBUG
-void ParseBatchGrammarTrace(FILE * TraceFILE, char * zTracePrompt);
+void ParseGrammarTrace(FILE * TraceFILE, char * zTracePrompt);
 #endif
 
 
-CBatchParser::CBatchParser(CInterpreterContext & context)
+CParser::CParser(CInterpreterContext & context)
     : m_program(context)
 {
     auto allocate = [](size_t size) -> void* {
         return new (std::nothrow) char[size];
     };
-    m_parser = ParseBatchGrammarAlloc(allocate);
+    m_parser = ParseGrammarAlloc(allocate);
 }
 
-CBatchParser::~CBatchParser()
+CParser::~CParser()
 {
     auto retain = [](void *pointer) -> void {
         auto array = reinterpret_cast<char *>(pointer);
         delete[] array;
     };
-    ParseBatchGrammarFree(m_parser, retain);
+    ParseGrammarFree(m_parser, retain);
 }
 
-bool CBatchParser::Advance(int tokenId, const SToken &tokenData)
+bool CParser::Advance(int tokenId, const SToken &tokenData)
 {
-    ParseBatchGrammar(m_parser, tokenId, tokenData, this);
+    ParseGrammar(m_parser, tokenId, tokenData, this);
     return !m_isFatalError;
 }
 
 #ifndef NDEBUG
-void CBatchParser::StartDebugTrace(FILE *output)
+void CParser::StartDebugTrace(FILE *output)
 {
     m_tracePrompt = "";
-    ParseBatchGrammarTrace(output, &m_tracePrompt[0]);
+    ParseGrammarTrace(output, &m_tracePrompt[0]);
 }
 #endif
 
-void CBatchParser::OnError(const SToken &token)
+void CParser::OnError(const SToken &token)
 {
     std::cerr << "Syntax error at (" << token.line << "," << token.column << ")." << std::endl;
 }
 
-void CBatchParser::OnStackOverflow()
+void CParser::OnStackOverflow()
 {
     std::cerr << "LALR parser stack overflow occured." << std::endl;
     m_isFatalError = true;
 }
 
-void CBatchParser::OnFatalError()
+void CParser::OnFatalError()
 {
     std::cerr << "Fatal error occured." << std::endl;
     m_isFatalError = true;
 }
 
-CValue CBatchParser::GetStringLiteral(unsigned stringId) const
+CValue CParser::GetStringLiteral(unsigned stringId) const
 {
     std::string str = m_program.GetStringLiteral(stringId);
     return CValue::FromString(str);
 }
 
-void CBatchParser::AddStatement(IStatementASTUniquePtr && stmt)
+void CParser::AddStatement(IStatementASTUniquePtr && stmt)
 {
     if (stmt)
     {
@@ -80,7 +80,7 @@ void CBatchParser::AddStatement(IStatementASTUniquePtr && stmt)
     }
 }
 
-void CBatchParser::AddFunction(IFunctionASTUniquePtr &&function)
+void CParser::AddFunction(IFunctionASTUniquePtr &&function)
 {
     if (function)
     {

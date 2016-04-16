@@ -5,17 +5,17 @@
 #include <vector>
 #include <memory>
 #include <stack>
-#include "BatchAST.h"
+#include "AST.h"
 
 struct SToken;
 class CInterpreterContext;
 
 /// Wraps LEMON generated parser with Object-Oriented API.
-class CBatchParser
+class CParser
 {
 public:
-    CBatchParser(CInterpreterContext & context);
-    ~CBatchParser();
+    CParser(CInterpreterContext & context);
+    ~CParser();
 
     bool Advance(int tokenId, SToken const& tokenData);
 #ifndef NDEBUG

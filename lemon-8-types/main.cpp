@@ -1,16 +1,16 @@
-#include "BatchParser.h"
-#include "BatchLexer.h"
+#include "Parser.h"
+#include "Lexer.h"
 #include "StringPool.h"
 #include "InterpreterContext.h"
 #include "Token.h"
-#include "BatchGrammar.h"
+#include "Grammar.h"
 #include <iostream>
 #include <time.h>
 
 bool ConsumeLine(unsigned lineNo, std::string const& expr,
-                 CStringPool & stringPool, CBatchParser & parser)
+                 CStringPool & stringPool, CParser & parser)
 {
-    CBatchLexer lexer(lineNo, expr, stringPool);
+    CLexer lexer(lineNo, expr, stringPool);
     SToken token;
     for (int tokenId = lexer.Scan(token); tokenId != 0; tokenId = lexer.Scan(token))
     {
@@ -28,7 +28,7 @@ void EnterInterpreterLoop()
 {
     CStringPool stringPool;
     CInterpreterContext context(stringPool);
-    CBatchParser parser(context);
+    CParser parser(context);
 
     // Uncomment code below to trace LALR parser shift/reduce.
 //    parser.StartDebugTrace(stderr);
