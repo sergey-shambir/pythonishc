@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <new>
 #include <iostream>
+#include <sstream>
 
 
 // pre-declaration of generated functions.
@@ -18,7 +19,8 @@ void ParseGrammarTrace(FILE * TraceFILE, char * zTracePrompt);
 
 
 CParser::CParser(CInterpreterContext & context)
-    : m_program(context)
+    : m_context(context)
+    , m_program(context)
 {
     auto allocate = [](size_t size) -> void* {
         return new (std::nothrow) char[size];
@@ -51,24 +53,26 @@ void CParser::StartDebugTrace(FILE *output)
 
 void CParser::OnError(const SToken &token)
 {
-    std::cerr << "Syntax error at (" << token.line << "," << token.column << ")." << std::endl;
+    std::stringstream message;
+    message << "Syntax error at (" << token.line << "," << token.column << ")";
+    m_context.PrintError(message.str());
 }
 
 void CParser::OnStackOverflow()
 {
-    std::cerr << "LALR parser stack overflow occured." << std::endl;
+    m_context.PrintError("fatal stack overflow in LALR parser");
     m_isFatalError = true;
 }
 
 void CParser::OnFatalError()
 {
-    std::cerr << "Fatal error occured." << std::endl;
+    m_context.PrintError("fatal error inside LALR parser");
     m_isFatalError = true;
 }
 
 CValue CParser::GetStringLiteral(unsigned stringId) const
 {
-    std::string str = m_program.GetStringLiteral(stringId);
+    std::string str = m_context.GetStringLiteral(stringId);
     return CValue::FromString(str);
 }
 

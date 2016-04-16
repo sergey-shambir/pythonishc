@@ -89,7 +89,14 @@ void CInterpreterContext::AssignVariable(unsigned nameId, CValue const& value)
 {
     if (value.IsError())
     {
-        std::cerr << "  " << value << std::endl;
+        try
+        {
+            std::rethrow_exception(value.AsError());
+        }
+        catch (std::exception const& ex)
+        {
+            PrintError(ex.what());
+        }
     }
     else
     {
@@ -147,7 +154,19 @@ std::string CInterpreterContext::GetStringLiteral(unsigned stringId) const
 
 void CInterpreterContext::PrintResult(CValue const& value)
 {
-    std::cerr << "  " << value << std::endl;
+    try
+    {
+        std::cout << "  " << value.ToString() << std::endl;
+    }
+    catch (const std::exception &ex)
+    {
+        PrintError(ex.what());
+    }
+}
+
+void CInterpreterContext::PrintError(const std::string &message)
+{
+    std::cerr << "  Error: " << message << std::endl;
 }
 
 void CInterpreterContext::SetReturnValue(boost::optional<CValue> const& valueOpt)

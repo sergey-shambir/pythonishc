@@ -28,6 +28,7 @@ public:
     boost::optional<CValue> GetReturnValue()const;
 
     void PrintResult(const CValue &value);
+    void PrintError(std::string const& message);
 
 protected:
     void AssignVariable(unsigned nameId, const CValue &value) override;

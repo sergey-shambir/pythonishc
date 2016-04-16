@@ -30,6 +30,7 @@ public:
     bool AsBool()const;
     const std::string & AsString()const;
     double AsDouble()const;
+    std::exception_ptr const& AsError() const;
 
     // Унарные и бинарные операции с проверкой типов.
     CValue operator +()const;
@@ -44,11 +45,9 @@ public:
 
 private:
     CValue(Value const& value);
-    std::string ConvertToString(bool printError)const;
+    std::string ConvertToString()const;
     double ConvertToDouble()const;
     bool ConvertToBool()const;
 
     Value m_value;
 };
-
-std::ostream & operator <<(std::ostream & out, CValue const& value);

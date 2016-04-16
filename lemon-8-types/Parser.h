@@ -38,5 +38,6 @@ private:
     bool m_isFatalError = false;
     void *m_parser = nullptr;
 
+    CInterpreterContext & m_context;
     CProgramAst m_program;
 };

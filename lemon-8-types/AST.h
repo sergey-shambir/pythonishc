@@ -218,7 +218,6 @@ public:
 
     void AddStatement(IStatementASTUniquePtr && stmt);
     void AddFunction(IFunctionASTUniquePtr && function);
-    std::string GetStringLiteral(unsigned stringId)const;
 
 private:
     CInterpreterContext &m_context;

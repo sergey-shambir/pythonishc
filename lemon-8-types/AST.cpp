@@ -155,11 +155,6 @@ void CProgramAst::AddFunction(IFunctionASTUniquePtr &&function)
     m_functions.emplace_back(std::move(function));
 }
 
-std::string CProgramAst::GetStringLiteral(unsigned stringId) const
-{
-    return m_context.GetStringLiteral(stringId);
-}
-
 CWhileAst::CWhileAst(IExpressionASTUniquePtr &&condition, StatementsList &&body)
     : m_condition(std::move(condition))
     , m_body(std::move(body))

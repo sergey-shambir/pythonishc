@@ -22,6 +22,30 @@ CValue ExecuteSafely(TFunction && fn)
     }
 }
 
+std::string ToPrettyString(double value)
+{
+    const size_t BUFFER_SIZE = 79;
+    char buffer[BUFFER_SIZE + 1] = { 0 };
+    std::snprintf(buffer, BUFFER_SIZE, "%f", value);
+
+    std::string result = buffer;
+    while (!result.empty() && (result.back() == '0'))
+    {
+        result.pop_back();
+    }
+    if (!result.empty() && result.back() == '.')
+    {
+        result.pop_back();
+    }
+
+    return result;
+}
+
+std::string ToPrettyString(bool value)
+{
+    return value ? "true" : "false";
+}
+
 // Конвертирует значение в Boolean (C++ bool).
 struct BooleanConverter : boost::static_visitor<bool>
 {
@@ -35,47 +59,12 @@ struct BooleanConverter : boost::static_visitor<bool>
 // Конвертирует значение в String (C++ std::string).
 struct StringConverter : boost::static_visitor<std::string>
 {
-    explicit StringConverter(bool printError)
-        : m_printError(printError)
-    {
-    }
+    explicit StringConverter() = default;
 
-    std::string operator ()(double const& value) const
-    {
-        return std::to_string(value);
-    }
-
-    std::string operator ()(bool const& value) const
-    {
-        return value ? "true" : "false";
-    }
-
-    std::string operator ()(std::string const& value) const
-    {
-        return value;
-    }
-
-    std::string operator ()(std::exception_ptr const& value)
-    {
-        if (m_printError)
-        {
-            try
-            {
-                std::rethrow_exception(value);
-            }
-            catch (std::exception const& ex)
-            {
-                return std::string("Error: ") + ex.what();
-            }
-        }
-        else
-        {
-            std::rethrow_exception(value);
-        }
-    }
-
-private:
-    bool m_printError;
+    std::string operator ()(double const& value) const { return ToPrettyString(value); }
+    std::string operator ()(bool const& value) const { return ToPrettyString(value); }
+    std::string operator ()(std::string const& value) const { return value; }
+    std::string operator ()(std::exception_ptr const& value) { std::rethrow_exception(value); }
 };
 
 // Конвертирует значение в Number (C++ double)
@@ -83,25 +72,10 @@ struct NumberConverter : boost::static_visitor<double>
 {
     explicit NumberConverter() = default;
 
-    double operator ()(double const& value) const
-    {
-        return value;
-    }
-
-    double operator ()(bool const& value) const
-    {
-        return value ? 1. : 0.;
-    }
-
-    double operator ()(std::string const&) const
-    {
-        throw std::runtime_error("cannot convert String to Number");
-    }
-
-    double operator ()(std::exception_ptr const& value)
-    {
-        std::rethrow_exception(value);
-    }
+    double operator ()(double const& value) const { return value; }
+    double operator ()(bool const& value) const { return value ? 1. : 0.; }
+    double operator ()(std::string const&) const { throw std::runtime_error("cannot convert String to Number"); }
+    double operator ()(std::exception_ptr const& value) { std::rethrow_exception(value); }
 };
 
 } // anonymous namespace.
@@ -149,7 +123,7 @@ bool CValue::ToBool() const
 
 std::string CValue::ToString() const
 {
-    return ConvertToString(true);
+    return ConvertToString();
 }
 
 bool CValue::IsError() const
@@ -170,6 +144,11 @@ const std::string &CValue::AsString() const
 double CValue::AsDouble() const
 {
     return boost::get<double>(m_value);
+}
+
+const std::exception_ptr &CValue::AsError() const
+{
+    return boost::get<std::exception_ptr>(m_value);
 }
 
 CValue CValue::operator +() const
@@ -238,13 +217,12 @@ CValue CValue::operator +(const CValue &other) const
     return ExecuteSafely([&] {
         if (m_value.type() == typeid(std::string))
         {
-            return CValue::FromString(AsString() + other.ConvertToString(false));
+            return CValue::FromString(AsString() + other.ConvertToString());
         }
         // Transform Value+String to String+Value.
         if (other.m_value.type() == typeid(std::string))
         {
-            // BUG: returns "BA" instead of "AB".
-            return other + *this;
+            return CValue::FromString(ConvertToString() + other.AsString());
         }
         else if (m_value.type() == typeid(bool))
         {
@@ -354,10 +332,11 @@ CValue::CValue(const CValue::Value &value)
 {
 }
 
-std::string CValue::ConvertToString(bool printError) const
+std::string CValue::ConvertToString() const
 {
-    StringConverter converter(printError);
-    return m_value.apply_visitor(converter);
+    StringConverter converter;
+    std::string value = m_value.apply_visitor(converter);
+    return value;
 }
 
 double CValue::ConvertToDouble() const
@@ -370,9 +349,4 @@ bool CValue::ConvertToBool() const
 {
     BooleanConverter converter;
     return m_value.apply_visitor(converter);
-}
-
-std::ostream &operator <<(std::ostream &out, const CValue &value)
-{
-    return out << value.ToString();
 }

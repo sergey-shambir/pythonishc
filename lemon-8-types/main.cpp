@@ -1,52 +1,18 @@
 #include "Parser.h"
 #include "Lexer.h"
 #include "StringPool.h"
-#include "InterpreterContext.h"
+#include "Interpreter.h"
 #include "Token.h"
 #include "Grammar.h"
 #include <iostream>
 #include <time.h>
 
-bool ConsumeLine(unsigned lineNo, std::string const& expr,
-                 CStringPool & stringPool, CParser & parser)
-{
-    CLexer lexer(lineNo, expr, stringPool);
-    SToken token;
-    for (int tokenId = lexer.Scan(token); tokenId != 0; tokenId = lexer.Scan(token))
-    {
-        if (!parser.Advance(tokenId, token))
-        {
-            return false;
-        }
-    }
-    token.line = lineNo;
-    token.column = 1;
-    return parser.Advance(TK_NEWLINE, token);
-}
-
-void EnterInterpreterLoop()
-{
-    CStringPool stringPool;
-    CInterpreterContext context(stringPool);
-    CParser parser(context);
-
-    // Uncomment code below to trace LALR parser shift/reduce.
-//    parser.StartDebugTrace(stderr);
-
-    std::string line;
-    unsigned lineNo = 1;
-    while (std::getline(std::cin, line))
-    {
-        if (!ConsumeLine(lineNo, line, stringPool, parser))
-        {
-            return;
-        }
-    }
-}
-
 int main()
 {
     std::srand(static_cast<unsigned>(time(nullptr)));
-    EnterInterpreterLoop();
+    CInterpreter interpreter;
+
+    interpreter.EnterLoop(std::cin, std::cout, std::cerr);
+
     return 0;
 }

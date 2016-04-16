@@ -1,12 +1,14 @@
 #include "Lexer.h"
 #include "Grammar.h"
 #include <iostream>
+#include <sstream>
 
-CLexer::CLexer(unsigned lineNo, std::string const& sources, CStringPool &stringPool)
+CLexer::CLexer(unsigned lineNo, std::string const& line, CStringPool &pool, const ErrorHandler &handler)
     : m_lineNo(lineNo)
-    , m_sources(sources)
+    , m_sources(line)
     , m_peep(m_sources)
-    , m_stringPool(stringPool)
+    , m_stringPool(pool)
+    , m_onError(handler)
     , m_keywords({
         { "do",     TK_DO },
         { "if",     TK_IF },
@@ -85,10 +87,11 @@ int CLexer::Scan(SToken &data)
     }
 
     // on error, return EOF
-    std::cerr << "Lexical error at (" << data.line << "," << data.column << ")." << std::endl;
+    OnError("unknown lexem", data);
     return 0;
 }
 
+// returns NaN if cannot parse double.
 double CLexer::ParseDouble()
 {
     double value = 0;
@@ -153,7 +156,7 @@ bool CLexer::ParseString(SToken &data)
     size_t quotePos = m_peep.find('\"');
     if (quotePos == boost::string_ref::npos)
     {
-        std::cerr << "Lexical error: missed end quote at (" << data.line << "," << data.column << ")." << std::endl;
+        OnError("missed end quote", data);
         data.stringId = m_stringPool.Insert(m_peep.to_string());
         m_peep.clear();
 
@@ -188,4 +191,14 @@ int CLexer::AcceptIdOrKeyword(SToken &data, std::string && id)
 
     data.stringId = m_stringPool.Insert(id);
     return TK_ID;
+}
+
+void CLexer::OnError(const char message[], SToken &data)
+{
+    if (m_onError)
+    {
+        std::stringstream formatter;
+        formatter << message << "at (" << data.line << "," << data.column << ")";
+        m_onError(formatter.str());
+    }
 }
