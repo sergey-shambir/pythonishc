@@ -101,6 +101,8 @@ toplevel_line ::= toplevel_statement NEWLINE.
 
 toplevel_line ::= error NEWLINE.
 
+toplevel_line ::= NEWLINE.
+
 toplevel_statement ::= statement(A).
 {
     pParse->AddStatement(Take(A));

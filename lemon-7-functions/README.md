@@ -65,6 +65,7 @@ result: 2016
 
 - вызов функции: `expression ::= ID LPAREN expression_list RPAREN.`
 - инструкция return: `statement ::= RETURN expression.`
+- добавлено правило, принимающее пустую строку: `toplevel_line ::= NEWLINE.`
 
 ### Системные требования
 
