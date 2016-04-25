@@ -149,6 +149,7 @@ public:
     CAssignAST(unsigned nameId, IExpressionASTUniquePtr && value);
 
     unsigned GetNameId()const;
+    IExpressionAST & GetValue();
 
 protected:
     void Accept(IStatementVisitor & visitor) override;

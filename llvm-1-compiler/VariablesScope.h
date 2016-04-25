@@ -27,8 +27,8 @@ public:
     ~CVariablesScope();
 
     // Добавляемая переменная может скрыть старую переменную.
+    bool HasVariable(unsigned nameId)const;
     void AssignVariable(unsigned nameId, llvm::Value *value);
-
     llvm::Value *TryGetVariableValue(unsigned nameId)const;
 
 private:

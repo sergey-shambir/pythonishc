@@ -19,6 +19,11 @@ CVariablesScope::~CVariablesScope()
     m_context.ExitScope();
 }
 
+bool CVariablesScope::HasVariable(unsigned nameId) const
+{
+    return m_context.HasVariable(nameId);
+}
+
 void CVariablesScope::AssignVariable(unsigned nameId, llvm::Value *value)
 {
     if (!m_addedVariables.count(nameId))

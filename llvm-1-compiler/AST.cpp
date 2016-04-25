@@ -33,6 +33,11 @@ unsigned CAssignAST::GetNameId() const
     return m_nameId;
 }
 
+IExpressionAST &CAssignAST::GetValue()
+{
+    return *m_value;
+}
+
 void CAssignAST::Accept(IStatementVisitor &visitor)
 {
     visitor.Visit(*this);

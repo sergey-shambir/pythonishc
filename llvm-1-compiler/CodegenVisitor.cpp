@@ -234,10 +234,10 @@ void CBlockCodeGenerator::Visit(CPrintAST &ast)
     m_builder.CreateCall(pFunction, args);
 }
 
-void CBlockCodeGenerator::Visit(CAssignAST &expr)
+void CBlockCodeGenerator::Visit(CAssignAST &ast)
 {
-    (void)expr;
-    throw std::runtime_error("assignment not implemented");
+    llvm::Value *pValue = m_exprGen.Codegen(ast.GetValue());
+    m_context.GetCurrentScope().AssignVariable(ast.GetNameId(), pValue);
 }
 
 void CBlockCodeGenerator::Visit(CReturnAST &expr)
