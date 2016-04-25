@@ -1,6 +1,55 @@
 project(compiler-theory-samples)
 cmake_minimum_required(VERSION 2.8)
 
+find_program(
+    LLVM_CONFIG_EXECUTABLE
+    llvm-config-3.6
+  )
+if (LLVM_CONFIG_EXECUTABLE)
+    message(STATUS "Found LLVM configuration tool: ${LLVM_CONFIG_EXECUTABLE}")
+
+    # Get LLVM library dir
+    execute_process(
+        COMMAND ${LLVM_CONFIG_EXECUTABLE} --libdir
+        OUTPUT_VARIABLE LLVM_LIBDIR
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+      )
+
+    # Get LLVM includepath dir
+    execute_process(
+        COMMAND ${LLVM_CONFIG_EXECUTABLE} --includedir
+        OUTPUT_VARIABLE LLVM_INCLUDEDIR
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+      )
+
+  # Get LLVM includepath dir
+  execute_process(
+      COMMAND ${LLVM_CONFIG_EXECUTABLE} --libdir
+      OUTPUT_VARIABLE LLVM_LIBDIR
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+  # Get LLVM system libraries
+  execute_process(
+      COMMAND ${LLVM_CONFIG_EXECUTABLE} --system-libs
+      OUTPUT_VARIABLE LLVM_SYSTEM_LIBS
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+  execute_process(
+      COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs
+      OUTPUT_VARIABLE LLVM_LIBS
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+
+    )
+  string(REGEX REPLACE "-l(\\w+)" "\\1" LLVM_SYSTEM_LIBS ${LLVM_SYSTEM_LIBS})
+  string(REGEX REPLACE "-l(\\w+)" "lib\\1.a" LLVM_LIBS ${LLVM_LIBS})
+endif()
+
+include_directories(${LLVM_INCLUDEDIR})
+link_directories(${LLVM_LIBDIR})
+
+add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS)
+
 set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra")
 
@@ -28,8 +77,12 @@ add_executable(lemon_7 ${SRC_LEMON_7})
 aux_source_directory(lemon-8-types SRC_LEMON_8)
 add_executable(lemon_8 ${SRC_LEMON_8})
 
+aux_source_directory(llvm-1-compiler SRC_LLVM_1)
+add_executable(llvm_1 ${SRC_LLVM_1})
+target_link_libraries(llvm_1 ${LLVM_LIBS} ${LLVM_SYSTEM_LIBS})
+
 aux_source_directory(std-regex SRC_STL_REGEX)
 add_executable(std_regex ${SRC_STL_REGEX})
 
-aux_source_directory(std-stringview SRC_STL_STRINGVIEW)
-add_executable(std_stringview ${SRC_STL_STRINGVIEW})
+aux_source_directory(bison-flex-checker SRC_BISON_FLEX_CHECKER)
+add_executable(bison_flex_checker ${SRC_BISON_FLEX_CHECKER})
