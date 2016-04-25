@@ -1,6 +1,6 @@
 #include "CodegenVisitor.h"
 #include "AST.h"
-#include "InterpreterContext.h"
+#include "FrontendContext.h"
 #include <llvm/IR/Constants.h>
 #include <llvm/ADT/APSInt.h>
 #include <llvm/ADT/APFloat.h>
@@ -113,7 +113,7 @@ Value *GenerateUnaryExpr(IRBuilder<> & builder, LLVMContext &context, UnaryOpera
 }
 
 
-CExpressionCodeGenerator::CExpressionCodeGenerator(llvm::IRBuilder<> &builder, CInterpreterContext &context)
+CExpressionCodeGenerator::CExpressionCodeGenerator(llvm::IRBuilder<> &builder, CFrontendContext &context)
     : m_context(context)
     , m_builder(builder)
 {
@@ -198,7 +198,7 @@ void CExpressionCodeGenerator::Visit(CVariableRefAST &expr)
     m_values.push_back(pValue);
 }
 
-CBlockCodeGenerator::CBlockCodeGenerator(CInterpreterContext &context)
+CBlockCodeGenerator::CBlockCodeGenerator(CFrontendContext &context)
     : m_context(context)
     , m_builder(m_context.GetLLVMContext())
     , m_exprGen(m_builder, context)
@@ -214,12 +214,18 @@ void CBlockCodeGenerator::Codegen(BasicBlock &bb, const StatementsList &block)
     }
 }
 
+void CBlockCodeGenerator::AddExitMain()
+{
+    Constant *exitCode = ConstantInt::get(m_context.GetLLVMContext(), APInt(32, uint64_t(0), true));
+    m_builder.CreateRet(exitCode);
+}
+
 void CBlockCodeGenerator::Visit(CPrintAST &ast)
 {
     auto & context = m_context.GetLLVMContext();
     auto & module = m_context.GetModule();
 
-    GlobalVariable * message = AddStringConstant(context, module, "%lf");
+    GlobalVariable * message = AddStringConstant(context, module, "%lf\n");
     Constant* pFormatAddress = GetStringConstantPtr(context, message);
 
     Function *pFunction = m_context.GetPrintF();
@@ -260,28 +266,46 @@ void CBlockCodeGenerator::Visit(CIfAst &expr)
     throw std::runtime_error("`if..else` not implemented");
 }
 
-CCodeGenerator::CCodeGenerator(CInterpreterContext &context)
+CCodeGenerator::CCodeGenerator(CFrontendContext &context)
     : m_context(context)
 {
 }
 
 Function *CCodeGenerator::AcceptFunction(IFunctionAST &ast)
 {
-    Function *fn = GenerateDeclaration(ast);
+    Function *fn = GenerateDeclaration(ast, false);
     m_context.AddFunction(ast.GetNameId(), fn);
-    GenerateDefinition(*fn, ast);
-    fn->dump();
+    GenerateDefinition(*fn, ast, false);
 
     return fn;
 }
 
-Function *CCodeGenerator::GenerateDeclaration(IFunctionAST &ast)
+Function *CCodeGenerator::AcceptMainFunction(IFunctionAST &ast)
+{
+    Function *fn = GenerateDeclaration(ast, true);
+    GenerateDefinition(*fn, ast, true);
+
+    return fn;
+}
+
+Function *CCodeGenerator::GenerateDeclaration(IFunctionAST &ast, bool isMain)
 {
     auto & context = m_context.GetLLVMContext();
     auto & module = m_context.GetModule();
 
-    std::vector<Type *> doubles(ast.GetArgumentNames().size(), Type::getDoubleTy(context));
-    FunctionType *fnType = FunctionType::get(Type::getDoubleTy(context), doubles, false);
+    std::vector<Type *> args;
+    Type *returnType = nullptr;
+    if (isMain)
+    {
+        returnType = Type::getInt32Ty(context);
+    }
+    else
+    {
+        returnType = Type::getDoubleTy(context);
+        args.assign(ast.GetArgumentNames().size(), Type::getDoubleTy(context));
+    }
+
+    FunctionType *fnType = FunctionType::get(returnType, args, false);
     std::string fnName = m_context.GetString(ast.GetNameId());
     Function *fn = Function::Create(fnType, Function::ExternalLinkage, fnName, &module);
 
@@ -295,7 +319,7 @@ Function *CCodeGenerator::GenerateDeclaration(IFunctionAST &ast)
     return fn;
 }
 
-bool CCodeGenerator::GenerateDefinition(Function &fn, IFunctionAST &ast)
+bool CCodeGenerator::GenerateDefinition(Function &fn, IFunctionAST &ast, bool isMain)
 {
     auto & context = m_context.GetLLVMContext();
 
@@ -314,6 +338,10 @@ bool CCodeGenerator::GenerateDefinition(Function &fn, IFunctionAST &ast)
     // Создаём базовый блок CFG для вставки инструкций в этот блок.
     BasicBlock *bb = BasicBlock::Create(context, "entry", &fn);
     generator.Codegen(*bb, ast.GetBody());
+    if (isMain)
+    {
+        generator.AddExitMain();
+    }
 
     // Валидация и проверка целостности созданного кода вызовом `llvm::verifyFunction`.
     std::string outputStr;
@@ -322,7 +350,6 @@ bool CCodeGenerator::GenerateDefinition(Function &fn, IFunctionAST &ast)
     {
         m_context.PrintError("Function verification failed for " + m_context.GetString(ast.GetNameId())
                              + ", '" + output.str() + "'");
-        fn.dump();
         fn.eraseFromParent();
         return false;
     }

@@ -8,19 +8,20 @@
 #include "AST.h"
 
 struct SToken;
-class CInterpreterContext;
+class CFrontendContext;
 
 /// Wraps LEMON generated parser with Object-Oriented API.
 class CParser
 {
 public:
-    CParser(CInterpreterContext & context);
+    CParser(CFrontendContext & context);
     ~CParser();
 
     bool Advance(int tokenId, SToken const& tokenData);
 #ifndef NDEBUG
     void StartDebugTrace(FILE *output);
 #endif
+    std::unique_ptr<CProgramAst> TakeProgram();
 
     void OnError(SToken const& token);
     void OnStackOverflow();
@@ -36,6 +37,6 @@ private:
     bool m_isFatalError = false;
     void *m_parser = nullptr;
 
-    CInterpreterContext & m_context;
-    CProgramAst m_program;
+    CFrontendContext & m_context;
+    std::unique_ptr<CProgramAst> m_pProgram;
 };

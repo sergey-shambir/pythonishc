@@ -1,40 +1,40 @@
 #include "AST.h"
-#include "InterpreterContext.h"
+#include "FrontendContext.h"
 #include "StringPool.h"
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <iostream>
 
 
-CInterpreterContext::CInterpreterContext(std::ostream &errors, CStringPool &pool)
+CFrontendContext::CFrontendContext(std::ostream &errors, CStringPool &pool)
     : m_pool(pool)
     , m_errors(errors)
     , m_pLLVMContext(new llvm::LLVMContext)
-    , m_pModule(new llvm::Module("jit interpreter", *m_pLLVMContext))
+    , m_pModule(new llvm::Module("main module", *m_pLLVMContext))
 {
     InitLibCBuiltins();
 }
 
-CInterpreterContext::~CInterpreterContext()
+CFrontendContext::~CFrontendContext()
 {
 }
 
-std::unique_ptr<CVariablesScope> CInterpreterContext::MakeScope()
+std::unique_ptr<CVariablesScope> CFrontendContext::MakeScope()
 {
     return std::unique_ptr<CVariablesScope>(new CVariablesScope(*this));
 }
 
-CVariablesScope &CInterpreterContext::GetCurrentScope()
+CVariablesScope &CFrontendContext::GetCurrentScope()
 {
     return *m_scopes.top();
 }
 
-llvm::Function *CInterpreterContext::GetPrintF() const
+llvm::Function *CFrontendContext::GetPrintF() const
 {
     return m_printf;
 }
 
-void CInterpreterContext::AssignVariable(unsigned nameId, llvm::Value *value)
+void CFrontendContext::AssignVariable(unsigned nameId, llvm::Value *value)
 {
     if (value)
     {
@@ -42,17 +42,17 @@ void CInterpreterContext::AssignVariable(unsigned nameId, llvm::Value *value)
     }
 }
 
-bool CInterpreterContext::HasVariable(unsigned nameId) const
+bool CFrontendContext::HasVariable(unsigned nameId) const
 {
     return (0 != m_variables.count(nameId));
 }
 
-void CInterpreterContext::RemoveVariable(unsigned nameId)
+void CFrontendContext::RemoveVariable(unsigned nameId)
 {
     m_variables.erase(nameId);
 }
 
-llvm::Value *CInterpreterContext::TryGetVariableValue(unsigned nameId) const
+llvm::Value *CFrontendContext::TryGetVariableValue(unsigned nameId) const
 {
     try
     {
@@ -65,7 +65,7 @@ llvm::Value *CInterpreterContext::TryGetVariableValue(unsigned nameId) const
     }
 }
 
-llvm::Function *CInterpreterContext::TryGetFunction(unsigned nameId) const
+llvm::Function *CFrontendContext::TryGetFunction(unsigned nameId) const
 {
     try
     {
@@ -78,7 +78,7 @@ llvm::Function *CInterpreterContext::TryGetFunction(unsigned nameId) const
     }
 }
 
-void CInterpreterContext::AddFunction(unsigned nameId, llvm::Function *function)
+void CFrontendContext::AddFunction(unsigned nameId, llvm::Function *function)
 {
     if (function)
     {
@@ -86,37 +86,43 @@ void CInterpreterContext::AddFunction(unsigned nameId, llvm::Function *function)
     }
 }
 
-std::string CInterpreterContext::GetString(unsigned stringId) const
+std::string CFrontendContext::GetString(unsigned stringId) const
 {
     return m_pool.GetString(stringId);
 }
 
-void CInterpreterContext::PrintError(const std::string &message)const
+void CFrontendContext::PrintError(const std::string &message)const
 {
+    ++m_errorsCount;
     m_errors << "  Error: " << message << std::endl;
 }
 
-llvm::LLVMContext &CInterpreterContext::GetLLVMContext()
+unsigned CFrontendContext::GetErrorsCount() const
+{
+    return m_errorsCount;
+}
+
+llvm::LLVMContext &CFrontendContext::GetLLVMContext()
 {
     return *m_pLLVMContext;
 }
 
-llvm::Module &CInterpreterContext::GetModule()
+llvm::Module &CFrontendContext::GetModule()
 {
     return *m_pModule;
 }
 
-void CInterpreterContext::EnterScope(CVariablesScope &scope)
+void CFrontendContext::EnterScope(CVariablesScope &scope)
 {
     m_scopes.push(&scope);
 }
 
-void CInterpreterContext::ExitScope()
+void CFrontendContext::ExitScope()
 {
     m_scopes.pop();
 }
 
-void CInterpreterContext::InitLibCBuiltins()
+void CFrontendContext::InitLibCBuiltins()
 {
     auto & context = *m_pLLVMContext;
     std::vector<llvm::Type *> argTypes = {llvm::Type::getInt8PtrTy(context)};

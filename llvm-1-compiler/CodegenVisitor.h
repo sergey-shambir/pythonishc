@@ -7,12 +7,12 @@
 #include "AST.h"
 #include <vector>
 
-class CInterpreterContext;
+class CFrontendContext;
 
 class CExpressionCodeGenerator : protected IExpressionVisitor
 {
 public:
-    CExpressionCodeGenerator(llvm::IRBuilder<> & builder, CInterpreterContext & context);
+    CExpressionCodeGenerator(llvm::IRBuilder<> & builder, CFrontendContext & context);
 
     // Can throw std::exception.
     llvm::Value *Codegen(IExpressionAST & ast);
@@ -28,16 +28,17 @@ private:
     // Стек используется для временного хранения
     // по мере рекурсивного обхода дерева выражения.
     std::vector<llvm::Value *> m_values;
-    CInterpreterContext & m_context;
+    CFrontendContext & m_context;
     llvm::IRBuilder<> & m_builder;
 };
 
 class CBlockCodeGenerator : protected IStatementVisitor
 {
 public:
-    CBlockCodeGenerator(CInterpreterContext & context);
+    CBlockCodeGenerator(CFrontendContext & context);
 
     void Codegen(llvm::BasicBlock & bb, const StatementsList &block);
+    void AddExitMain();
 
     // IStatementVisitor interface
 protected:
@@ -49,7 +50,7 @@ protected:
     void Visit(CIfAst &expr) override;
 
 private:
-    CInterpreterContext & m_context;
+    CFrontendContext & m_context;
     llvm::IRBuilder<> m_builder;
     CExpressionCodeGenerator m_exprGen;
 };
@@ -57,12 +58,13 @@ private:
 class CCodeGenerator
 {
 public:
-    CCodeGenerator(CInterpreterContext & context);
+    CCodeGenerator(CFrontendContext & context);
     llvm::Function *AcceptFunction(IFunctionAST & ast);
+    llvm::Function *AcceptMainFunction(IFunctionAST & ast);
 
 private:
-    llvm::Function *GenerateDeclaration(IFunctionAST & ast);
-    bool GenerateDefinition(llvm::Function &fn, IFunctionAST & ast);
+    llvm::Function *GenerateDeclaration(IFunctionAST & ast, bool isMain);
+    bool GenerateDefinition(llvm::Function &fn, IFunctionAST & ast, bool isMain);
 
-    CInterpreterContext & m_context;
+    CFrontendContext & m_context;
 };

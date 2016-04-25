@@ -3,14 +3,14 @@
 #include <iostream>
 #include <memory>
 
-class CInterpreter
+class CCompilerDriver
 {
 public:
-    CInterpreter(std::ostream &errors);
-    ~CInterpreter();
+    CCompilerDriver(std::ostream &errors);
+    ~CCompilerDriver();
 
     void StartDebugTrace();
-    void EnterLoop(std::istream &input);
+    bool Compile(std::istream &input, std::ostream &output);
 
 private:
     class Impl;

@@ -9,11 +9,11 @@
 class CStringPool;
 class IFunctionAST;
 
-class CInterpreterContext : protected IInterpreterContext
+class CFrontendContext : protected IInterpreterContext
 {
 public:
-    CInterpreterContext(std::ostream &errors, CStringPool & pool);
-    ~CInterpreterContext();
+    CFrontendContext(std::ostream &errors, CStringPool & pool);
+    ~CFrontendContext();
 
     std::unique_ptr<CVariablesScope> MakeScope();
     CVariablesScope & GetCurrentScope();
@@ -24,6 +24,7 @@ public:
 
     std::string GetString(unsigned stringId)const;
     void PrintError(std::string const& message) const;
+    unsigned GetErrorsCount()const;
 
     llvm::LLVMContext & GetLLVMContext();
     llvm::Module &GetModule();
@@ -41,6 +42,7 @@ private:
     std::unordered_map<unsigned, llvm::Function *> m_functions;
     void InitLibCBuiltins();
 
+    mutable unsigned m_errorsCount = 0;
     llvm::Function *m_printf;
     CStringPool & m_pool;
     std::stack<CVariablesScope *> m_scopes;

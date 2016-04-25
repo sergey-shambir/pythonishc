@@ -1,6 +1,6 @@
 #include "Parser.h"
 #include "Token.h"
-#include "InterpreterContext.h"
+#include "FrontendContext.h"
 #include <cstdlib>
 #include <new>
 #include <iostream>
@@ -18,9 +18,9 @@ void ParseGrammarTrace(FILE * TraceFILE, char * zTracePrompt);
 #endif
 
 
-CParser::CParser(CInterpreterContext & context)
+CParser::CParser(CFrontendContext & context)
     : m_context(context)
-    , m_program(context)
+    , m_pProgram(new CProgramAst)
 {
     auto allocate = [](size_t size) -> void* {
         return new (std::nothrow) char[size];
@@ -48,6 +48,11 @@ void CParser::StartDebugTrace(FILE *output)
 {
     m_tracePrompt = "";
     ParseGrammarTrace(output, &m_tracePrompt[0]);
+}
+
+std::unique_ptr<CProgramAst> CParser::TakeProgram()
+{
+    return std::move(m_pProgram);
 }
 #endif
 
@@ -79,6 +84,6 @@ void CParser::AddFunction(IFunctionASTUniquePtr &&function)
 {
     if (function)
     {
-        m_program.AddFunction(std::move(function));
+        m_pProgram->AddFunction(std::move(function));
     }
 }

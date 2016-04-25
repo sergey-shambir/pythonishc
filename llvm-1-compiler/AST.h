@@ -5,10 +5,6 @@
 #include "ASTVisitor.h"
 #include <boost/variant.hpp>
 
-class CInterpreterContext;
-class CVariablesScope;
-class CCodeGenerator;
-
 class IExpressionAST;
 class IStatementAST;
 class IFunctionAST;
@@ -19,8 +15,6 @@ using IFunctionASTUniquePtr = std::unique_ptr<IFunctionAST>;
 using ExpressionList = std::vector<IExpressionASTUniquePtr>;
 using StatementsList = std::vector<IStatementASTUniquePtr>;
 using FunctionList = std::vector<IFunctionASTUniquePtr>;
-
-struct SErrorValue {};
 
 class IExpressionAST
 {
@@ -240,15 +234,12 @@ private:
 class CProgramAst
 {
 public:
-    CProgramAst(CInterpreterContext &context);
+    CProgramAst();
     ~CProgramAst();
 
     void AddFunction(IFunctionASTUniquePtr && function);
+    const FunctionList &GetFunctions()const;
 
 private:
-    CInterpreterContext &m_context;
-    std::unique_ptr<CVariablesScope> m_pScope;
-    std::unique_ptr<CCodeGenerator> m_pCodegen;
     FunctionList m_functions;
-    StatementsList m_statements;
 };

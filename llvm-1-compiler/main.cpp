@@ -1,18 +1,16 @@
-#include "Parser.h"
-#include "Lexer.h"
-#include "StringPool.h"
-#include "Interpreter.h"
-#include "Token.h"
-#include "Grammar.h"
+#include "CompilerDriver.h"
 #include <iostream>
 #include <time.h>
 
 int main()
 {
     std::srand(static_cast<unsigned>(time(nullptr)));
-    CInterpreter interpreter(std::cerr);
+    CCompilerDriver driver(std::cerr);
 
-    interpreter.EnterLoop(std::cin);
+    if (!driver.Compile(std::cin, std::cout))
+    {
+        return 1;
+    }
 
     return 0;
 }

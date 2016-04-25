@@ -1,5 +1,5 @@
 #include "AST.h"
-#include "InterpreterContext.h"
+#include "FrontendContext.h"
 #include "CodegenVisitor.h"
 #include <limits>
 #include <algorithm>
@@ -208,10 +208,7 @@ void CReturnAST::Accept(IStatementVisitor &visitor)
     visitor.Visit(*this);
 }
 
-CProgramAst::CProgramAst(CInterpreterContext &context)
-    : m_context(context)
-    , m_pScope(std::move(context.MakeScope()))
-    , m_pCodegen(new CCodeGenerator(context))
+CProgramAst::CProgramAst()
 {
 }
 
@@ -221,8 +218,10 @@ CProgramAst::~CProgramAst()
 
 void CProgramAst::AddFunction(IFunctionASTUniquePtr &&function)
 {
-    unsigned nameId = function->GetNameId();
-    llvm::Function *pFunction = m_pCodegen->AcceptFunction(*function);
-    m_context.AddFunction(nameId, pFunction);
     m_functions.emplace_back(std::move(function));
+}
+
+const FunctionList &CProgramAst::GetFunctions() const
+{
+    return m_functions;
 }
