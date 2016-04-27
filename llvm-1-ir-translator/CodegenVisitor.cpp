@@ -225,8 +225,8 @@ void CBlockCodeGenerator::Visit(CPrintAST &ast)
     auto & context = m_context.GetLLVMContext();
     auto & module = m_context.GetModule();
 
-    GlobalVariable * message = AddStringConstant(context, module, "%lf\n");
-    Constant* pFormatAddress = GetStringConstantPtr(context, message);
+    GlobalVariable *format = AddStringConstant(context, module, "%lf\n");
+    Constant* pFormatAddress = GetStringConstantPtr(context, format);
 
     Function *pFunction = m_context.GetPrintF();
     llvm::Value *pValue = m_exprGen.Codegen(ast.GetValue());
