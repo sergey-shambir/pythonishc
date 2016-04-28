@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 find_program(
     LLVM_CONFIG_EXECUTABLE
-    llvm-config-3.6
+    llvm-config-3.8
   )
 if (LLVM_CONFIG_EXECUTABLE)
     message(STATUS "Found LLVM configuration tool: ${LLVM_CONFIG_EXECUTABLE}")
@@ -80,6 +80,10 @@ add_executable(lemon_8 ${SRC_LEMON_8})
 aux_source_directory(llvm-1-ir-translator SRC_LLVM_1)
 add_executable(llvm_1 ${SRC_LLVM_1})
 target_link_libraries(llvm_1 ${LLVM_LIBS} ${LLVM_SYSTEM_LIBS})
+
+aux_source_directory(llvm-2-compiler SRC_LLVM_2)
+add_executable(llvm_2 ${SRC_LLVM_2})
+target_link_libraries(llvm_2 ${LLVM_LIBS} ${LLVM_SYSTEM_LIBS})
 
 aux_source_directory(std-regex SRC_STL_REGEX)
 add_executable(std_regex ${SRC_STL_REGEX})

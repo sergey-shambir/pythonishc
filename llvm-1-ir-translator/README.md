@@ -45,7 +45,14 @@ entry:
 - класс `CValue` был удалён за ненадобностью
 - методы `Evaluate` и `Execute` у выражений и инструкций были удалены, теперь узлы AST лишь дают возможность обхода посетителем, но сами не содержат логики генерации кода.
 
+### Использованная литература
+
+- [язык Kaleidoscope, глава 3](http://llvm.org/docs/tutorial/LangImpl3.html)
+- [передача строковой константы как аргумента фукнции](http://stackoverflow.com/questions/16656855/llvm-ir-string-initialization)
+- [как заставить Clang скомпилировать C++ в LLVM-IR](http://stackoverflow.com/questions/9148890/how-to-make-clang-compile-to-llvm-ir)
+
 ### Системные требования
 
+- Рекомендуются LLVM версии 3.8, lemon произвольной версии
 - Для ОС Ubuntu: установите пакеты `lemon`, `clang`, `llvm-dev`, `cmake`
-- Для ОС Windows: установите CMake, [загрузите и установите Clang](http://llvm.org/releases/download.html), соберите Lemon из [исходных кодов (hwaci.com)](http://www.hwaci.com/sw/lemon/), соберите библиотеки LLVM из исходников.
+- Для ОС Windows: установите CMake, [загрузите и установите Clang](http://llvm.org/releases/download.html), соберите Lemon из [исходных кодов (hwaci.com)](http://www.hwaci.com/sw/lemon/), соберите библиотеки LLVM из исходников с помощью CMake.

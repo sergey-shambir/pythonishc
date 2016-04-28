@@ -1,6 +1,7 @@
 #include "CodegenVisitor.h"
 #include "AST.h"
 #include "FrontendContext.h"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/IR/Constants.h>
@@ -12,8 +13,8 @@
 #include <llvm/IR/Verifier.h>
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/Support/raw_ostream.h>
-#pragma clang diagnostic pop
 #include <boost/variant.hpp>
+#pragma clang diagnostic pop
 
 using namespace llvm;
 

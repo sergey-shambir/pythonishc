@@ -5,9 +5,11 @@
 #include "Lexer.h"
 #include "Grammar.h"
 #include "CodegenVisitor.h"
+#include "CompilerBackend.h"
 #include <llvm/IR/Function.h>
 #include <llvm/Support/raw_os_ostream.h>
 #include <llvm/IR/Module.h>
+#include <sstream>
 
 
 using std::bind;
@@ -47,24 +49,18 @@ public:
         return true;
     }
 
-    bool CompileAst(std::ostream &output)
+    bool GenerateCodeFromAst()
     {
         try
         {
-            unsigned mainId = m_stringPool.Insert(C_MAIN_FUNC);
             std::unique_ptr<CProgramAst> pProgram = m_parser.TakeProgram();
-            const FunctionList &functions = pProgram->GetFunctions();
-
-            bool noMain = std::none_of(functions.begin(), functions.end(), [&](const IFunctionASTUniquePtr &fn) {
-                return (fn->GetNameId() == mainId);
-            });
-            if (noMain)
+            if (!DetectMainFunction(*pProgram))
             {
-                m_context.PrintError("`main` function was not defined");
                 return false;
             }
 
             CCodeGenerator codegen(m_context);
+            unsigned mainId = m_stringPool.Insert(C_MAIN_FUNC);
             for (const auto &pAst : pProgram->GetFunctions())
             {
                 if (pAst->GetNameId() == mainId)
@@ -77,12 +73,42 @@ public:
                 }
             }
 
-            llvm::raw_os_ostream stream(output);
-            m_context.GetModule().print(stream, nullptr);
+            ThrowIfCompileErrors();
 
-            return (0 == m_context.GetErrorsCount());
+            return true;
         }
         catch (std::exception const& ex)
+        {
+            OnFatalError(ex);
+            return false;
+        }
+    }
+
+    void ThrowIfCompileErrors()
+    {
+        if (0 == m_context.GetErrorsCount())
+        {
+            return;
+        }
+
+        const unsigned errorCount = m_context.GetErrorsCount();
+        const bool useEnglishPluralForm = (errorCount % 10 != 1);
+        std::stringstream message;
+        message << errorCount << " compiler " << (useEnglishPluralForm ? "errors" : "error");
+
+        throw std::runtime_error(message.str());
+    }
+
+    bool CompileModule(const std::string &outputPath)
+    {
+        const bool isDebug = false;
+        CCompilerBackend backend;
+        try
+        {
+            backend.GenerateObjectFile(m_context.GetModule(), isDebug, outputPath);
+            return true;
+        }
+        catch (const std::exception &ex)
         {
             OnFatalError(ex);
             return false;
@@ -117,7 +143,23 @@ private:
 
     void OnFatalError(std::exception const& ex)
     {
-        m_errors << "Fatal exception: " << ex.what() << std::endl;
+        m_errors << "Fatal error: " << ex.what() << std::endl;
+    }
+
+    bool DetectMainFunction(const CProgramAst & ast)
+    {
+        unsigned mainId = m_stringPool.Insert(C_MAIN_FUNC);
+        const FunctionList &functions = ast.GetFunctions();
+
+        bool noMain = std::none_of(functions.begin(), functions.end(), [&](const IFunctionASTUniquePtr &fn) {
+            return (fn->GetNameId() == mainId);
+        });
+        if (noMain)
+        {
+            m_context.PrintError("`main` function was not defined");
+            return false;
+        }
+        return true;
     }
 
     std::ostream &m_errors;
@@ -141,7 +183,7 @@ void CCompilerDriver::StartDebugTrace()
     m_pImpl->StartDebugTrace();
 }
 
-bool CCompilerDriver::Compile(std::istream &input, std::ostream &output)
+bool CCompilerDriver::Compile(std::istream &input, const std::string &outputPath)
 {
-    return m_pImpl->ParseAst(input) && m_pImpl->CompileAst(output);
+    return m_pImpl->ParseAst(input) && m_pImpl->GenerateCodeFromAst() && m_pImpl->CompileModule(outputPath);
 }
