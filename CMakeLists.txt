@@ -77,6 +77,9 @@ add_executable(lemon_7 ${SRC_LEMON_7})
 aux_source_directory(lemon-8-types SRC_LEMON_8)
 add_executable(lemon_8 ${SRC_LEMON_8})
 
+aux_source_directory(lemon-9-final SRC_LEMON_9)
+add_executable(lemon_9 ${SRC_LEMON_9})
+
 aux_source_directory(llvm-1-ir-translator SRC_LLVM_1)
 add_executable(llvm_1 ${SRC_LLVM_1})
 target_link_libraries(llvm_1 ${LLVM_LIBS} ${LLVM_SYSTEM_LIBS})

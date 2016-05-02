@@ -47,6 +47,8 @@ void checker_error (char const *s) {
 %token BLOCK_END "end"
 %token FUNCTION "def"
 %token EQUALS   "operator =="
+%token AND      "operator &&"
+%token OR       "operator ||"
 
 /* %left, %right, %nonassoc и %precedence управляют разрешением
    приоритета операторов и правил ассоциативности
@@ -54,6 +56,7 @@ void checker_error (char const *s) {
    Документация Bison: http://www.gnu.org/software/bison/manual/bison.html#Precedence-Decl
 */
 %left '<' EQUALS
+%left AND OR NOT
 %left '+' '-'
 %left '*' '/' '%'
 
@@ -68,8 +71,9 @@ variable : ID
 function_call : ID '(' expression_list ')'
 
 expression : constant | variable | '(' expression ')'
-        | '+' expression | '-' expression
+        | '+' expression | '-' expression | NOT expression
         | expression '<' expression | expression EQUALS expression
+        | expression AND expression | expression OR expression
         | expression '+' expression | expression '-' expression
         | expression '*' expression | expression '/' expression
         | expression '%' expression
@@ -77,7 +81,7 @@ expression : constant | variable | '(' expression ')'
 
 expression_list : epsilon | expression | expression_list ',' expression
 
-statement : PRINT expression
+statement : PRINT expression_list
           | variable '=' expression
           | RETURN expression
           | IF expression block

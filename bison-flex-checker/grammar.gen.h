@@ -59,7 +59,10 @@ extern int checker_debug;
     RETURN = 268,
     BLOCK_END = 269,
     FUNCTION = 270,
-    EQUALS = 271
+    EQUALS = 271,
+    AND = 272,
+    OR = 273,
+    NOT = 274
   };
 #endif
 

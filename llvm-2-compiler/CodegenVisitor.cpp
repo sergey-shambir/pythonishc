@@ -54,12 +54,16 @@ struct LiteralCodeGenerator : boost::static_visitor<Constant *>
 
     Constant *operator ()(bool const& value) const
     {
-        return ConstantInt::get(m_context, APInt(8, uint64_t(value), true));
+        (void)value;
+        throw std::runtime_error("Boolean type code generation not implemented");
+//        return ConstantInt::get(m_context, APInt(8, uint64_t(value), true));
     }
 
     Constant *operator ()(std::string const& value)
     {
-        return AddStringLiteral(m_context, m_module, value);
+        (void)value;
+        throw std::runtime_error("String type code generation not implemented");
+//        return AddStringLiteral(m_context, m_module, value);
     }
 
 private:

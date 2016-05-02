@@ -25,7 +25,10 @@ ID [a-zA-Z][a-zA-Z0-9_]*
 "/"     return '/';
 "%"     return '%';
 "<"     return '<';
+"!"     return '!';
 "=="    return EQUALS;
+"&&"    return AND;
+"||"    return OR;
 {BOOL}    return BOOL;
 {NUMBER}  return NUMBER;
 {STRING}  return STRING;
