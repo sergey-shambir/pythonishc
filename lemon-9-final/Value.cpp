@@ -1,5 +1,6 @@
 #include "Value.h"
 #include <stdexcept>
+#include <boost/format.hpp>
 
 namespace
 {
@@ -7,19 +8,6 @@ namespace
 bool IsFarFromZero(double value)
 {
     return fabs(value) >= std::numeric_limits<double>::epsilon();
-}
-
-template <class TFunction>
-CValue ExecuteSafely(TFunction && fn)
-{
-    try
-    {
-        return fn();
-    }
-    catch (std::exception const&)
-    {
-        return CValue::FromError(std::current_exception());
-    }
 }
 
 std::string ToPrettyString(double value)
@@ -78,6 +66,18 @@ struct NumberConverter : boost::static_visitor<double>
     double operator ()(std::exception_ptr const& value) { std::rethrow_exception(value); }
 };
 
+struct TypeNameVisitor : boost::static_visitor<std::string>
+{
+    explicit TypeNameVisitor() = default;
+
+    std::string operator ()(double const&) const { return "Number"; }
+    std::string operator ()(bool const&) const { return "Boolean"; }
+    std::string operator ()(std::string const&) const { return "String"; }
+    std::string operator ()(std::exception_ptr const& value) { m_exception = value; return "Error"; }
+
+    std::exception_ptr m_exception;
+};
+
 } // anonymous namespace.
 
 CValue::CValue()
@@ -95,13 +95,13 @@ CValue CValue::FromErrorMessage(const std::string &message)
     {
         throw std::runtime_error(message);
     }
-    catch (std::exception const&)
+    catch (const std::exception &)
     {
         return CValue::FromError(std::current_exception());
     }
 }
 
-CValue CValue::FromDouble(const double &value)
+CValue CValue::FromDouble(double value)
 {
     return Value(value);
 }
@@ -153,50 +153,64 @@ const std::exception_ptr &CValue::AsError() const
 
 CValue CValue::operator +() const
 {
-    return ExecuteSafely([&] {
+    try
+    {
         return CValue::FromDouble(AsDouble());
-    });
+    }
+    catch (std::exception const&)
+    {
+        return CValue::FromError(std::current_exception());
+    }
 }
 
 CValue CValue::operator -() const
 {
-    return ExecuteSafely([&] {
+    try
+    {
         return CValue::FromDouble(-AsDouble());
-    });
+    }
+    catch (std::exception const&)
+    {
+        return CValue::FromError(std::current_exception());
+    }
 }
 
 CValue CValue::operator !() const
 {
-    return ExecuteSafely([&] {
+    try
+    {
         return CValue::FromBoolean(!AsBool());
-    });
+    }
+    catch (std::exception const&)
+    {
+        return CValue::FromError(std::current_exception());
+    }
 }
 
 CValue CValue::operator <(const CValue &other) const
 {
-    return ExecuteSafely([&] {
-        if (m_value.type() == typeid(std::string))
+    try
+    {
+        const auto &type = m_value.type();
+        if (type == typeid(std::string))
         {
             return CValue::FromBoolean(AsString() < other.AsString());
         }
-        else if (m_value.type() == typeid(bool))
-        {
-            throw std::runtime_error("Cannot use '<' with Boolean values.");
-        }
-        else if (m_value.type() == typeid(double))
+        else if (type == typeid(double))
         {
             return CValue::FromBoolean(AsDouble() < other.AsDouble());
         }
-        else // exception_ptr.
-        {
-            return *this;
-        }
-    });
+    }
+    catch (std::exception const&)
+    {
+    }
+    return GenerateError(*this, other, "<");
 }
 
 CValue CValue::operator ==(const CValue &other) const
 {
-    return ExecuteSafely([&] {
+    try
+    {
         const auto &type = m_value.type();
         if (type == typeid(std::string))
         {
@@ -213,65 +227,35 @@ CValue CValue::operator ==(const CValue &other) const
             bool result = fabs(left - right) < std::numeric_limits<double>::epsilon();
             return CValue::FromBoolean(result);
         }
-        else // exception_ptr.
-        {
-            return *this;
-        }
-    });
+    }
+    catch (std::exception const&)
+    {
+    }
+    return GenerateError(*this, other, "==");
 }
 
 CValue CValue::operator &&(const CValue &other) const
 {
-    return ExecuteSafely([&](){
-        const auto &type = m_value.type();
-        if (type == typeid(std::string))
-        {
-            throw std::runtime_error("Cannot use '&&' with String values.");
-        }
-        else if (type == typeid(bool))
-        {
-            // Short Curcuit Evaluation работает, т.к. мы используем его и в C++ реализации.
-            return CValue::FromBoolean(AsBool() && other.AsBool());
-        }
-        else if (type == typeid(double))
-        {
-            throw std::runtime_error("Cannot use '&&' with Double values.");
-        }
-        else // exception_ptr.
-        {
-            return *this;
-        }
-    });
+    auto operation = [](bool left, bool right) -> bool {
+        return left && right;
+    };
+    return DoFixedTypeOperation<bool>(*this, other, operation, "&&");
 }
 
 CValue CValue::operator ||(const CValue &other) const
 {
-    return ExecuteSafely([&](){
-        const auto &type = m_value.type();
-        if (type == typeid(std::string))
-        {
-            throw std::runtime_error("Cannot use '&&' with String values.");
-        }
-        else if (type == typeid(bool))
-        {
-            // Short Curcuit Evaluation работает, т.к. мы используем его и в C++ реализации.
-            return CValue::FromBoolean(AsBool() || other.AsBool());
-        }
-        else if (type == typeid(double))
-        {
-            throw std::runtime_error("Cannot use '&&' with Double values.");
-        }
-        else // exception_ptr.
-        {
-            return *this;
-        }
-    });
+    auto operation = [](bool left, bool right) -> bool {
+        return left || right;
+    };
+    return DoFixedTypeOperation<bool>(*this, other, operation, "||");
 }
 
 CValue CValue::operator +(const CValue &other) const
 {
-    return ExecuteSafely([&] {
-        if (m_value.type() == typeid(std::string))
+    try
+    {
+        const auto &type = m_value.type();
+        if (type == typeid(std::string))
         {
             return CValue::FromString(AsString() + other.ConvertToString());
         }
@@ -280,107 +264,77 @@ CValue CValue::operator +(const CValue &other) const
         {
             return CValue::FromString(ConvertToString() + other.AsString());
         }
-        else if (m_value.type() == typeid(bool))
-        {
-            throw std::runtime_error("Cannot use '+' with Boolean values.");
-        }
-        else if (m_value.type() == typeid(double))
+        else if (type == typeid(double))
         {
             return CValue::FromDouble(AsDouble() + other.ConvertToDouble());
         }
-        else // exception_ptr.
-        {
-            return *this;
-        }
-    });
+    }
+    catch (std::exception const&)
+    {
+    }
+    return GenerateError(*this, other, "+");
 }
 
 CValue CValue::operator -(const CValue &other) const
 {
-    return ExecuteSafely([&] {
-        if (m_value.type() == typeid(bool))
-        {
-            throw std::runtime_error("Cannot use '-' with Boolean values.");
-        }
-        else if (m_value.type() == typeid(double))
-        {
-            return CValue::FromDouble(AsDouble() - other.ConvertToDouble());
-        }
-        else if (m_value.type() == typeid(std::string))
-        {
-            throw std::runtime_error("Cannot use '-' with String values.");
-        }
-        else // exception_ptr.
-        {
-            return *this;
-        }
-    });
+    auto operation = [](double left, double right) -> double {
+        return left * right;
+    };
+    return DoFixedTypeOperation<double>(*this, other, operation, "-");
 }
 
 CValue CValue::operator *(const CValue &other) const
 {
-    return ExecuteSafely([&] {
-        if (m_value.type() == typeid(bool))
-        {
-            throw std::runtime_error("Cannot use '*' with Boolean values.");
-        }
-        else if (m_value.type() == typeid(double))
-        {
-            return CValue::FromDouble(AsDouble() * other.ConvertToDouble());
-        }
-        else if (m_value.type() == typeid(std::string))
-        {
-            throw std::runtime_error("Cannot use '*' with String values.");
-        }
-        else // exception_ptr.
-        {
-            return *this;
-        }
-    });
+    auto operation = [](double left, double right) -> double {
+        return left * right;
+    };
+    return DoFixedTypeOperation<double>(*this, other, operation, "*");
 }
 
 CValue CValue::operator /(const CValue &other) const
 {
-    return ExecuteSafely([&] {
-        if (m_value.type() == typeid(bool))
-        {
-            throw std::runtime_error("Cannot use '/' with Boolean values.");
-        }
-        else if (m_value.type() == typeid(double))
-        {
-            return CValue::FromDouble(AsDouble() / other.ConvertToDouble());
-        }
-        else if (m_value.type() == typeid(std::string))
-        {
-            throw std::runtime_error("Cannot use '/' with String values.");
-        }
-        else // exception_ptr.
-        {
-            return *this;
-        }
-    });
+    auto operation = [](double left, double right) -> double {
+        return left / right;
+    };
+    return DoFixedTypeOperation<double>(*this, other, operation, "/");
 }
 
 CValue CValue::operator %(const CValue &other) const
 {
-    return ExecuteSafely([&] {
-        if (m_value.type() == typeid(bool))
-        {
-            throw std::runtime_error("Cannot use '%' with Boolean values.");
-        }
-        else if (m_value.type() == typeid(double))
-        {
-            return CValue::FromDouble(fmod(AsDouble(), other.ConvertToDouble()));
-        }
-        else if (m_value.type() == typeid(std::string))
-        {
-            throw std::runtime_error("Cannot use '%' with String values.");
-        }
-        else // exception_ptr.
-        {
-            return *this;
-        }
-    });
+    auto operation = [](double left, double right) -> double {
+        return fmod(left, right);
+    };
+    return DoFixedTypeOperation<double>(*this, other, operation, "%");
+}
+
+template<class TType, class TOperation>
+CValue CValue::DoFixedTypeOperation(const CValue &left, const CValue &right, TOperation &&operation, const char *description)
+{
+    try
+    {
+        return CValue(Value(operation(boost::get<TType>(left.m_value), boost::get<TType>(right.m_value))));
+    }
+    catch (std::exception const&)
+    {
+        return GenerateError(left, right, description);
+    }
+}
+
+CValue CValue::GenerateError(const CValue &left, const CValue &right, const char *description)
+{
+    TypeNameVisitor visitor;
+    std::string leftType = left.m_value.apply_visitor(visitor);
+    std::string rightType = right.m_value.apply_visitor(visitor);
+
+    if (visitor.m_exception)
+    {
+        return CValue::FromError(visitor.m_exception);
+    }
+
+    boost::format formatter("Cannot use '%1%' with %2% and %3%");
+    formatter % description % leftType % rightType;
+
+    return CValue::FromErrorMessage(boost::str(formatter));
 }
 
 CValue::CValue(const CValue::Value &value)
