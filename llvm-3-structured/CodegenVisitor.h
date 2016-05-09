@@ -53,7 +53,7 @@ protected:
     void Visit(CIfAst &ast) override;
 
 private:
-    void LoadParameters(llvm::Function &fn, const std::vector<unsigned> &argumentNames);
+    void LoadParameters(llvm::Function &fn, const std::vector<unsigned> &parameterNames);
     void CodegenLoop(CAbstractLoopAst &ast, bool skipFirstCheck);
     void CodegenForAstList(const StatementsList &block);
 

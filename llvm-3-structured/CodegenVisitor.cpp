@@ -240,12 +240,12 @@ CBlockCodeGenerator::CBlockCodeGenerator(CFrontendContext &context)
 {
 }
 
-void CBlockCodeGenerator::Codegen(const std::vector<unsigned> &argumentNames, const StatementsList &block, Function &fn)
+void CBlockCodeGenerator::Codegen(const std::vector<unsigned> &parameterNames, const StatementsList &block, Function &fn)
 {
     // Создаём базовый блок CFG для вставки инструкций в этот блок.
     BasicBlock *bb = BasicBlock::Create(m_context.GetLLVMContext(), "entry", &fn);
     m_builder.SetInsertPoint(bb);
-    LoadParameters(fn, argumentNames);
+    LoadParameters(fn, parameterNames);
     CodegenForAstList(block);
 }
 
@@ -329,18 +329,23 @@ void CBlockCodeGenerator::Visit(CIfAst &ast)
     m_builder.SetInsertPoint(mergeBB);
 }
 
-void CBlockCodeGenerator::LoadParameters(Function &fn, const std::vector<unsigned> &argumentNames)
+void CBlockCodeGenerator::LoadParameters(Function &fn, const std::vector<unsigned> &parameterNames)
 {
     LLVMContext &context = m_context.GetLLVMContext();
 
+    std::vector<llvm::AllocaInst *> allocs;
+    allocs.reserve(fn.arg_size());
+    for (const auto &nameId : parameterNames)
+    {
+        std::string varName = m_context.GetString(nameId);
+        Type *varType = Type::getDoubleTy(context);
+        allocs.push_back(m_builder.CreateAlloca(varType, nullptr, varName));
+        m_context.AddVariable(nameId, allocs.back());
+    }
     size_t idx = 0;
     for (auto &arg : fn.args())
     {
-        unsigned nameId = argumentNames[idx];
-        std::string varName = m_context.GetString(nameId);
-        AllocaInst *pVar = m_builder.CreateAlloca(Type::getDoubleTy(context), nullptr, varName);
-        m_builder.CreateStore(&arg, pVar);
-        m_context.AddVariable(nameId, pVar);
+        m_builder.CreateStore(&arg, allocs[idx]);
         ++idx;
     }
 }
