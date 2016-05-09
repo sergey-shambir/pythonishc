@@ -1,7 +1,10 @@
 #include "BatchAST.h"
 #include "InterpreterContext.h"
 #include "StringPool.h"
+#include "VariablesScope.h"
 #include <iostream>
+#include <boost/range/adaptor/reversed.hpp>
+#include <boost/range/algorithm.hpp>
 
 class CSinFunction : public IFunctionAST
 {
@@ -56,42 +59,52 @@ CInterpreterContext::CInterpreterContext(CStringPool &pool)
     AddBuiltin("rand", std::unique_ptr<IFunctionAST>(new CRandFunction));
 }
 
-std::unique_ptr<CVariablesScope> CInterpreterContext::MakeScope()
+CInterpreterContext::~CInterpreterContext()
 {
-    return std::unique_ptr<CVariablesScope>(new CVariablesScope(*this));
 }
 
-CVariablesScope &CInterpreterContext::GetCurrentScope()
+void CInterpreterContext::DefineVariable(unsigned nameId, double value)
 {
-    return *m_scopes.top();
+    m_scopes.back()->AssignVariable(nameId, value);
 }
 
 void CInterpreterContext::AssignVariable(unsigned nameId, double value)
 {
-    m_variables[nameId] = value;
-}
-
-bool CInterpreterContext::HasVariable(unsigned nameId) const
-{
-    return (0 != m_variables.count(nameId));
-}
-
-void CInterpreterContext::RemoveVariable(unsigned nameId)
-{
-    m_variables.erase(nameId);
+    if (CVariablesScope *pScope = FindScopeWithVariable(nameId))
+    {
+        pScope->AssignVariable(nameId, value);
+    }
+    else
+    {
+        DefineVariable(nameId, value);
+    }
 }
 
 double CInterpreterContext::GetVariableValue(unsigned nameId) const
 {
-    try
+    if (CVariablesScope *pScope = FindScopeWithVariable(nameId))
     {
-        return m_variables.at(nameId);
+        return *pScope->GetVariableValue(nameId);
     }
-    catch (std::exception const&)
-    {
-        std::cerr << "error: unknown variable " << m_pool.GetString(nameId) << std::endl;
-        return 0;
-    }
+    std::cerr << "error: unknown variable " << m_pool.GetString(nameId) << std::endl;
+    return std::numeric_limits<double>::quiet_NaN();
+}
+
+void CInterpreterContext::PushScope(std::unique_ptr<CVariablesScope> &&scope)
+{
+    m_scopes.emplace_back(std::move(scope));
+}
+
+std::unique_ptr<CVariablesScope> CInterpreterContext::PopScope()
+{
+    std::unique_ptr<CVariablesScope> ret(m_scopes.back().release());
+    m_scopes.pop_back();
+    return ret;
+}
+
+size_t CInterpreterContext::GetScopesCount() const
+{
+    return m_scopes.size();
 }
 
 IFunctionAST *CInterpreterContext::GetFunction(unsigned nameId) const
@@ -130,19 +143,22 @@ boost::optional<double> CInterpreterContext::GetReturnValue() const
     return m_returnValueOpt;
 }
 
+CVariablesScope *CInterpreterContext::FindScopeWithVariable(unsigned nameId) const
+{
+    auto range = boost::adaptors::reverse(m_scopes);
+    auto it = boost::find_if(range, [=](const auto &pScope) {
+        return pScope->HasVariable(nameId);
+    });
+    if (it != range.end())
+    {
+        return it->get();
+    }
+    return nullptr;
+}
+
 void CInterpreterContext::AddBuiltin(const std::string &name, std::unique_ptr<IFunctionAST> &&function)
 {
     m_builtins.emplace_back(std::move(function));
     unsigned nameRand = m_pool.Insert(name);
     m_functions[nameRand] = m_builtins.back().get();
-}
-
-void CInterpreterContext::EnterScope(CVariablesScope &scope)
-{
-    m_scopes.push(&scope);
-}
-
-void CInterpreterContext::ExitScope()
-{
-    m_scopes.pop();
 }

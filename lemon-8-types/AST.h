@@ -5,7 +5,6 @@
 #include "Value.h"
 
 class CInterpreterContext;
-class CVariablesScope;
 
 class IExpressionAST;
 class IStatementAST;
@@ -221,6 +220,5 @@ public:
 
 private:
     CInterpreterContext &m_context;
-    std::unique_ptr<CVariablesScope> m_pScope;
     FunctionList m_functions;
 };

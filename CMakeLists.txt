@@ -51,7 +51,7 @@ link_directories(${LLVM_LIBDIR})
 add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS)
 
 set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra")
 
 aux_source_directory(lemon-1-calculator SRC_LEMON_1)
 add_executable(lemon_1 ${SRC_LEMON_1})

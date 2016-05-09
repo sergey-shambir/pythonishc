@@ -1,10 +1,12 @@
 #include "BatchAST.h"
 #include "InterpreterContext.h"
+#include "VariablesScope.h"
 #include <limits>
 #include <algorithm>
 #include <iostream>
 #include <cmath>
 #include <cassert>
+#include <boost/range/adaptor/reversed.hpp>
 
 namespace
 {
@@ -27,6 +29,50 @@ void ExecuteAll(StatementsList const& list, CInterpreterContext & context)
 }
 }
 
+class CScopedVariableScope
+{
+public:
+    CScopedVariableScope(CInterpreterContext &context)
+        : m_context(context)
+    {
+        m_context.PushScope(std::make_unique<CVariablesScope>());
+    }
+
+    ~CScopedVariableScope()
+    {
+        m_context.PopScope();
+    }
+
+private:
+    CInterpreterContext &m_context;
+};
+
+class CVariableScopeCleaner
+{
+public:
+    CVariableScopeCleaner(CInterpreterContext &context)
+        : m_context(context)
+    {
+        // Убираем все области видимости, кроме верхней.
+        while (m_context.GetScopesCount() > 1)
+        {
+            m_scopes.emplace_back(m_context.PopScope());
+        }
+    }
+
+    ~CVariableScopeCleaner()
+    {
+        for (std::unique_ptr<CVariablesScope> &pScope : m_scopes)
+        {
+            m_context.PushScope(std::unique_ptr<CVariablesScope>(pScope.release()));
+        }
+    }
+
+private:
+    CInterpreterContext &m_context;
+    std::vector<std::unique_ptr<CVariablesScope>> m_scopes;
+};
+
 CPrintAST::CPrintAST(IExpressionASTUniquePtr &&expr)
     : m_expr(std::move(expr))
 {
@@ -47,7 +93,7 @@ CAssignAST::CAssignAST(unsigned nameId, IExpressionASTUniquePtr &&value)
 void CAssignAST::Execute(CInterpreterContext &context)const
 {
     const double value = m_value->Evaluate(context);
-    context.GetCurrentScope().AssignVariable(m_nameId, value);
+    context.AssignVariable(m_nameId, value);
 }
 
 CBinaryExpressionAST::CBinaryExpressionAST(IExpressionASTUniquePtr &&left, BinaryOperation op, IExpressionASTUniquePtr &&right)
@@ -116,7 +162,7 @@ CVariableRefAST::CVariableRefAST(unsigned nameId)
 
 double CVariableRefAST::Evaluate(CInterpreterContext &context) const
 {
-    return context.GetCurrentScope().GetVariableValue(m_nameId);
+    return context.GetVariableValue(m_nameId);
 }
 
 CIfAst::CIfAst(IExpressionASTUniquePtr &&condition, StatementsList &&thenBody, StatementsList &&elseBody)
@@ -141,12 +187,13 @@ void CIfAst::Execute(CInterpreterContext &context) const
 
 CProgramAst::CProgramAst(CInterpreterContext &context)
     : m_context(context)
-    , m_pScope(std::move(context.MakeScope()))
 {
+    m_context.PushScope(std::make_unique<CVariablesScope>());
 }
 
 CProgramAst::~CProgramAst()
 {
+    m_context.PopScope();
 }
 
 void CProgramAst::AddStatement(IStatementASTUniquePtr &&stmt)
@@ -229,11 +276,13 @@ double CFunctionAST::Call(CInterpreterContext &context, const std::vector<double
         return GetNaN();
     }
 
-    std::unique_ptr<CVariablesScope> scope = context.MakeScope();
+    CVariableScopeCleaner cleaner(context);
+    CScopedVariableScope scopedScope(context);
+
     auto argumentIt = arguments.begin();
     for (unsigned nameId : m_argumentNames)
     {
-        scope->AssignVariable(nameId, *argumentIt);
+        context.DefineVariable(nameId, *argumentIt);
         ++argumentIt;
     }
 
