@@ -114,6 +114,14 @@ Value *GenerateUnaryExpr(IRBuilder<> & builder, LLVMContext &context, UnaryOpera
     throw std::runtime_error("Unknown unary operation");
 }
 
+AllocaInst *MakeLocalVariable(Function &function, Type & type, const std::string &name)
+{
+    BasicBlock &block = function.getEntryBlock();
+    IRBuilder<> temp(&block, block.begin());
+
+    return temp.CreateAlloca(&type, nullptr, name);
+}
+
 class CScopedVariableScope
 {
 public:
@@ -215,7 +223,13 @@ void CExpressionCodeGenerator::Visit(CCallAST &expr)
 
 void CExpressionCodeGenerator::Visit(CVariableRefAST &expr)
 {
-    Value *pValue = m_context.TryGetVariableValue(expr.GetNameId());
+    AllocaInst *pVar = m_context.GetVariable(expr.GetNameId());
+    std::string varName = m_context.GetString(expr.GetNameId());
+    if (!pVar)
+    {
+        throw std::runtime_error("unknown variable " + varName);
+    }
+    Value *pValue = m_builder.CreateLoad(pVar, varName);
     m_values.push_back(pValue);
 }
 
@@ -226,11 +240,12 @@ CBlockCodeGenerator::CBlockCodeGenerator(CFrontendContext &context)
 {
 }
 
-void CBlockCodeGenerator::Codegen(const StatementsList &block, Function &fn)
+void CBlockCodeGenerator::Codegen(const std::vector<unsigned> &argumentNames, const StatementsList &block, Function &fn)
 {
     // Создаём базовый блок CFG для вставки инструкций в этот блок.
     BasicBlock *bb = BasicBlock::Create(m_context.GetLLVMContext(), "entry", &fn);
     m_builder.SetInsertPoint(bb);
+    LoadParameters(fn, argumentNames);
     CodegenForAstList(block);
 }
 
@@ -255,7 +270,25 @@ void CBlockCodeGenerator::Visit(CPrintAST &ast)
 void CBlockCodeGenerator::Visit(CAssignAST &ast)
 {
     llvm::Value *pValue = m_exprGen.Codegen(ast.GetValue());
-    m_context.AssignVariable(ast.GetNameId(), pValue);
+
+    unsigned nameId = ast.GetNameId();
+    AllocaInst *pVar = m_context.GetVariable(nameId);
+    if (pVar)
+    {
+        llvm::Type *pVarType = pVar->getType()->getPointerElementType();
+        if (pVarType->getTypeID() != pValue->getType()->getTypeID())
+        {
+            std::string name = m_context.GetString(nameId);
+            throw std::runtime_error("Cannot change '" + name + "' variable type in assignment");
+        }
+    }
+    else
+    {
+        Function *pFunction = m_builder.GetInsertBlock()->getParent();
+        pVar = MakeLocalVariable(*pFunction, *pValue->getType(), m_context.GetString(nameId));
+        m_context.AddVariable(nameId, pVar);
+    }
+    m_builder.CreateStore(pValue, pVar);
 }
 
 void CBlockCodeGenerator::Visit(CReturnAST &ast)
@@ -294,6 +327,22 @@ void CBlockCodeGenerator::Visit(CIfAst &ast)
     CodegenForAstList(ast.GetElseBody());
     m_builder.CreateBr(mergeBB);
     m_builder.SetInsertPoint(mergeBB);
+}
+
+void CBlockCodeGenerator::LoadParameters(Function &fn, const std::vector<unsigned> &argumentNames)
+{
+    LLVMContext &context = m_context.GetLLVMContext();
+
+    size_t idx = 0;
+    for (auto &arg : fn.args())
+    {
+        unsigned nameId = argumentNames[idx];
+        std::string varName = m_context.GetString(nameId);
+        AllocaInst *pVar = m_builder.CreateAlloca(Type::getDoubleTy(context), nullptr, varName);
+        m_builder.CreateStore(&arg, pVar);
+        m_context.AddVariable(nameId, pVar);
+        ++idx;
+    }
 }
 
 void CBlockCodeGenerator::CodegenLoop(CAbstractLoopAst &ast, bool skipFirstCheck)
@@ -379,18 +428,9 @@ Function *CCodeGenerator::GenerateDeclaration(IFunctionAST &ast, bool isMain)
 bool CCodeGenerator::GenerateDefinition(Function &fn, IFunctionAST &ast, bool isMain)
 {
     CScopedVariableScope scopedScope(m_context);
-
-    const auto &argNames = ast.GetArgumentNames();
-    size_t idx = 0;
-    for (auto &arg : fn.args())
-    {
-        m_context.DefineVariable(argNames[idx], &arg);
-        ++idx;
-    }
-
     CBlockCodeGenerator generator(m_context);
 
-    generator.Codegen(ast.GetBody(), fn);
+    generator.Codegen(ast.GetArgumentNames(), ast.GetBody(), fn);
     if (isMain)
     {
         generator.AddExitMain();

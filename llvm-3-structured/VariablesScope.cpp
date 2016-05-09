@@ -13,15 +13,15 @@ bool CVariablesScope::HasVariable(unsigned nameId) const
     return (m_variables.find(nameId) != m_variables.end());
 }
 
-void CVariablesScope::AssignVariable(unsigned nameId, llvm::Value *value)
+void CVariablesScope::AddVariable(unsigned nameId, llvm::AllocaInst *variable)
 {
-    if (value)
+    if (variable)
     {
-        m_variables[nameId] = value;
+        m_variables[nameId] = variable;
     }
 }
 
-llvm::Value *CVariablesScope::GetVariableValue(unsigned nameId) const
+llvm::AllocaInst *CVariablesScope::GetVariable(unsigned nameId) const
 {
     auto it = m_variables.find(nameId);
     if (it != m_variables.end())

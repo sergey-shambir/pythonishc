@@ -40,7 +40,7 @@ class CBlockCodeGenerator : protected IStatementVisitor
 public:
     CBlockCodeGenerator(CFrontendContext & context);
 
-    void Codegen(const StatementsList &block, llvm::Function & fn);
+    void Codegen(const std::vector<unsigned> &argumentNames, const StatementsList &block, llvm::Function & fn);
     void AddExitMain();
 
     // IStatementVisitor interface
@@ -53,6 +53,7 @@ protected:
     void Visit(CIfAst &ast) override;
 
 private:
+    void LoadParameters(llvm::Function &fn, const std::vector<unsigned> &argumentNames);
     void CodegenLoop(CAbstractLoopAst &ast, bool skipFirstCheck);
     void CodegenForAstList(const StatementsList &block);
 

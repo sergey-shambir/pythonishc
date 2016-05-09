@@ -40,6 +40,8 @@ public:
                     return false;
                 }
             }
+
+            ThrowIfCompileErrors();
         }
         catch (std::exception const& ex)
         {

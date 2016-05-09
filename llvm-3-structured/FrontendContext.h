@@ -5,11 +5,13 @@
 #include <stack>
 #include <boost/optional.hpp>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#include <llvm/IR/Value.h>
-#include <llvm/IR/Function.h>
-#pragma clang diagnostic pop
+namespace llvm
+{
+class AllocaInst;
+class Function;
+class LLVMContext;
+class Module;
+}
 
 class CStringPool;
 class CVariablesScope;
@@ -21,9 +23,10 @@ public:
     CFrontendContext(std::ostream &errors, CStringPool & pool);
     ~CFrontendContext();
 
-    void DefineVariable(unsigned nameId, llvm::Value *value);
-    void AssignVariable(unsigned nameId, llvm::Value *value);
-    llvm::Value *TryGetVariableValue(unsigned nameId)const;
+    // Ничего не сделает, если передать nullptr.
+    void AddVariable(unsigned nameId, llvm::AllocaInst *value);
+    // Может вернуть nullptr.
+    llvm::AllocaInst *GetVariable(unsigned nameId)const;
 
     void PushScope(std::unique_ptr<CVariablesScope> && scope);
     std::unique_ptr<CVariablesScope> PopScope();

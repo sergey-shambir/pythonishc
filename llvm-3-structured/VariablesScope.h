@@ -3,7 +3,11 @@
 #include <unordered_map>
 #include <cstdint>
 #include <climits>
-#include <llvm/IR/Value.h>
+
+namespace llvm
+{
+class AllocaInst;
+}
 
 class CVariablesScope
 {
@@ -12,11 +16,11 @@ public:
     ~CVariablesScope();
 
     bool HasVariable(unsigned nameId)const;
-    void AssignVariable(unsigned nameId, llvm::Value *value);
+    void AddVariable(unsigned nameId, llvm::AllocaInst *variable);
 
     // Может вернуть nullptr
-    llvm::Value *GetVariableValue(unsigned nameId)const;
+    llvm::AllocaInst *GetVariable(unsigned nameId)const;
 
 private:
-    std::unordered_map<unsigned, llvm::Value *> m_variables;
+    std::unordered_map<unsigned, llvm::AllocaInst *> m_variables;
 };

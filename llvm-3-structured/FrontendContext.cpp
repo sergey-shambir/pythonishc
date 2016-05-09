@@ -15,8 +15,8 @@
 CFrontendContext::CFrontendContext(std::ostream &errors, CStringPool &pool)
     : m_pool(pool)
     , m_errors(errors)
-    , m_pLLVMContext(new llvm::LLVMContext)
-    , m_pModule(new llvm::Module("main module", *m_pLLVMContext))
+    , m_pLLVMContext(std::make_unique<llvm::LLVMContext>())
+    , m_pModule(std::make_unique<llvm::Module>("main module", *m_pLLVMContext))
 {
     InitLibCBuiltins();
 }
@@ -25,30 +25,18 @@ CFrontendContext::~CFrontendContext()
 {
 }
 
-void CFrontendContext::DefineVariable(unsigned nameId, llvm::Value *value)
+void CFrontendContext::AddVariable(unsigned nameId, llvm::AllocaInst *value)
 {
-    m_scopes.back()->AssignVariable(nameId, value);
+    m_scopes.back()->AddVariable(nameId, value);
 }
 
-void CFrontendContext::AssignVariable(unsigned nameId, llvm::Value *value)
+llvm::AllocaInst *CFrontendContext::GetVariable(unsigned nameId) const
 {
     if (CVariablesScope *pScope = FindScopeWithVariable(nameId))
     {
-        pScope->AssignVariable(nameId, value);
+        return pScope->GetVariable(nameId);
     }
-    else
-    {
-        DefineVariable(nameId, value);
-    }
-}
-
-llvm::Value *CFrontendContext::TryGetVariableValue(unsigned nameId) const
-{
-    if (CVariablesScope *pScope = FindScopeWithVariable(nameId))
-    {
-        return pScope->GetVariableValue(nameId);
-    }
-    throw std::runtime_error("unknown variable " + m_pool.GetString(nameId));
+    return nullptr;
 }
 
 void CFrontendContext::PushScope(std::unique_ptr<CVariablesScope> &&scope)
