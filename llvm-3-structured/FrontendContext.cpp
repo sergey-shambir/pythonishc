@@ -1,12 +1,15 @@
 #include "AST.h"
 #include "FrontendContext.h"
 #include "StringPool.h"
+#include "VariablesScope.h"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #pragma clang diagnostic pop
 #include <iostream>
+#include <boost/range/adaptor/reversed.hpp>
+#include <boost/range/algorithm.hpp>
 
 
 CFrontendContext::CFrontendContext(std::ostream &errors, CStringPool &pool)
@@ -22,50 +25,47 @@ CFrontendContext::~CFrontendContext()
 {
 }
 
-std::unique_ptr<CVariablesScope> CFrontendContext::MakeScope()
+void CFrontendContext::DefineVariable(unsigned nameId, llvm::Value *value)
 {
-    return std::unique_ptr<CVariablesScope>(new CVariablesScope(*this));
+    m_scopes.back()->AssignVariable(nameId, value);
 }
 
-CVariablesScope &CFrontendContext::GetCurrentScope()
+void CFrontendContext::AssignVariable(unsigned nameId, llvm::Value *value)
 {
-    return *m_scopes.top();
+    if (CVariablesScope *pScope = FindScopeWithVariable(nameId))
+    {
+        pScope->AssignVariable(nameId, value);
+    }
+    else
+    {
+        DefineVariable(nameId, value);
+    }
+}
+
+llvm::Value *CFrontendContext::TryGetVariableValue(unsigned nameId) const
+{
+    if (CVariablesScope *pScope = FindScopeWithVariable(nameId))
+    {
+        return pScope->GetVariableValue(nameId);
+    }
+    throw std::runtime_error("unknown variable " + m_pool.GetString(nameId));
+}
+
+void CFrontendContext::PushScope(std::unique_ptr<CVariablesScope> &&scope)
+{
+    m_scopes.emplace_back(std::move(scope));
+}
+
+std::unique_ptr<CVariablesScope> CFrontendContext::PopScope()
+{
+    std::unique_ptr<CVariablesScope> ret(m_scopes.back().release());
+    m_scopes.pop_back();
+    return ret;
 }
 
 llvm::Function *CFrontendContext::GetPrintF() const
 {
     return m_printf;
-}
-
-void CFrontendContext::AssignVariable(unsigned nameId, llvm::Value *value)
-{
-    if (value)
-    {
-        m_variables[nameId] = value;
-    }
-}
-
-bool CFrontendContext::HasVariable(unsigned nameId) const
-{
-    return (0 != m_variables.count(nameId));
-}
-
-void CFrontendContext::RemoveVariable(unsigned nameId)
-{
-    m_variables.erase(nameId);
-}
-
-llvm::Value *CFrontendContext::TryGetVariableValue(unsigned nameId) const
-{
-    try
-    {
-        return m_variables.at(nameId);
-    }
-    catch (std::exception const&)
-    {
-        std::string message = "unknown variable " + m_pool.GetString(nameId);
-        throw std::runtime_error(message);
-    }
 }
 
 llvm::Function *CFrontendContext::TryGetFunction(unsigned nameId) const
@@ -115,14 +115,17 @@ llvm::Module &CFrontendContext::GetModule()
     return *m_pModule;
 }
 
-void CFrontendContext::EnterScope(CVariablesScope &scope)
+CVariablesScope *CFrontendContext::FindScopeWithVariable(unsigned nameId) const
 {
-    m_scopes.push(&scope);
-}
-
-void CFrontendContext::ExitScope()
-{
-    m_scopes.pop();
+    auto range = boost::adaptors::reverse(m_scopes);
+    auto it = boost::find_if(range, [=](const auto &pScope) {
+        return pScope->HasVariable(nameId);
+    });
+    if (it != range.end())
+    {
+        return it->get();
+    }
+    return nullptr;
 }
 
 void CFrontendContext::InitLibCBuiltins()

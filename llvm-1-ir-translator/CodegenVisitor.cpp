@@ -1,6 +1,7 @@
 #include "CodegenVisitor.h"
 #include "AST.h"
 #include "FrontendContext.h"
+#include "VariablesScope.h"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/IR/Constants.h>
@@ -13,7 +14,6 @@
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/Support/raw_ostream.h>
 #pragma clang diagnostic pop
-#include <boost/variant.hpp>
 
 using namespace llvm;
 
@@ -108,6 +108,24 @@ Value *GenerateUnaryExpr(IRBuilder<> & builder, LLVMContext &context, UnaryOpera
     }
     throw std::runtime_error("Unknown unary operation");
 }
+
+class CScopedVariableScope
+{
+public:
+    CScopedVariableScope(CFrontendContext &context)
+        : m_context(context)
+    {
+        m_context.PushScope(std::make_unique<CVariablesScope>());
+    }
+
+    ~CScopedVariableScope()
+    {
+        m_context.PopScope();
+    }
+
+private:
+    CFrontendContext &m_context;
+};
 }
 
 
@@ -192,7 +210,7 @@ void CExpressionCodeGenerator::Visit(CCallAST &expr)
 
 void CExpressionCodeGenerator::Visit(CVariableRefAST &expr)
 {
-    Value *pValue = m_context.GetCurrentScope().TryGetVariableValue(expr.GetNameId());
+    Value *pValue = m_context.TryGetVariableValue(expr.GetNameId());
     m_values.push_back(pValue);
 }
 
@@ -233,7 +251,7 @@ void CBlockCodeGenerator::Visit(CPrintAST &ast)
 void CBlockCodeGenerator::Visit(CAssignAST &ast)
 {
     llvm::Value *pValue = m_exprGen.Codegen(ast.GetValue());
-    m_context.GetCurrentScope().AssignVariable(ast.GetNameId(), pValue);
+    m_context.AssignVariable(ast.GetNameId(), pValue);
 }
 
 void CBlockCodeGenerator::Visit(CReturnAST &expr)
@@ -319,13 +337,13 @@ bool CCodeGenerator::GenerateDefinition(Function &fn, IFunctionAST &ast, bool is
 {
     auto & context = m_context.GetLLVMContext();
 
-    std::unique_ptr<CVariablesScope> pScope = m_context.MakeScope();
+    CScopedVariableScope scopedScope(m_context);
 
     const auto &argNames = ast.GetArgumentNames();
     size_t idx = 0;
     for (auto &arg : fn.args())
     {
-        pScope->AssignVariable(argNames[idx], &arg);
+        m_context.DefineVariable(argNames[idx], &arg);
         ++idx;
     }
 

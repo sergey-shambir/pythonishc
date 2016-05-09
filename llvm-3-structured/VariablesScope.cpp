@@ -1,43 +1,32 @@
 #include "VariablesScope.h"
 
-CVariablesScope::CVariablesScope(IInterpreterContext & context)
-    : m_context(context)
+CVariablesScope::CVariablesScope()
 {
-    context.EnterScope(*this);
 }
 
 CVariablesScope::~CVariablesScope()
 {
-    for (unsigned nameId : m_addedVariables)
-    {
-        m_context.RemoveVariable(nameId);
-    }
-    for (auto pair : m_shadowedVariables)
-    {
-        m_context.AssignVariable(pair.first, pair.second);
-    }
-    m_context.ExitScope();
 }
 
 bool CVariablesScope::HasVariable(unsigned nameId) const
 {
-    return m_context.HasVariable(nameId);
+    return (m_variables.find(nameId) != m_variables.end());
 }
 
 void CVariablesScope::AssignVariable(unsigned nameId, llvm::Value *value)
 {
-    if (!m_addedVariables.count(nameId))
+    if (value)
     {
-        m_addedVariables.insert(nameId);
-        if (m_context.HasVariable(nameId))
-        {
-            m_shadowedVariables[nameId] = m_context.TryGetVariableValue(nameId);
-        }
+        m_variables[nameId] = value;
     }
-    m_context.AssignVariable(nameId, value);
 }
 
-llvm::Value *CVariablesScope::TryGetVariableValue(unsigned nameId) const
+llvm::Value *CVariablesScope::GetVariableValue(unsigned nameId) const
 {
-    return m_context.TryGetVariableValue(nameId);
+    auto it = m_variables.find(nameId);
+    if (it != m_variables.end())
+    {
+        return it->second;
+    }
+    return nullptr;
 }
