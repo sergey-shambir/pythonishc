@@ -88,6 +88,10 @@ aux_source_directory(llvm-2-compiler SRC_LLVM_2)
 add_executable(llvm_2 ${SRC_LLVM_2})
 target_link_libraries(llvm_2 ${LLVM_LIBS} ${LLVM_SYSTEM_LIBS})
 
+aux_source_directory(llvm-3-structured SRC_LLVM_3)
+add_executable(llvm_3 ${SRC_LLVM_3})
+target_link_libraries(llvm_3 ${LLVM_LIBS} ${LLVM_SYSTEM_LIBS})
+
 aux_source_directory(std-regex SRC_STL_REGEX)
 add_executable(std_regex ${SRC_STL_REGEX})
 
