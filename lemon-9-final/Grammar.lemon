@@ -86,7 +86,7 @@ using namespace parser_private;
 %destructor function_declaration { Destroy($$); }
 
 %type parameter_list NamesListPtr
-%destructor function_declaration { Destroy($$); }
+%destructor parameter_list { Destroy($$); }
 
 %left LESS EQUALS.
 %left AND OR NOT.

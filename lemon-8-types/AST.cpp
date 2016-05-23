@@ -295,7 +295,6 @@ CValue CFunctionAST::Call(CInterpreterContext &context, const std::vector<CValue
         return *returnedValue;
     }
 
-    // TODO: don't emit error once None type implemented.
     return CValue::FromErrorMessage("Function returned no value");
 }
 

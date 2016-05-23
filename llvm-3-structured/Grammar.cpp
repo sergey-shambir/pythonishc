@@ -530,7 +530,12 @@ static void yy_destructor(
       break;
     case 31: /* function_declaration */
 {
- Destroy((yypminor->yy61));  Destroy((yypminor->yy61)); 
+ Destroy((yypminor->yy61)); 
+}
+      break;
+    case 32: /* parameter_list */
+{
+ Destroy((yypminor->yy65)); 
 }
       break;
     default:  break;   /* If no destructor action specified: do nothing */
