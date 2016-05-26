@@ -207,18 +207,42 @@ Constant *CCodegenContext::AddStringLiteral(const std::string &value)
     return elem;
 }
 
-Function *CCodegenContext::GetPrintf() const
+Function *CCodegenContext::GetBuiltinFunction(BuiltinFunction id) const
 {
-    return m_pPrintf;
+    return m_builtinFunctions.at(id);
 }
 
 void CCodegenContext::InitLibCBuiltins()
 {
     auto & context = *m_pLLVMContext;
-    std::vector<llvm::Type *> argTypes = {llvm::Type::getInt8PtrTy(context)};
-    llvm::FunctionType *fnType = llvm::FunctionType::get(llvm::Type::getInt32Ty(context), argTypes, true);
+    auto * pModule = m_pModule.get();
+    auto declareFn = [&](llvm::FunctionType *type, const char *name) {
+        return llvm::Function::Create(type, llvm::Function::ExternalLinkage, name, pModule);
+    };
 
-    m_pPrintf = llvm::Function::Create(fnType, llvm::Function::ExternalLinkage, "printf", m_pModule.get());
+    llvm::Type *cStringType = llvm::Type::getInt8PtrTy(context);
+    llvm::Type *intType = llvm::Type::getInt32Ty(context);
+    llvm::Type *voidType = llvm::Type::getVoidTy(context);
+    // i32 printf(i8* format, ...)
+    {
+        auto *fnType = llvm::FunctionType::get(intType, {cStringType}, true);
+        m_builtinFunctions[BuiltinFunction::PRINTF] = declareFn(fnType, "printf");
+    }
+    // i8 *strcat(i8* dest, i8* src)
+    {
+        auto *fnType = llvm::FunctionType::get(cStringType, {cStringType, cStringType}, false);
+        m_builtinFunctions[BuiltinFunction::STRCAT] = declareFn(fnType, "strcat");
+    }
+    // i8 *strdup(i8 *str)
+    {
+        auto *fnType = llvm::FunctionType::get(cStringType, {cStringType}, false);
+        m_builtinFunctions[BuiltinFunction::STRDUP] = declareFn(fnType, "strdup");
+    }
+    // void *free(i8 *ptr)
+    {
+        auto *fnType = llvm::FunctionType::get(voidType, {cStringType}, false);
+        m_builtinFunctions[BuiltinFunction::FREE] = declareFn(fnType, "free");
+    }
 }
 
 CExpressionCodeGenerator::CExpressionCodeGenerator(llvm::IRBuilder<> &builder, CCodegenContext &context)
@@ -347,6 +371,7 @@ void CFunctionCodeGenerator::Visit(CPrintAST &ast)
     {
     case ExpressionType::Boolean:
     {
+        // Same as `printf("%s\n", x ? "true" : "false");`
         Value *trueStr = m_context.AddStringLiteral("true");
         Value *falseStr = m_context.AddStringLiteral("false");
         pValue = m_builder.CreateSelect(pValue, trueStr, falseStr, "bool2string");
@@ -362,7 +387,7 @@ void CFunctionCodeGenerator::Visit(CPrintAST &ast)
     }
 
     Constant* pFormatAddress = AddStringLiteral(context, module, format);
-    Function *pFunction = m_context.GetPrintf();
+    Function *pFunction = m_context.GetBuiltinFunction(BuiltinFunction::PRINTF);
     std::vector<llvm::Value *> args = {pFormatAddress, pValue};
     m_builder.CreateCall(pFunction, args);
 }

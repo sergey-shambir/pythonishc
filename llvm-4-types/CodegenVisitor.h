@@ -21,6 +21,14 @@ class Module;
 class Constant;
 }
 
+enum class BuiltinFunction
+{
+    PRINTF,
+    STRCAT,
+    STRDUP,
+    FREE,
+};
+
 class CCodegenContext
 {
 public:
@@ -36,7 +44,7 @@ public:
     std::unordered_map<std::string, llvm::Constant *> GetStrings();
     llvm::Constant *AddStringLiteral(const std::string &value);
 
-    llvm::Function *GetPrintf()const;
+    llvm::Function *GetBuiltinFunction(BuiltinFunction id)const;
 
 private:
     void InitLibCBuiltins();
@@ -44,7 +52,7 @@ private:
     CFrontendContext &m_context;
     std::unique_ptr<llvm::LLVMContext> m_pLLVMContext;
     std::unique_ptr<llvm::Module> m_pModule;
-    llvm::Function *m_pPrintf;
+    std::map<BuiltinFunction, llvm::Function*> m_builtinFunctions;
     CScopeChain<llvm::AllocaInst*> m_variables;
     CScopeChain<llvm::Function*> m_functions;
     std::unordered_map<std::string, llvm::Constant *> m_strings;
