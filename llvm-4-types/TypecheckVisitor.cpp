@@ -52,7 +52,7 @@ std::string PrettyPrint(UnaryOperation op)
     return "?";
 }
 
-ExpressionType GetBinaryOperationResultType(BinaryOperation op, ExpressionType left, ExpressionType right)
+ExpressionType EvaluateBinaryOperationType(BinaryOperation op, ExpressionType left, ExpressionType right)
 {
     auto check = [&](bool condition) {
         if (!condition)
@@ -81,7 +81,7 @@ ExpressionType GetBinaryOperationResultType(BinaryOperation op, ExpressionType l
     throw std::logic_error("GetBinaryOperationResultType() not implemented for this type");
 }
 
-ExpressionType GetUnaryOperationResultType(UnaryOperation op, ExpressionType operandType)
+ExpressionType EvaluateUnaryOperationType(UnaryOperation op, ExpressionType operandType)
 {
     auto check = [&](bool condition) {
         if (!condition)
@@ -113,37 +113,25 @@ CTypeEvaluator::CTypeEvaluator(CFrontendContext &context, CScopeChain<Expression
 ExpressionType CTypeEvaluator::EvaluateTypes(IExpressionAST &expr)
 {
     expr.Accept(*this);
-    ExpressionType result = m_typesStack.back();
-    m_typesStack.pop_back();
-    return result;
+    return expr.GetType();
 }
 
 void CTypeEvaluator::Visit(CBinaryExpressionAST &expr)
 {
     expr.GetLeft().Accept(*this);
     expr.GetRight().Accept(*this);
-
-    size_t top = (m_typesStack.size() - 1);
-    ExpressionType left = m_typesStack.at(top - 1);
-    ExpressionType right = m_typesStack.at(top);
-    ExpressionType resultType = GetBinaryOperationResultType(expr.GetOperation(), left, right);
-
-    expr.SetType(resultType);
-    m_typesStack.pop_back();
-    m_typesStack.back() = resultType;
+    expr.SetType(EvaluateBinaryOperationType(expr.GetOperation(), expr.GetLeft().GetType(), expr.GetRight().GetType()));
 }
 
 void CTypeEvaluator::Visit(CUnaryExpressionAST &expr)
 {
     expr.GetOperand().Accept(*this);
-    ExpressionType resultType = GetUnaryOperationResultType(expr.GetOperation(), m_typesStack.back());
-    expr.SetType(resultType);
-    m_typesStack.back() = resultType;
+    expr.SetType(EvaluateUnaryOperationType(expr.GetOperation(), expr.GetOperand().GetType()));
 }
 
-void CTypeEvaluator::Visit(CLiteralAST &expr)
+void CTypeEvaluator::Visit(CLiteralAST &)
 {
-    m_typesStack.push_back(expr.GetType());
+    // Constant type is known at parsing time.
 }
 
 void CTypeEvaluator::Visit(CCallAST &expr)
@@ -183,7 +171,6 @@ void CTypeEvaluator::Visit(CVariableRefAST &expr)
     if (auto typeOpt = m_variableTypesRef.GetSymbol(expr.GetNameId()))
     {
         expr.SetType(*typeOpt);
-        m_typesStack.push_back(*typeOpt);
     }
     else
     {
@@ -192,20 +179,20 @@ void CTypeEvaluator::Visit(CVariableRefAST &expr)
     }
 }
 
-void CTypeEvaluator::Visit(CParameterDeclAST &expr)
+void CTypeEvaluator::Visit(CParameterDeclAST &)
 {
-    m_typesStack.push_back(expr.GetType());
+    // Parameter type is known at parsing time.
 }
 
 std::vector<ExpressionType> CTypeEvaluator::EvaluateArgumentTypes(CCallAST &expr)
 {
-    const ExpressionList &args = expr.GetArguments();
-    for (const auto &pExpr : args)
+    std::vector<ExpressionType> argTypes;
+    argTypes.reserve(expr.GetArguments().size());
+    for (const auto &pExpr : expr.GetArguments())
     {
         pExpr->Accept(*this);
+        argTypes.push_back(pExpr->GetType());
     }
-    std::vector<ExpressionType> argTypes;
-    std::move(m_typesStack.end() - ptrdiff_t(args.size()), m_typesStack.end(), std::back_inserter(argTypes));
     return argTypes;
 }
 

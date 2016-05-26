@@ -27,7 +27,6 @@ private:
     std::vector<ExpressionType> EvaluateArgumentTypes(CCallAST &expr);
 
     CFrontendContext & m_context;
-    std::vector<ExpressionType> m_typesStack;
     CScopeChain<ExpressionType> &m_variableTypesRef;
     CScopeChain<IFunctionAST*> &m_functionsRef;
 };
