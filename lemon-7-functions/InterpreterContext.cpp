@@ -5,6 +5,7 @@
 #include <iostream>
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/range/algorithm.hpp>
+#include <cmath>
 
 class CSinFunction : public IFunctionAST
 {
@@ -17,7 +18,7 @@ public:
             std::cerr << "sin needs exactly 1 argument" << std::endl;
             return std::numeric_limits<double>::quiet_NaN();
         }
-        return sin(arguments[0]);
+        return std::sin(arguments[0]);
     }
 
     unsigned GetNameId() const override

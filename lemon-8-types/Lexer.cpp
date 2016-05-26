@@ -2,6 +2,7 @@
 #include "Grammar.h"
 #include <iostream>
 #include <sstream>
+#include <cmath>
 
 CLexer::CLexer(unsigned lineNo, std::string const& line, CStringPool &pool, const ErrorHandler &handler)
     : m_lineNo(lineNo)
@@ -17,7 +18,7 @@ CLexer::CLexer(unsigned lineNo, std::string const& line, CStringPool &pool, cons
         { "while",  TK_WHILE },
         { "print",  TK_PRINT },
         { "return", TK_RETURN },
-        { "def",    TK_FUNCTION },
+        { "function",    TK_FUNCTION },
       })
 {
 }

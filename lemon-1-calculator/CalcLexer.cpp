@@ -1,6 +1,7 @@
 #include "CalcLexer.h"
 #include "CalcGrammar.h"
 #include <iostream>
+#include <cmath>
 
 CCalcLexer::CCalcLexer(std::string const& sources)
     : m_sources(sources)

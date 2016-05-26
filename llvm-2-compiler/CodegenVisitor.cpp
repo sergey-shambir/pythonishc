@@ -40,9 +40,8 @@ Constant *AddStringLiteral(LLVMContext & context, Module & module, std::string c
 // Генерирует код константы LLVM.
 struct LiteralCodeGenerator : boost::static_visitor<Constant *>
 {
-    explicit LiteralCodeGenerator(LLVMContext &context, Module & module)
+    explicit LiteralCodeGenerator(LLVMContext &context)
         : m_context(context)
-        , m_module(module)
     {
     }
 
@@ -55,6 +54,7 @@ struct LiteralCodeGenerator : boost::static_visitor<Constant *>
     {
         (void)value;
         throw std::runtime_error("Boolean type code generation not implemented");
+        // Реализация будет возвращена в следующих версиях
 //        return ConstantInt::get(m_context, APInt(8, uint64_t(value), true));
     }
 
@@ -62,12 +62,12 @@ struct LiteralCodeGenerator : boost::static_visitor<Constant *>
     {
         (void)value;
         throw std::runtime_error("String type code generation not implemented");
+        // Реализация будет возвращена в следующих версиях
 //        return AddStringLiteral(m_context, m_module, value);
     }
 
 private:
     LLVMContext &m_context;
-    Module & m_module;
 };
 
 Value *GenerateBinaryExpr(IRBuilder<> & builder, LLVMContext &context, Value *a, BinaryOperation op, Value *b)
@@ -180,7 +180,7 @@ void CExpressionCodeGenerator::Visit(CUnaryExpressionAST &expr)
 
 void CExpressionCodeGenerator::Visit(CLiteralAST &expr)
 {
-    LiteralCodeGenerator generator(m_context.GetLLVMContext(), m_context.GetModule());
+    LiteralCodeGenerator generator(m_context.GetLLVMContext());
     Value *pValue = expr.GetValue().apply_visitor(generator);
     m_values.push_back(pValue);
 }

@@ -1,6 +1,7 @@
 #include "BatchLexer.h"
 #include "BatchGrammar.h"
 #include <iostream>
+#include <cmath>
 
 CBatchLexer::CBatchLexer(unsigned lineNo, std::string const& sources, CStringPool &stringPool)
     : m_lineNo(lineNo)

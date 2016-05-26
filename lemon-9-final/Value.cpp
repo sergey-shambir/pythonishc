@@ -1,13 +1,14 @@
 #include "Value.h"
 #include <stdexcept>
 #include <boost/format.hpp>
+#include <cmath>
 
 namespace
 {
 
 bool IsFarFromZero(double value)
 {
-    return fabs(value) >= std::numeric_limits<double>::epsilon();
+    return std::fabs(value) >= std::numeric_limits<double>::epsilon();
 }
 
 std::string ToPrettyString(double value)
@@ -224,7 +225,7 @@ CValue CValue::operator ==(const CValue &other) const
         {
             double left = AsDouble();
             double right = other.AsDouble();
-            bool result = fabs(left - right) < std::numeric_limits<double>::epsilon();
+            bool result = std::fabs(left - right) < std::numeric_limits<double>::epsilon();
             return CValue::FromBoolean(result);
         }
     }
@@ -302,7 +303,7 @@ CValue CValue::operator /(const CValue &other) const
 CValue CValue::operator %(const CValue &other) const
 {
     auto operation = [](double left, double right) -> double {
-        return fmod(left, right);
+        return std::fmod(left, right);
     };
     return DoFixedTypeOperation<double>(*this, other, operation, "%");
 }

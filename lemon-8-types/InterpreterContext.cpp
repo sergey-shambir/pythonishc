@@ -5,6 +5,7 @@
 #include <iostream>
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/range/algorithm.hpp>
+#include <cmath>
 
 namespace
 {
@@ -30,7 +31,7 @@ public:
         (void)context;
         return ExecuteSafely([&] {
             double radians = arguments.at(0).AsDouble();
-            return CValue::FromDouble(sin(radians));
+            return CValue::FromDouble(std::sin(radians));
         });
     }
 

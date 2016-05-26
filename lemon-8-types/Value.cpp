@@ -1,5 +1,6 @@
 #include "Value.h"
 #include <stdexcept>
+#include <cmath>
 
 namespace
 {
@@ -314,7 +315,7 @@ CValue CValue::operator %(const CValue &other) const
         }
         else if (m_value.type() == typeid(double))
         {
-            return CValue::FromDouble(fmod(AsDouble(), other.ConvertToDouble()));
+            return CValue::FromDouble(std::fmod(AsDouble(), other.ConvertToDouble()));
         }
         else if (m_value.type() == typeid(std::string))
         {
