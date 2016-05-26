@@ -75,7 +75,7 @@ ExpressionType EvaluateBinaryOperationType(BinaryOperation op, ExpressionType le
     case BinaryOperation::Multiply:
     case BinaryOperation::Divide:
     case BinaryOperation::Modulo:
-        check(left == ExpressionType::Number && right == ExpressionType::Number);
+        check(left == right && left == ExpressionType::Number);
         return ExpressionType::Number;
     }
     throw std::logic_error("GetBinaryOperationResultType() not implemented for this type");

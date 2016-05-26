@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <unordered_set>
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
 #include <llvm/IR/Value.h>
@@ -12,6 +13,7 @@
 #include "Utility.h"
 
 class CFrontendContext;
+class CCodegenContext;
 namespace llvm
 {
 class AllocaInst;
@@ -26,7 +28,36 @@ enum class BuiltinFunction
     PRINTF,
     STRCAT,
     STRDUP,
+    STRLEN,
+    STRCMP,
+    MALLOC,
     FREE,
+};
+
+/*
+ * Хранит регистры с указателями на строки, которыми никто не владеет.
+ * Пока указателями никто не владеет, этот класс позволяет управлять их временем жизни.
+ * Это один из элементов гарантии отсутствия утечек памяти.
+ */
+class CManagedStrings
+{
+public:
+    CManagedStrings(CCodegenContext &context);
+    ~CManagedStrings();
+
+    // Вызывает free() для всех строк, очищает их список.
+    void FreeAll(llvm::IRBuilder<> & builder);
+
+    // Если строкой никто не владеет, снимает её с контроля и возвращает.
+    // Иначе дублирует строку и возвращает дубликат.
+    llvm::Value *TakeManaged(llvm::IRBuilder<> & builder, llvm::Value *pString);
+
+    // Добавляет строку под контроль времени жизни.
+    void Manage(llvm::Value *pString);
+
+private:
+    CCodegenContext &m_context;
+    std::unordered_set<llvm::Value *> m_pointers;
 };
 
 class CCodegenContext
@@ -45,6 +76,7 @@ public:
     llvm::Constant *AddStringLiteral(const std::string &value);
 
     llvm::Function *GetBuiltinFunction(BuiltinFunction id)const;
+    CManagedStrings &GetExpressionStrings();
 
 private:
     void InitLibCBuiltins();
@@ -56,6 +88,7 @@ private:
     CScopeChain<llvm::AllocaInst*> m_variables;
     CScopeChain<llvm::Function*> m_functions;
     std::unordered_map<std::string, llvm::Constant *> m_strings;
+    CManagedStrings m_expressionStrings;
 };
 
 class CExpressionCodeGenerator : protected IExpressionVisitor
@@ -75,6 +108,11 @@ protected:
     void Visit(CParameterDeclAST & expr) override;
 
 private:
+    llvm::Value *GenerateNumericExpr(llvm::Value *a, BinaryOperation op, llvm::Value *b);
+    llvm::Value *GenerateStringExpr(llvm::Value *a, BinaryOperation op, llvm::Value *b);
+    llvm::Value *GenerateBooleanExpr(llvm::Value *a, BinaryOperation op, llvm::Value *b);
+    llvm::Value *GenerateStrcmp(llvm::Value *a, llvm::Value *b);
+
     // Стек используется для временного хранения
     // по мере рекурсивного обхода дерева выражения.
     std::vector<llvm::Value *> m_values;

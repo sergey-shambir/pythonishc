@@ -22,6 +22,13 @@ using namespace llvm;
 namespace
 {
 
+llvm::Type *GetPointerSizeType(LLVMContext &context)
+{
+    return (sizeof(size_t) == sizeof(uint32_t))
+            ? llvm::Type::getInt32Ty(context)
+            : llvm::Type::getInt64Ty(context);
+}
+
 Constant *AddStringLiteral(LLVMContext & context, Module & module, std::string const& value)
 {
     // TODO: use strings pool.
@@ -37,6 +44,11 @@ Constant *AddStringLiteral(LLVMContext & context, Module & module, std::string c
     std::vector<Constant*> indices = {index, index};
 
     return ConstantExpr::getInBoundsGetElementPtr(pConstant->getType(), global, indices);
+}
+
+ConstantInt *AddInt32Literal(CCodegenContext &context, uint64_t value)
+{
+    return ConstantInt::get(context.GetLLVMContext(), APInt(32, value, true));
 }
 
 // Генерирует код константы LLVM.
@@ -66,40 +78,8 @@ private:
     CCodegenContext &m_context;
 };
 
-Value *GenerateBinaryExpr(IRBuilder<> & builder, LLVMContext &context, Value *a, BinaryOperation op, Value *b)
-{
-    // FIXME: implemented only for double
-    switch (op)
-    {
-    case BinaryOperation::Add:
-        return builder.CreateFAdd(a, b, "addtmp");
-    case BinaryOperation::Substract:
-        return builder.CreateFSub(a, b, "subtmp");
-    case BinaryOperation::Multiply:
-        return builder.CreateFMul(a, b, "multmp");
-    case BinaryOperation::Divide:
-        return builder.CreateFDiv(a, b, "divtmp");
-    case BinaryOperation::Modulo:
-        return builder.CreateFRem(a, b, "modtmp");
-    case BinaryOperation::Less:
-    {
-        Value *temp = builder.CreateFCmpULT(a, b, "cmptmp");
-        // Convert bool 0/1 to double 0.0 or 1.0
-        return builder.CreateUIToFP(temp, Type::getDoubleTy(context), "booltmp");
-    }
-    case BinaryOperation::Equals:
-    {
-        Value *temp = builder.CreateFCmpUEQ(a, b, "cmptmp");
-        // Convert bool 0/1 to double 0.0 or 1.0
-        return builder.CreateUIToFP(temp, Type::getDoubleTy(context), "booltmp");
-    }
-    }
-    throw std::runtime_error("Unknown binary operation");
-}
-
 Value *GenerateUnaryExpr(IRBuilder<> & builder, LLVMContext &context, UnaryOperation op, Value *x)
 {
-    // FIXME: implemented only for double
     (void)context;
     switch (op)
     {
@@ -153,10 +133,55 @@ private:
 } // anonymous namespace
 
 
+CManagedStrings::CManagedStrings(CCodegenContext &context)
+    : m_context(context)
+{
+}
+
+CManagedStrings::~CManagedStrings()
+{
+}
+
+void CManagedStrings::FreeAll(llvm::IRBuilder<> & builder)
+{
+    auto *pFree = m_context.GetBuiltinFunction(BuiltinFunction::FREE);
+    for (llvm::Value *value : m_pointers)
+    {
+        builder.CreateCall(pFree, {value}, "free_str");
+    }
+    m_pointers.clear();
+}
+
+Value *CManagedStrings::TakeManaged(llvm::IRBuilder<> & builder, Value *pString)
+{
+    auto it = m_pointers.find(pString);
+    // Если кто-то уже владеет строкой, вызываем strdup, иначе снимаем со своего контроля.
+    if (it == m_pointers.end())
+    {
+        auto pStrdup = m_context.GetBuiltinFunction(BuiltinFunction::STRDUP);
+        return builder.CreateCall(pStrdup, {pString}, "take_str");
+    }
+    else
+    {
+        m_pointers.erase(it);
+        return pString;
+    }
+}
+
+void CManagedStrings::Manage(Value *pString)
+{
+    if (m_pointers.count(pString))
+    {
+        throw std::logic_error("Attempt to manage string twice");
+    }
+    m_pointers.insert(pString);
+}
+
 CCodegenContext::CCodegenContext(CFrontendContext &context)
     : m_context(context)
     , m_pLLVMContext(std::make_unique<llvm::LLVMContext>())
     , m_pModule(std::make_unique<llvm::Module>("main module", *m_pLLVMContext))
+    , m_expressionStrings(*this)
 {
     m_functions.PushScope();
     InitLibCBuiltins();
@@ -212,6 +237,11 @@ Function *CCodegenContext::GetBuiltinFunction(BuiltinFunction id) const
     return m_builtinFunctions.at(id);
 }
 
+CManagedStrings &CCodegenContext::GetExpressionStrings()
+{
+    return m_expressionStrings;
+}
+
 void CCodegenContext::InitLibCBuiltins()
 {
     auto & context = *m_pLLVMContext;
@@ -221,11 +251,12 @@ void CCodegenContext::InitLibCBuiltins()
     };
 
     llvm::Type *cStringType = llvm::Type::getInt8PtrTy(context);
-    llvm::Type *intType = llvm::Type::getInt32Ty(context);
+    llvm::Type *int32Type = llvm::Type::getInt32Ty(context);
     llvm::Type *voidType = llvm::Type::getVoidTy(context);
+    llvm::Type *sizeType = GetPointerSizeType(context);
     // i32 printf(i8* format, ...)
     {
-        auto *fnType = llvm::FunctionType::get(intType, {cStringType}, true);
+        auto *fnType = llvm::FunctionType::get(int32Type, {cStringType}, true);
         m_builtinFunctions[BuiltinFunction::PRINTF] = declareFn(fnType, "printf");
     }
     // i8 *strcat(i8* dest, i8* src)
@@ -237,6 +268,21 @@ void CCodegenContext::InitLibCBuiltins()
     {
         auto *fnType = llvm::FunctionType::get(cStringType, {cStringType}, false);
         m_builtinFunctions[BuiltinFunction::STRDUP] = declareFn(fnType, "strdup");
+    }
+    // size_t strlen(i8 *str)
+    {
+        auto *fnType = llvm::FunctionType::get(sizeType, {cStringType}, false);
+        m_builtinFunctions[BuiltinFunction::STRLEN] = declareFn(fnType, "strlen");
+    }
+    // i32 strcmp(i8* str, i8* str)
+    {
+        auto *fnType = llvm::FunctionType::get(int32Type, {cStringType, cStringType}, false);
+        m_builtinFunctions[BuiltinFunction::STRCMP] = declareFn(fnType, "strcmp");
+    }
+    // i8 *malloc(size_t size)
+    {
+        auto *fnType = llvm::FunctionType::get(cStringType, {sizeType}, false);
+        m_builtinFunctions[BuiltinFunction::MALLOC] = declareFn(fnType, "malloc");
     }
     // void *free(i8 *ptr)
     {
@@ -276,7 +322,19 @@ void CExpressionCodeGenerator::Visit(CBinaryExpressionAST &expr)
     m_values.pop_back();
     m_values.pop_back();
 
-    auto pValue = GenerateBinaryExpr(m_builder, m_context.GetLLVMContext(), a, expr.GetOperation(), b);
+    llvm::Value *pValue = nullptr;
+    switch (expr.GetLeft().GetType())
+    {
+    case ExpressionType::Boolean:
+        pValue = GenerateBooleanExpr(a, expr.GetOperation(), b);
+        break;
+    case ExpressionType::Number:
+        pValue = GenerateNumericExpr(a, expr.GetOperation(), b);
+        break;
+    case ExpressionType::String:
+        pValue = GenerateStringExpr(a, expr.GetOperation(), b);
+        break;
+    }
     m_values.push_back(pValue);
 }
 
@@ -337,6 +395,103 @@ void CExpressionCodeGenerator::Visit(CParameterDeclAST &expr)
     m_context.GetVariables().DefineSymbol(expr.GetName(), pVar);
 }
 
+Value *CExpressionCodeGenerator::GenerateNumericExpr(Value *a, BinaryOperation op, Value *b)
+{
+    LLVMContext &context = m_context.GetLLVMContext();
+    switch (op)
+    {
+    case BinaryOperation::Add:
+        return m_builder.CreateFAdd(a, b, "addtmp");
+    case BinaryOperation::Substract:
+        return m_builder.CreateFSub(a, b, "subtmp");
+    case BinaryOperation::Multiply:
+        return m_builder.CreateFMul(a, b, "multmp");
+    case BinaryOperation::Divide:
+        return m_builder.CreateFDiv(a, b, "divtmp");
+    case BinaryOperation::Modulo:
+        return m_builder.CreateFRem(a, b, "modtmp");
+    case BinaryOperation::Less:
+    {
+        Value *temp = m_builder.CreateFCmpULT(a, b, "cmptmp");
+        // Convert bool 0/1 to double 0.0 or 1.0
+        return m_builder.CreateUIToFP(temp, Type::getDoubleTy(context), "booltmp");
+    }
+    case BinaryOperation::Equals:
+    {
+        Value *temp = m_builder.CreateFCmpUEQ(a, b, "cmptmp");
+        // Convert bool 0/1 to double 0.0 or 1.0
+        return m_builder.CreateUIToFP(temp, Type::getDoubleTy(context), "booltmp");
+    }
+    }
+    throw std::runtime_error("CExpressionCodeGenerator: unknown numeric binary operation");
+}
+
+Value *CExpressionCodeGenerator::GenerateStringExpr(Value *a, BinaryOperation op, Value *b)
+{
+    switch (op)
+    {
+    case BinaryOperation::Add:
+    {
+        /*** the same code in C ***
+         * size_t lenA = strlen(a);
+         * size_t sum = lenA + strlen(b);
+         * char *newStr = malloc(sum);
+         * strcat(newStr, a);
+         * strcat(newStr + lenA, b);
+         * return newStr;
+         */
+        auto *pStrlen = m_context.GetBuiltinFunction(BuiltinFunction::STRLEN);
+        auto *pStrcat = m_context.GetBuiltinFunction(BuiltinFunction::STRCAT);
+        auto *pMalloc = m_context.GetBuiltinFunction(BuiltinFunction::MALLOC);
+        Value *lenA = m_builder.CreateCall(pStrlen, {a}, "left_length");
+        Value *lenB = m_builder.CreateCall(pStrlen, {b}, "right_length");
+        Value *lenSum = m_builder.CreateAdd(lenA, lenB, "sum_length");
+        Value *newStr = m_builder.CreateCall(pMalloc, {lenSum}, "new_str");
+        m_context.GetExpressionStrings().Manage(newStr);
+        m_builder.CreateCall(pStrcat, {newStr, a}, "concat_left");
+        Value *nextDest = m_builder.CreateGEP(newStr, lenA, "dest_str");
+        m_builder.CreateCall(pStrcat, {nextDest, b}, "concat_right");
+        return newStr;
+    }
+    case BinaryOperation::Substract:
+    case BinaryOperation::Multiply:
+    case BinaryOperation::Divide:
+    case BinaryOperation::Modulo:
+        // disallowed for String.
+        break;
+    case BinaryOperation::Less:
+        return m_builder.CreateICmpSLT(GenerateStrcmp(a, b), AddInt32Literal(m_context, 0), "less_than_0");
+    case BinaryOperation::Equals:
+        return m_builder.CreateICmpEQ(GenerateStrcmp(a, b), AddInt32Literal(m_context, 0), "is_0");
+    }
+    throw std::runtime_error("CExpressionCodeGenerator: unknown strings binary operation");
+}
+
+Value *CExpressionCodeGenerator::GenerateBooleanExpr(Value *a, BinaryOperation op, Value *b)
+{
+    switch (op)
+    {
+    case BinaryOperation::Add:
+    case BinaryOperation::Substract:
+    case BinaryOperation::Multiply:
+    case BinaryOperation::Divide:
+    case BinaryOperation::Modulo:
+        // disallowed for Boolean.
+        break;
+    case BinaryOperation::Less:
+        return m_builder.CreateICmpSLT(a, b);
+    case BinaryOperation::Equals:
+        return m_builder.CreateICmpEQ(a, b);
+    }
+    throw std::runtime_error("CExpressionCodeGenerator: unknown boolean binary operation");
+}
+
+Value *CExpressionCodeGenerator::GenerateStrcmp(Value *a, Value *b)
+{
+    auto *pStrcmp = m_context.GetBuiltinFunction(BuiltinFunction::STRCMP);
+    return m_builder.CreateCall(pStrcmp, {a, b}, "strings_cmp");
+}
+
 CFunctionCodeGenerator::CFunctionCodeGenerator(CCodegenContext &context)
     : m_context(context)
     , m_builder(m_context.GetLLVMContext())
@@ -390,6 +545,7 @@ void CFunctionCodeGenerator::Visit(CPrintAST &ast)
     Function *pFunction = m_context.GetBuiltinFunction(BuiltinFunction::PRINTF);
     std::vector<llvm::Value *> args = {pFormatAddress, pValue};
     m_builder.CreateCall(pFunction, args);
+    m_context.GetExpressionStrings().FreeAll(m_builder);
 }
 
 void CFunctionCodeGenerator::Visit(CAssignAST &ast)
@@ -413,7 +569,14 @@ void CFunctionCodeGenerator::Visit(CAssignAST &ast)
         pVar = MakeLocalVariable(*pFunction, *pValue->getType(), m_context.GetString(nameId));
         m_context.GetVariables().DefineSymbol(nameId, pVar);
     }
+    if (ast.GetValue().GetType() == ExpressionType::String)
+    {
+        // Если значение строкове, забираем владение оригиналом или дублем строки.
+        // TODO: cleanup memory when variable goes out of scope.
+        pValue = m_context.GetExpressionStrings().TakeManaged(m_builder, pValue);
+    }
     m_builder.CreateStore(pValue, pVar);
+    m_context.GetExpressionStrings().FreeAll(m_builder);
 }
 
 void CFunctionCodeGenerator::Visit(CReturnAST &ast)
