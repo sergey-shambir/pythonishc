@@ -14,7 +14,11 @@
 #include <llvm/IR/Verifier.h>
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/ADT/STLExtras.h>
+#define BOOST_RESULT_OF_USE_DECLTYPE
 #include <boost/variant.hpp>
+#include <boost/range/algorithm.hpp>
+#include <boost/range/algorithm_ext/for_each.hpp>
 #pragma clang diagnostic pop
 
 using namespace llvm;
@@ -22,28 +26,13 @@ using namespace llvm;
 namespace
 {
 
+// Поскольку сейчас компилятор не совершает кросскомпиляции, то мы просто определяем
+// размер size_t и такой же размер используем в сгенерированном коде.
 llvm::Type *GetPointerSizeType(LLVMContext &context)
 {
     return (sizeof(size_t) == sizeof(uint32_t))
             ? llvm::Type::getInt32Ty(context)
             : llvm::Type::getInt64Ty(context);
-}
-
-Constant *AddStringLiteral(LLVMContext & context, Module & module, std::string const& value)
-{
-    // TODO: use strings pool.
-    Constant *pConstant = ConstantDataArray::getString(context, value, true);
-
-    // Выделение глобальной переменной на куче безопасно
-    // после создания объект передаст указатель на себя родителю
-    // удалять указатель вручную нельзя.
-    GlobalVariable *global = new GlobalVariable(module, pConstant->getType(), true,
-                                                GlobalValue::InternalLinkage, pConstant, "str");
-
-    Constant *index = Constant::getNullValue(IntegerType::getInt32Ty(context));
-    std::vector<Constant*> indices = {index, index};
-
-    return ConstantExpr::getInBoundsGetElementPtr(pConstant->getType(), global, indices);
 }
 
 ConstantInt *AddInt32Literal(CCodegenContext &context, uint64_t value)
@@ -99,6 +88,10 @@ AllocaInst *MakeLocalVariable(Function &function, Type & type, const std::string
     return temp.CreateAlloca(&type, nullptr, name);
 }
 
+// Отображение типов на LLVM-IR:
+// Boolean -> i8
+// Number -> double
+// String -> i8*
 Type *ConvertType(LLVMContext &context, ExpressionType type)
 {
     switch (type)
@@ -147,13 +140,18 @@ void CManagedStrings::FreeAll(llvm::IRBuilder<> & builder)
     auto *pFree = m_context.GetBuiltinFunction(BuiltinFunction::FREE);
     for (llvm::Value *value : m_pointers)
     {
-        builder.CreateCall(pFree, {value}, "free_str");
+        builder.CreateCall(pFree, {value});
     }
     m_pointers.clear();
 }
 
-Value *CManagedStrings::TakeManaged(llvm::IRBuilder<> & builder, Value *pString)
+Value *CManagedStrings::TakeStringOrCopy(llvm::IRBuilder<> & builder, Value *pString)
 {
+    // Если значение не является указателем, возвращаем это же значение.
+    if (!pString->getType()->isPointerTy())
+    {
+        return pString;
+    }
     auto it = m_pointers.find(pString);
     // Если кто-то уже владеет строкой, вызываем strdup, иначе снимаем со своего контроля.
     if (it == m_pointers.end())
@@ -224,11 +222,20 @@ CScopeChain<Function *> &CCodegenContext::GetFunctions()
 Constant *CCodegenContext::AddStringLiteral(const std::string &value)
 {
     auto &elem = m_strings[value];
-    if (Constant *pConst = elem)
+    if (!elem)
     {
-        return pConst;
+        // Создаём константное значение, которым будет инициализирована глобальная константа.
+        Constant *pConstant = ConstantDataArray::getString(*m_pLLVMContext, value, true);
+        // Выделение глобальной переменной на куче безопасно
+        // после создания объект передаст указатель на себя родителю
+        // удалять указатель вручную нельзя.
+        GlobalVariable *global = new GlobalVariable(*m_pModule, pConstant->getType(), true,
+                                                    GlobalValue::InternalLinkage, pConstant, "str");
+        Constant *index = Constant::getNullValue(IntegerType::getInt32Ty(*m_pLLVMContext));
+        std::vector<Constant*> indices = {index, index};
+        elem = ConstantExpr::getInBoundsGetElementPtr(pConstant->getType(), global, indices);
     }
-    elem = ::AddStringLiteral(*m_pLLVMContext, *m_pModule, value);
+
     return elem;
 }
 
@@ -299,18 +306,17 @@ CExpressionCodeGenerator::CExpressionCodeGenerator(llvm::IRBuilder<> &builder, C
 
 Value *CExpressionCodeGenerator::Codegen(IExpressionAST &ast)
 {
-    llvm::Value *pValue = nullptr;
     try
     {
         m_values.clear();
         ast.Accept(*this);
-        pValue = m_values.at(0);
+        return m_values.at(0);
     }
     catch (std::exception const& ex)
     {
         m_context.PrintError(ex.what());
+        return nullptr;
     }
-    return pValue;
 }
 
 void CExpressionCodeGenerator::Visit(CBinaryExpressionAST &expr)
@@ -319,8 +325,7 @@ void CExpressionCodeGenerator::Visit(CBinaryExpressionAST &expr)
     expr.GetRight().Accept(*this);
     Value *a = m_values.at(m_values.size() - 2);
     Value *b = m_values.at(m_values.size() - 1);
-    m_values.pop_back();
-    m_values.pop_back();
+    m_values.erase(m_values.end() - 2, m_values.end());
 
     llvm::Value *pValue = nullptr;
     switch (expr.GetLeft().GetType())
@@ -341,9 +346,8 @@ void CExpressionCodeGenerator::Visit(CBinaryExpressionAST &expr)
 void CExpressionCodeGenerator::Visit(CUnaryExpressionAST &expr)
 {
     expr.GetOperand().Accept(*this);
-    Value *x = m_values.at(m_values.size() - 1);
+    Value *x = m_values.back();
     m_values.pop_back();
-
     auto pValue = GenerateUnaryExpr(m_builder, m_context.GetLLVMContext(), expr.GetOperation(), x);
     m_values.push_back(pValue);
 }
@@ -374,12 +378,8 @@ void CExpressionCodeGenerator::Visit(CCallAST &expr)
 
 void CExpressionCodeGenerator::Visit(CVariableRefAST &expr)
 {
-    AllocaInst *pVar = m_context.GetVariables().GetSymbol(expr.GetNameId()).get_value_or(nullptr);
+    AllocaInst *pVar = *m_context.GetVariables().GetSymbol(expr.GetNameId());
     std::string varName = m_context.GetString(expr.GetNameId());
-    if (!pVar)
-    {
-        throw std::runtime_error("unknown variable " + varName);
-    }
     Value *pValue = m_builder.CreateLoad(pVar, varName);
     m_values.push_back(pValue);
 }
@@ -397,7 +397,6 @@ void CExpressionCodeGenerator::Visit(CParameterDeclAST &expr)
 
 Value *CExpressionCodeGenerator::GenerateNumericExpr(Value *a, BinaryOperation op, Value *b)
 {
-    LLVMContext &context = m_context.GetLLVMContext();
     switch (op)
     {
     case BinaryOperation::Add:
@@ -411,17 +410,9 @@ Value *CExpressionCodeGenerator::GenerateNumericExpr(Value *a, BinaryOperation o
     case BinaryOperation::Modulo:
         return m_builder.CreateFRem(a, b, "modtmp");
     case BinaryOperation::Less:
-    {
-        Value *temp = m_builder.CreateFCmpULT(a, b, "cmptmp");
-        // Convert bool 0/1 to double 0.0 or 1.0
-        return m_builder.CreateUIToFP(temp, Type::getDoubleTy(context), "booltmp");
-    }
+        return m_builder.CreateFCmpULT(a, b, "cmptmp");
     case BinaryOperation::Equals:
-    {
-        Value *temp = m_builder.CreateFCmpUEQ(a, b, "cmptmp");
-        // Convert bool 0/1 to double 0.0 or 1.0
-        return m_builder.CreateUIToFP(temp, Type::getDoubleTy(context), "booltmp");
-    }
+        return m_builder.CreateFCmpUEQ(a, b, "cmptmp");
     }
     throw std::runtime_error("CExpressionCodeGenerator: unknown numeric binary operation");
 }
@@ -499,9 +490,10 @@ CFunctionCodeGenerator::CFunctionCodeGenerator(CCodegenContext &context)
 {
 }
 
+// Создаёт базовый блок CFG для вставки инструкций в этот блок.
+// Затем выгружает параметры и генерирует код тела функции.
 void CFunctionCodeGenerator::Codegen(const ParameterDeclList &parameters, const StatementsList &block, Function &fn)
 {
-    // Создаём базовый блок CFG для вставки инструкций в этот блок.
     BasicBlock *bb = BasicBlock::Create(m_context.GetLLVMContext(), "entry", &fn);
     m_builder.SetInsertPoint(bb);
     LoadParameters(fn, parameters);
@@ -516,12 +508,9 @@ void CFunctionCodeGenerator::AddExitMain()
 
 void CFunctionCodeGenerator::Visit(CPrintAST &ast)
 {
-    auto & context = m_context.GetLLVMContext();
-    auto & module = m_context.GetModule();
     ExpressionType type = ast.GetValue().GetType();
     Value *pValue = m_exprGen.Codegen(ast.GetValue());
     std::string format;
-
     switch (type)
     {
     case ExpressionType::Boolean:
@@ -541,7 +530,7 @@ void CFunctionCodeGenerator::Visit(CPrintAST &ast)
         break;
     }
 
-    Constant* pFormatAddress = AddStringLiteral(context, module, format);
+    Constant* pFormatAddress = m_context.AddStringLiteral(format);
     Function *pFunction = m_context.GetBuiltinFunction(BuiltinFunction::PRINTF);
     std::vector<llvm::Value *> args = {pFormatAddress, pValue};
     m_builder.CreateCall(pFunction, args);
@@ -551,31 +540,15 @@ void CFunctionCodeGenerator::Visit(CPrintAST &ast)
 void CFunctionCodeGenerator::Visit(CAssignAST &ast)
 {
     llvm::Value *pValue = m_exprGen.Codegen(ast.GetValue());
-
     unsigned nameId = ast.GetNameId();
     AllocaInst *pVar = m_context.GetVariables().GetSymbol(nameId).get_value_or(nullptr);
-    if (pVar)
-    {
-        llvm::Type *pVarType = pVar->getType()->getPointerElementType();
-        if (pVarType->getTypeID() != pValue->getType()->getTypeID())
-        {
-            std::string name = m_context.GetString(nameId);
-            throw std::runtime_error("Cannot change '" + name + "' variable type in assignment");
-        }
-    }
-    else
+    if (!pVar)
     {
         Function *pFunction = m_builder.GetInsertBlock()->getParent();
         pVar = MakeLocalVariable(*pFunction, *pValue->getType(), m_context.GetString(nameId));
         m_context.GetVariables().DefineSymbol(nameId, pVar);
     }
-    if (ast.GetValue().GetType() == ExpressionType::String)
-    {
-        // Если значение строкове, забираем владение оригиналом или дублем строки.
-        // TODO: cleanup memory when variable goes out of scope.
-        pValue = m_context.GetExpressionStrings().TakeManaged(m_builder, pValue);
-    }
-    m_builder.CreateStore(pValue, pVar);
+    m_builder.CreateStore(MakeValueCopy(pValue), pVar);
     m_context.GetExpressionStrings().FreeAll(m_builder);
 }
 
@@ -583,8 +556,9 @@ void CFunctionCodeGenerator::Visit(CReturnAST &ast)
 {
     if (auto *pValue = m_exprGen.Codegen(ast.GetValue()))
     {
-        m_builder.CreateRet(pValue);
+        m_builder.CreateRet(MakeValueCopy(pValue));
     }
+    m_context.GetExpressionStrings().FreeAll(m_builder);
 }
 
 void CFunctionCodeGenerator::Visit(CWhileAst &ast)
@@ -606,7 +580,6 @@ void CFunctionCodeGenerator::Visit(CIfAst &ast)
     BasicBlock *mergeBB = BasicBlock::Create(context, "continue", function);
 
     Value *condition = m_exprGen.Codegen(ast.GetCondition());
-    condition = m_builder.CreateFCmpONE(condition, ConstantFP::get(context, APFloat(0.0)), "if_condition");
     m_builder.CreateCondBr(condition, thenBB, elseBB);
     m_builder.SetInsertPoint(thenBB);
     CodegenForAstList(ast.GetThenBody());
@@ -644,7 +617,6 @@ void CFunctionCodeGenerator::CodegenLoop(CAbstractLoopAst &ast, bool skipFirstCh
     m_builder.CreateBr(skipFirstCheck ? loopBB : conditionBB);
     m_builder.SetInsertPoint(conditionBB);
     Value *condition = m_exprGen.Codegen(ast.GetCondition());
-    condition = m_builder.CreateFCmpONE(condition, ConstantFP::get(context, APFloat(0.0)), "do_while_condition");
     m_builder.CreateCondBr(condition, loopBB, nextBB);
     m_builder.SetInsertPoint(loopBB);
     CodegenForAstList(ast.GetBody());
@@ -658,6 +630,17 @@ void CFunctionCodeGenerator::CodegenForAstList(const StatementsList &block)
     {
         pAst->Accept(*this);
     }
+}
+
+Value *CFunctionCodeGenerator::MakeValueCopy(Value *pValue)
+{
+    // Если значение строковое, забираем владение оригиналом или дублем строки.
+    if (pValue->getType()->isPointerTy())
+    {
+        // TODO: cleanup memory when variable goes out of scope.
+        return m_context.GetExpressionStrings().TakeStringOrCopy(m_builder, pValue);
+    }
+    return pValue;
 }
 
 CCodeGenerator::CCodeGenerator(CCodegenContext &context)
@@ -687,32 +670,23 @@ Function *CCodeGenerator::GenerateDeclaration(IFunctionAST &ast, bool isMain)
     auto & context = m_context.GetLLVMContext();
     auto & module = m_context.GetModule();
 
-    std::vector<Type *> args;
-    Type *returnType = nullptr;
-    if (isMain)
-    {
-        returnType = Type::getInt32Ty(context);
-    }
-    else
-    {
-        returnType = ConvertType(context, ast.GetReturnType());
-        args.reserve(ast.GetParameters().size());
-        for (const auto &pParam : ast.GetParameters())
-        {
-            args.push_back(ConvertType(context, pParam->GetType()));
-        }
-    }
+    Type *returnType = isMain ? Type::getInt32Ty(context) : ConvertType(context, ast.GetReturnType());
+    std::vector<Type *> args(ast.GetParameters().size(), nullptr);
+    boost::transform(ast.GetParameters(), args.begin(), [&](const CParameterDeclASTUniquePtr &pAst) {
+        return ConvertType(context, pAst->GetType());
+    });
 
     FunctionType *fnType = FunctionType::get(returnType, args, false);
     std::string fnName = m_context.GetString(ast.GetNameId());
     Function *fn = Function::Create(fnType, Function::ExternalLinkage, fnName, &module);
 
-    auto paramIt = ast.GetParameters().begin();
-    for (auto &arg : fn->args())
+    auto argIt = fn->args().begin();
+    for (const auto &pAst : ast.GetParameters())
     {
-        arg.setName(m_context.GetString((*paramIt)->GetName()));
-        ++paramIt;
+        argIt->setName(m_context.GetString(pAst->GetName()));
+        ++argIt;
     }
+
     return fn;
 }
 

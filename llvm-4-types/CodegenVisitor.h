@@ -50,7 +50,7 @@ public:
 
     // Если строкой никто не владеет, снимает её с контроля и возвращает.
     // Иначе дублирует строку и возвращает дубликат.
-    llvm::Value *TakeManaged(llvm::IRBuilder<> & builder, llvm::Value *pString);
+    llvm::Value *TakeStringOrCopy(llvm::IRBuilder<> & builder, llvm::Value *pString);
 
     // Добавляет строку под контроль времени жизни.
     void Manage(llvm::Value *pString);
@@ -141,6 +141,7 @@ private:
     void LoadParameters(llvm::Function &fn, const ParameterDeclList &parameterNames);
     void CodegenLoop(CAbstractLoopAst &ast, bool skipFirstCheck);
     void CodegenForAstList(const StatementsList &block);
+    llvm::Value *MakeValueCopy(llvm::Value *pValue);
 
     CCodegenContext & m_context;
     llvm::IRBuilder<> m_builder;

@@ -204,6 +204,7 @@ CTypecheckVisitor::CTypecheckVisitor(CFrontendContext &context)
 
 void CTypecheckVisitor::RunSemanticPass(CProgramAst &ast)
 {
+    // TODO: add 'main' function signature checks.
     m_functions.PushScope();
     for (const auto &pFunction : ast.GetFunctions())
     {
