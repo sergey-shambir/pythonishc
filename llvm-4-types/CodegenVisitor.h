@@ -140,8 +140,10 @@ protected:
 private:
     void LoadParameters(llvm::Function &fn, const ParameterDeclList &parameterNames);
     void CodegenLoop(CAbstractLoopAst &ast, bool skipFirstCheck);
-    void CodegenForAstList(const StatementsList &block);
+    void FillBlockAndJump(const StatementsList &statements,
+                          llvm::BasicBlock *block, llvm::BasicBlock *nextBlock);
     llvm::Value *MakeValueCopy(llvm::Value *pValue);
+    void FreeOwnedPointers();
 
     CCodegenContext & m_context;
     llvm::IRBuilder<> m_builder;

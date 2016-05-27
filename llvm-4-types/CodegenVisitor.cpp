@@ -497,7 +497,10 @@ void CFunctionCodeGenerator::Codegen(const ParameterDeclList &parameters, const 
     BasicBlock *bb = BasicBlock::Create(m_context.GetLLVMContext(), "entry", &fn);
     m_builder.SetInsertPoint(bb);
     LoadParameters(fn, parameters);
-    CodegenForAstList(block);
+    for (const IStatementASTUniquePtr & pAst : block)
+    {
+        pAst->Accept(*this);
+    }
 }
 
 void CFunctionCodeGenerator::AddExitMain()
@@ -534,7 +537,7 @@ void CFunctionCodeGenerator::Visit(CPrintAST &ast)
     Function *pFunction = m_context.GetBuiltinFunction(BuiltinFunction::PRINTF);
     std::vector<llvm::Value *> args = {pFormatAddress, pValue};
     m_builder.CreateCall(pFunction, args);
-    m_context.GetExpressionStrings().FreeAll(m_builder);
+    FreeOwnedPointers();
 }
 
 void CFunctionCodeGenerator::Visit(CAssignAST &ast)
@@ -549,16 +552,17 @@ void CFunctionCodeGenerator::Visit(CAssignAST &ast)
         m_context.GetVariables().DefineSymbol(nameId, pVar);
     }
     m_builder.CreateStore(MakeValueCopy(pValue), pVar);
-    m_context.GetExpressionStrings().FreeAll(m_builder);
+    FreeOwnedPointers();
 }
 
 void CFunctionCodeGenerator::Visit(CReturnAST &ast)
 {
     if (auto *pValue = m_exprGen.Codegen(ast.GetValue()))
     {
-        m_builder.CreateRet(MakeValueCopy(pValue));
+        pValue = MakeValueCopy(pValue);
+        FreeOwnedPointers();
+        m_builder.CreateRet(pValue);
     }
-    m_context.GetExpressionStrings().FreeAll(m_builder);
 }
 
 void CFunctionCodeGenerator::Visit(CWhileAst &ast)
@@ -577,16 +581,12 @@ void CFunctionCodeGenerator::Visit(CIfAst &ast)
     Function *function = m_builder.GetInsertBlock()->getParent();
     BasicBlock *thenBB = BasicBlock::Create(context, "then", function);
     BasicBlock *elseBB = BasicBlock::Create(context, "else", function);
-    BasicBlock *mergeBB = BasicBlock::Create(context, "continue", function);
+    BasicBlock *mergeBB = BasicBlock::Create(context, "merge_if", function);
 
     Value *condition = m_exprGen.Codegen(ast.GetCondition());
     m_builder.CreateCondBr(condition, thenBB, elseBB);
-    m_builder.SetInsertPoint(thenBB);
-    CodegenForAstList(ast.GetThenBody());
-    m_builder.CreateBr(mergeBB);
-    m_builder.SetInsertPoint(elseBB);
-    CodegenForAstList(ast.GetElseBody());
-    m_builder.CreateBr(mergeBB);
+    FillBlockAndJump(ast.GetThenBody(), thenBB, mergeBB);
+    FillBlockAndJump(ast.GetElseBody(), elseBB, mergeBB);
     m_builder.SetInsertPoint(mergeBB);
 }
 
@@ -612,23 +612,26 @@ void CFunctionCodeGenerator::CodegenLoop(CAbstractLoopAst &ast, bool skipFirstCh
     Function *function = m_builder.GetInsertBlock()->getParent();
     BasicBlock *conditionBB = BasicBlock::Create(context, "cond", function);
     BasicBlock *loopBB = BasicBlock::Create(context, "loop", function);
-    BasicBlock *nextBB = BasicBlock::Create(context, "continue", function);
+    BasicBlock *nextBB = BasicBlock::Create(context, "after_loop", function);
 
     m_builder.CreateBr(skipFirstCheck ? loopBB : conditionBB);
     m_builder.SetInsertPoint(conditionBB);
     Value *condition = m_exprGen.Codegen(ast.GetCondition());
     m_builder.CreateCondBr(condition, loopBB, nextBB);
-    m_builder.SetInsertPoint(loopBB);
-    CodegenForAstList(ast.GetBody());
-    m_builder.CreateBr(conditionBB);
+    FillBlockAndJump(ast.GetBody(), loopBB, conditionBB);
     m_builder.SetInsertPoint(nextBB);
 }
 
-void CFunctionCodeGenerator::CodegenForAstList(const StatementsList &block)
+void CFunctionCodeGenerator::FillBlockAndJump(const StatementsList &statements, BasicBlock *block, BasicBlock *nextBlock)
 {
-    for (const IStatementASTUniquePtr & pAst : block)
+    m_builder.SetInsertPoint(block);
+    for (const IStatementASTUniquePtr & pAst : statements)
     {
         pAst->Accept(*this);
+    }
+    if (nextBlock && (nullptr == block->getTerminator()))
+    {
+        m_builder.CreateBr(nextBlock);
     }
 }
 
@@ -641,6 +644,11 @@ Value *CFunctionCodeGenerator::MakeValueCopy(Value *pValue)
         return m_context.GetExpressionStrings().TakeStringOrCopy(m_builder, pValue);
     }
     return pValue;
+}
+
+void CFunctionCodeGenerator::FreeOwnedPointers()
+{
+    m_context.GetExpressionStrings().FreeAll(m_builder);
 }
 
 CCodeGenerator::CCodeGenerator(CCodegenContext &context)
@@ -708,6 +716,7 @@ bool CCodeGenerator::GenerateDefinition(Function &fn, IFunctionAST &ast, bool is
     {
         m_context.PrintError("Function verification failed for " + m_context.GetString(ast.GetNameId())
                              + ", '" + output.str() + "'");
+        fn.dump();
         fn.eraseFromParent();
         return false;
     }
