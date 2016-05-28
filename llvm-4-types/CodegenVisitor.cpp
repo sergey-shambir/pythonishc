@@ -501,6 +501,7 @@ void CFunctionCodeGenerator::Codegen(const ParameterDeclList &parameters, const 
     {
         pAst->Accept(*this);
     }
+    RemoveUnusedBlocks(fn);
 }
 
 void CFunctionCodeGenerator::AddExitMain()
@@ -649,6 +650,33 @@ Value *CFunctionCodeGenerator::MakeValueCopy(Value *pValue)
 void CFunctionCodeGenerator::FreeOwnedPointers()
 {
     m_context.GetExpressionStrings().FreeAll(m_builder);
+}
+
+// Убирает неиспользуемые блоки.
+// Они могут возникнуть из-за ранее созданных return, например, в таком коде:
+//  function sign(x Number) Number
+//      if (x < 0)
+//           return -1
+//      else
+//          return 1
+//      end
+//  end
+void CFunctionCodeGenerator::RemoveUnusedBlocks(Function &fn)
+{
+    std::vector<BasicBlock*> unusedBlocks;
+    auto &blocks = fn.getBasicBlockList();
+
+    for (auto &bb : boost::make_iterator_range(++blocks.begin(), blocks.end()))
+    {
+        if (bb.hasNUses(0))
+        {
+            unusedBlocks.push_back(llvm::dyn_cast<BasicBlock>(&bb));
+        }
+    }
+    for (BasicBlock *bb : unusedBlocks)
+    {
+        bb->eraseFromParent();
+    }
 }
 
 CCodeGenerator::CCodeGenerator(CCodegenContext &context)

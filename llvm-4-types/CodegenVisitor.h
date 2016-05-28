@@ -144,6 +144,7 @@ private:
                           llvm::BasicBlock *block, llvm::BasicBlock *nextBlock);
     llvm::Value *MakeValueCopy(llvm::Value *pValue);
     void FreeOwnedPointers();
+    void RemoveUnusedBlocks(llvm::Function &fn);
 
     CCodegenContext & m_context;
     llvm::IRBuilder<> m_builder;
