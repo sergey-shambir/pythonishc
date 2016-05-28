@@ -1,18 +1,23 @@
-def sqrt(x)
+function not(x Boolean) Boolean
+    return x == false
+end
+
+function sqrt(x Number) Number
   if x < 0
     return 0
   end
   root = 1
+  mustContinue = false
   do
     newRoot = 0.5 * (root + x / root)
-    mustContinue = !(newRoot == root)
+    mustContinue = not(newRoot == root)
     root = newRoot
   while mustContinue end
   return root
 end
 
-print "sqrt(2) = ", sqrt(2)
-print "sqrt(3) = ", sqrt(3)
-print "sqrt(9) = ", sqrt(9)
-print "sqrt(10) = ", sqrt(10)
+function main() Number
+    print "sqrt(2) = "
+    print sqrt(2)
+end
 

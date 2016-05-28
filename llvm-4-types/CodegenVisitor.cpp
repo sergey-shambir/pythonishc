@@ -61,7 +61,7 @@ struct LiteralCodeGenerator : boost::static_visitor<Constant *>
 
     Constant *operator ()(bool const& value) const
     {
-        return ConstantInt::get(m_context.GetLLVMContext(), APInt(8, uint64_t(value), true));
+        return ConstantInt::get(m_context.GetLLVMContext(), APInt(1, value ? 1 : 0, true));
     }
 
     Constant *operator ()(std::string const& value)
@@ -95,7 +95,7 @@ AllocaInst *MakeLocalVariable(Function &function, Type & type, const std::string
 }
 
 // Отображение типов на LLVM-IR:
-// Boolean -> i8
+// Boolean -> i1
 // Number -> double
 // String -> i8*
 Type *ConvertType(LLVMContext &context, ExpressionType type)
@@ -103,7 +103,7 @@ Type *ConvertType(LLVMContext &context, ExpressionType type)
     switch (type)
     {
     case ExpressionType::Boolean:
-        return Type::getInt8Ty(context);
+        return Type::getInt1Ty(context);
     case ExpressionType::Number:
         return Type::getDoubleTy(context);
     case ExpressionType::String:

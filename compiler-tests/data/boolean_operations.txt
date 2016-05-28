@@ -1,0 +1,26 @@
+function not(x Boolean) Boolean
+    return x == false
+end
+
+function or(a Boolean, b Boolean) Boolean
+    if a
+        return true
+    end
+    return b
+end
+
+function and(a Boolean, b Boolean) Boolean
+    if not(a)
+        return false
+    end
+    return b
+end
+
+function main() Number
+    print and(true, or(true, false))
+    x = not(or(and(true, false), or(false, false)))
+    print x
+    print not(x)
+    print not(not(x))
+end
+
