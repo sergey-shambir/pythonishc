@@ -109,7 +109,6 @@ CCompilerBackend::CCompilerBackend()
 
 void CCompilerBackend::GenerateObjectFile(Module &module, bool isDebug, const std::string &outputPath)
 {
-    module.dump();
     // Подготавливаем библиотеку LLVM для генерации кода.
     InitializeBackend();
     SetupPassRegistry();

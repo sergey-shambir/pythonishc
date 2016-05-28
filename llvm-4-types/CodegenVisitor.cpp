@@ -660,7 +660,7 @@ void CFunctionCodeGenerator::FreeOwnedPointers()
 //      else
 //          return 1
 //      end
-//  end
+//  ends
 void CFunctionCodeGenerator::RemoveUnusedBlocks(Function &fn)
 {
     std::vector<BasicBlock*> unusedBlocks;
@@ -744,7 +744,6 @@ bool CCodeGenerator::GenerateDefinition(Function &fn, IFunctionAST &ast, bool is
     {
         m_context.PrintError("Function verification failed for " + m_context.GetString(ast.GetNameId())
                              + ", '" + output.str() + "'");
-        fn.dump();
         fn.eraseFromParent();
         return false;
     }
