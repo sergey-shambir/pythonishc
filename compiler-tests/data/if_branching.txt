@@ -1,0 +1,22 @@
+function abs(x Number) Number
+    if x < 0
+        return -x
+    end
+    return x
+end
+
+function sign(x Number) Number
+    if x < 0
+        return -1
+    else
+        return 1
+    end
+end
+
+function main() Number
+    print "abs(-100)="
+    print abs(-100)
+    print "sign(-100)="
+    print sign(-100)
+end
+

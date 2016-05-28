@@ -1,0 +1,10 @@
+function duplicate(x String) String
+    return x + x
+end
+
+function main() Number
+    x = "a" + "b"
+    print duplicate(x + "1")
+    x = duplicate(x)
+    print x + "d"
+end

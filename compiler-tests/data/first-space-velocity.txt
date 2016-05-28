@@ -1,0 +1,9 @@
+function main() Number
+    pi = 3.14159265
+    earthEquator = 40000
+    earthRadius = earthEquator / (2 * pi)
+    gravity = 9.8
+    print "(First space velocity)^2="
+    print gravity * earthRadius
+end
+

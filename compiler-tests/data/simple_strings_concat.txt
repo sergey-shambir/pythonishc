@@ -1,0 +1,7 @@
+function main() Number
+    x = "a" + "b"
+    print "a"
+    print x
+    print "c" + "d"
+end
+

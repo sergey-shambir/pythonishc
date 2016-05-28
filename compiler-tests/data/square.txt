@@ -1,0 +1,9 @@
+function sqr(x Number) Number
+    return x * x
+end
+
+function main() Number
+    print "14^2 - 100="
+    print sqr(14) - 100
+end
+
