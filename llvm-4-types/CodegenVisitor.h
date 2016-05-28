@@ -26,7 +26,7 @@ class Constant;
 enum class BuiltinFunction
 {
     PRINTF,
-    STRCAT,
+    STRCPY,
     STRDUP,
     STRLEN,
     STRCMP,
@@ -45,8 +45,11 @@ public:
     CManagedStrings(CCodegenContext &context);
     ~CManagedStrings();
 
-    // Вызывает free() для всех строк, очищает их список.
+    // Вызывает free() для всех строк.
     void FreeAll(llvm::IRBuilder<> & builder);
+
+    // Сбрасывает список неудалённых строк.
+    void Clear();
 
     // Если строкой никто не владеет, снимает её с контроля и возвращает.
     // Иначе дублирует строку и возвращает дубликат.
@@ -77,6 +80,7 @@ public:
 
     llvm::Function *GetBuiltinFunction(BuiltinFunction id)const;
     CManagedStrings &GetExpressionStrings();
+    CManagedStrings &GetFunctionStrings();
 
 private:
     void InitLibCBuiltins();
@@ -89,6 +93,7 @@ private:
     CScopeChain<llvm::Function*> m_functions;
     std::unordered_map<std::string, llvm::Constant *> m_strings;
     CManagedStrings m_expressionStrings;
+    CManagedStrings m_functionStrings;
 };
 
 class CExpressionCodeGenerator : protected IExpressionVisitor
@@ -143,7 +148,8 @@ private:
     void FillBlockAndJump(const StatementsList &statements,
                           llvm::BasicBlock *block, llvm::BasicBlock *nextBlock);
     llvm::Value *MakeValueCopy(llvm::Value *pValue);
-    void FreeOwnedPointers();
+    void FreeExpressionAllocs();
+    void FreeFunctionAllocs();
     void RemoveUnusedBlocks(llvm::Function &fn);
 
     CCodegenContext & m_context;

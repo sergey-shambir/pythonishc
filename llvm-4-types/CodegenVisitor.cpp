@@ -35,6 +35,12 @@ llvm::Type *GetPointerSizeType(LLVMContext &context)
             : llvm::Type::getInt64Ty(context);
 }
 
+ConstantInt *AddSizeLiteral(CCodegenContext &context, uint64_t value)
+{
+    unsigned bitsCount = (sizeof(size_t) == sizeof(uint32_t)) ? 32 : 64;
+    return ConstantInt::get(context.GetLLVMContext(), APInt(bitsCount, value, true));
+}
+
 ConstantInt *AddInt32Literal(CCodegenContext &context, uint64_t value)
 {
     return ConstantInt::get(context.GetLLVMContext(), APInt(32, value, true));
@@ -106,16 +112,16 @@ Type *ConvertType(LLVMContext &context, ExpressionType type)
     throw std::logic_error("ConvertType: unkown expression type");
 }
 
-class CVariableScopeLock
+class CFunctionScopeLock
 {
 public:
-    CVariableScopeLock(CCodegenContext &context)
+    CFunctionScopeLock(CCodegenContext &context)
         : m_context(context)
     {
         m_context.GetVariables().PushScope();
     }
 
-    ~CVariableScopeLock()
+    ~CFunctionScopeLock()
     {
         m_context.GetVariables().PopScope();
     }
@@ -142,6 +148,10 @@ void CManagedStrings::FreeAll(llvm::IRBuilder<> & builder)
     {
         builder.CreateCall(pFree, {value});
     }
+}
+
+void CManagedStrings::Clear()
+{
     m_pointers.clear();
 }
 
@@ -180,6 +190,7 @@ CCodegenContext::CCodegenContext(CFrontendContext &context)
     , m_pLLVMContext(std::make_unique<llvm::LLVMContext>())
     , m_pModule(std::make_unique<llvm::Module>("main module", *m_pLLVMContext))
     , m_expressionStrings(*this)
+    , m_functionStrings(*this)
 {
     m_functions.PushScope();
     InitLibCBuiltins();
@@ -249,6 +260,11 @@ CManagedStrings &CCodegenContext::GetExpressionStrings()
     return m_expressionStrings;
 }
 
+CManagedStrings &CCodegenContext::GetFunctionStrings()
+{
+    return m_functionStrings;
+}
+
 void CCodegenContext::InitLibCBuiltins()
 {
     auto & context = *m_pLLVMContext;
@@ -269,7 +285,7 @@ void CCodegenContext::InitLibCBuiltins()
     // i8 *strcat(i8* dest, i8* src)
     {
         auto *fnType = llvm::FunctionType::get(cStringType, {cStringType, cStringType}, false);
-        m_builtinFunctions[BuiltinFunction::STRCAT] = declareFn(fnType, "strcat");
+        m_builtinFunctions[BuiltinFunction::STRCPY] = declareFn(fnType, "strcpy");
     }
     // i8 *strdup(i8 *str)
     {
@@ -373,6 +389,10 @@ void CExpressionCodeGenerator::Visit(CCallAST &expr)
     std::swap(args, m_values);
 
     Value *pValue = m_builder.CreateCall(pFunction, args, "calltmp");
+    if (pValue->getType()->isPointerTy())
+    {
+        m_context.GetExpressionStrings().Manage(pValue);
+    }
     m_values.push_back(pValue);
 }
 
@@ -432,16 +452,17 @@ Value *CExpressionCodeGenerator::GenerateStringExpr(Value *a, BinaryOperation op
          * return newStr;
          */
         auto *pStrlen = m_context.GetBuiltinFunction(BuiltinFunction::STRLEN);
-        auto *pStrcat = m_context.GetBuiltinFunction(BuiltinFunction::STRCAT);
+        auto *pStrcpy = m_context.GetBuiltinFunction(BuiltinFunction::STRCPY);
         auto *pMalloc = m_context.GetBuiltinFunction(BuiltinFunction::MALLOC);
         Value *lenA = m_builder.CreateCall(pStrlen, {a}, "left_length");
         Value *lenB = m_builder.CreateCall(pStrlen, {b}, "right_length");
         Value *lenSum = m_builder.CreateAdd(lenA, lenB, "sum_length");
+        lenSum = m_builder.CreateAdd(lenSum, AddSizeLiteral(m_context, 1), "malloc_size");
         Value *newStr = m_builder.CreateCall(pMalloc, {lenSum}, "new_str");
         m_context.GetExpressionStrings().Manage(newStr);
-        m_builder.CreateCall(pStrcat, {newStr, a}, "concat_left");
+        m_builder.CreateCall(pStrcpy, {newStr, a}, "copy_left");
         Value *nextDest = m_builder.CreateGEP(newStr, lenA, "dest_str");
-        m_builder.CreateCall(pStrcat, {nextDest, b}, "concat_right");
+        m_builder.CreateCall(pStrcpy, {nextDest, b}, "copy_right");
         return newStr;
     }
     case BinaryOperation::Substract:
@@ -506,6 +527,7 @@ void CFunctionCodeGenerator::Codegen(const ParameterDeclList &parameters, const 
 
 void CFunctionCodeGenerator::AddExitMain()
 {
+    FreeFunctionAllocs();
     Constant *exitCode = ConstantInt::get(m_context.GetLLVMContext(), APInt(32, uint64_t(0), true));
     m_builder.CreateRet(exitCode);
 }
@@ -538,7 +560,7 @@ void CFunctionCodeGenerator::Visit(CPrintAST &ast)
     Function *pFunction = m_context.GetBuiltinFunction(BuiltinFunction::PRINTF);
     std::vector<llvm::Value *> args = {pFormatAddress, pValue};
     m_builder.CreateCall(pFunction, args);
-    FreeOwnedPointers();
+    FreeExpressionAllocs();
 }
 
 void CFunctionCodeGenerator::Visit(CAssignAST &ast)
@@ -553,7 +575,11 @@ void CFunctionCodeGenerator::Visit(CAssignAST &ast)
         m_context.GetVariables().DefineSymbol(nameId, pVar);
     }
     m_builder.CreateStore(MakeValueCopy(pValue), pVar);
-    FreeOwnedPointers();
+    if (pValue->getType()->isPointerTy())
+    {
+        m_context.GetFunctionStrings().Manage(pValue);
+    }
+    FreeExpressionAllocs();
 }
 
 void CFunctionCodeGenerator::Visit(CReturnAST &ast)
@@ -561,7 +587,8 @@ void CFunctionCodeGenerator::Visit(CReturnAST &ast)
     if (auto *pValue = m_exprGen.Codegen(ast.GetValue()))
     {
         pValue = MakeValueCopy(pValue);
-        FreeOwnedPointers();
+        FreeExpressionAllocs();
+        FreeFunctionAllocs();
         m_builder.CreateRet(pValue);
     }
 }
@@ -641,15 +668,22 @@ Value *CFunctionCodeGenerator::MakeValueCopy(Value *pValue)
     // Если значение строковое, забираем владение оригиналом или дублем строки.
     if (pValue->getType()->isPointerTy())
     {
-        // TODO: cleanup memory when variable goes out of scope.
         return m_context.GetExpressionStrings().TakeStringOrCopy(m_builder, pValue);
     }
     return pValue;
 }
 
-void CFunctionCodeGenerator::FreeOwnedPointers()
+void CFunctionCodeGenerator::FreeExpressionAllocs()
 {
     m_context.GetExpressionStrings().FreeAll(m_builder);
+    m_context.GetExpressionStrings().Clear();
+}
+
+void CFunctionCodeGenerator::FreeFunctionAllocs()
+{
+    // Грубая очистка памяти строк, сохранённых в переменных функции.
+    // Не будет корректно работать при наличии более одной области видимости в функции.
+    m_context.GetFunctionStrings().FreeAll(m_builder);
 }
 
 // Убирает неиспользуемые блоки.
@@ -728,7 +762,7 @@ Function *CCodeGenerator::GenerateDeclaration(IFunctionAST &ast, bool isMain)
 
 bool CCodeGenerator::GenerateDefinition(Function &fn, IFunctionAST &ast, bool isMain)
 {
-    CVariableScopeLock scopedScope(m_context);
+    CFunctionScopeLock scopedScope(m_context);
     CFunctionCodeGenerator generator(m_context);
 
     generator.Codegen(ast.GetParameters(), ast.GetBody(), fn);
