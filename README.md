@@ -40,8 +40,10 @@ LLVM &mdash; это фреймворк для создания бекендов 
 * `llvm-3-structured` устраняет последствия урезания возможностей: в нём реализованы ветвления и циклы, отсутствующие в предыдущих двух примерах.
 * `llvm-4-structured` окончательно устраняет разницу в возможностях между `lemon-8-types` и компилятором на базе LLVM. В этом примере кроме типа `Number` реализованы типы данных `Boolean` и `String`, а в грамматику добавлены правила для объявления типов параметров и возвращаемого значения функции.
 
-- Для создания примеров были использованы [статьи о языке `Kaleidoscope` (llvm.org)](http://www.llvm.org/docs/tutorial/index.html), которые являются частью официальной документации LLVM.
-- Также помощь оказала инструкция [Mapping High-Level Constructs to LLVM IR](github/MappingHighLevelConstructsToLLVM.pdf), написанная Mikael Lyngvig
+Для создания примеров на LLVM использовались следующие источники:
+- [статьи о языке `Kaleidoscope` (llvm.org)](http://www.llvm.org/docs/tutorial/index.html)
+- инструкция [Mapping High-Level Constructs to LLVM IR](github/MappingHighLevelConstructsToLLVM.pdf), написанная Mikael Lyngvig
+- [справочник по языку LLVM-IR (llvm.org)](http://llvm.org/docs/LangRef.html)
 
 ### Лексический анализ и разбор на базе C++ STL
 * `std-regex` показывает, как применять стандартный класс регулярных выражений `std::regex` для сопоставления входной строки с образцом или для построчного сканирования ввода.
