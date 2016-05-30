@@ -6,19 +6,16 @@
 namespace
 {
 
-bool IsFarFromZero(double value)
+bool FuzzyEquals(double left, double right)
 {
-    return std::fabs(value) >= std::numeric_limits<double>::epsilon();
+    return std::fabs(left - right) >= std::numeric_limits<double>::epsilon();
 }
 
 std::string ToPrettyString(double value)
 {
-    const size_t BUFFER_SIZE = 79;
-    char buffer[BUFFER_SIZE + 1] = { 0 };
-    std::snprintf(buffer, BUFFER_SIZE, "%f", value);
-
-    std::string result = buffer;
-    while (!result.empty() && (result.back() == '0'))
+    std::string result = std::to_string(value);
+    // Преобразуем 2.00000 в 2.
+    while (!result.empty() && result.back() == '0')
     {
         result.pop_back();
     }
@@ -38,8 +35,7 @@ std::string ToPrettyString(bool value)
 // Конвертирует значение в Boolean (C++ bool).
 struct BooleanConverter : boost::static_visitor<bool>
 {
-    explicit BooleanConverter() = default;
-    bool operator ()(double const& value) const { return IsFarFromZero(value); }
+    bool operator ()(double const& value) const { return FuzzyEquals(value, 0); }
     bool operator ()(bool const& value) const { return value; }
     bool operator ()(std::string const& value) const { return !value.empty(); }
     bool operator ()(std::exception_ptr const&) { return false; }
@@ -48,29 +44,14 @@ struct BooleanConverter : boost::static_visitor<bool>
 // Конвертирует значение в String (C++ std::string).
 struct StringConverter : boost::static_visitor<std::string>
 {
-    explicit StringConverter() = default;
-
     std::string operator ()(double const& value) const { return ToPrettyString(value); }
     std::string operator ()(bool const& value) const { return ToPrettyString(value); }
     std::string operator ()(std::string const& value) const { return value; }
     std::string operator ()(std::exception_ptr const& value) { std::rethrow_exception(value); }
 };
 
-// Конвертирует значение в Number (C++ double)
-struct NumberConverter : boost::static_visitor<double>
-{
-    explicit NumberConverter() = default;
-
-    double operator ()(double const& value) const { return value; }
-    double operator ()(bool const& value) const { return value ? 1. : 0.; }
-    double operator ()(std::string const&) const { throw std::runtime_error("cannot convert String to Number"); }
-    double operator ()(std::exception_ptr const& value) { std::rethrow_exception(value); }
-};
-
 struct TypeNameVisitor : boost::static_visitor<std::string>
 {
-    explicit TypeNameVisitor() = default;
-
     std::string operator ()(double const&) const { return "Number"; }
     std::string operator ()(bool const&) const { return "Boolean"; }
     std::string operator ()(std::string const&) const { return "String"; }
@@ -81,10 +62,6 @@ struct TypeNameVisitor : boost::static_visitor<std::string>
 
 } // anonymous namespace.
 
-CValue::CValue()
-{
-}
-
 CValue CValue::FromError(const std::exception_ptr &value)
 {
     return Value(value);
@@ -92,14 +69,7 @@ CValue CValue::FromError(const std::exception_ptr &value)
 
 CValue CValue::FromErrorMessage(const std::string &message)
 {
-    try
-    {
-        throw std::runtime_error(message);
-    }
-    catch (const std::exception &)
-    {
-        return CValue::FromError(std::current_exception());
-    }
+    return CValue::FromError(std::make_exception_ptr(std::runtime_error(message)));
 }
 
 CValue CValue::FromDouble(double value)
@@ -117,19 +87,22 @@ CValue CValue::FromString(const std::string &value)
     return Value(value);
 }
 
-bool CValue::ToBool() const
+CValue::operator bool() const
 {
     return ConvertToBool();
 }
 
 std::string CValue::ToString() const
 {
-    return ConvertToString();
+    return TryConvertToString();
 }
 
-bool CValue::IsError() const
+void CValue::RethrowIfException() const
 {
-    return (m_value.type() == typeid(std::exception_ptr));
+    if (m_value.type() == typeid(std::exception_ptr))
+    {
+        std::rethrow_exception(boost::get<std::exception_ptr>(m_value));
+    }
 }
 
 bool CValue::AsBool() const
@@ -147,178 +120,168 @@ double CValue::AsDouble() const
     return boost::get<double>(m_value);
 }
 
-const std::exception_ptr &CValue::AsError() const
-{
-    return boost::get<std::exception_ptr>(m_value);
-}
-
 CValue CValue::operator +() const
 {
-    try
+    if (m_value.type() == typeid(double))
     {
-        return CValue::FromDouble(AsDouble());
+        return *this;
     }
-    catch (std::exception const&)
-    {
-        return CValue::FromError(std::current_exception());
-    }
+    return GenerateError(*this, "+");
 }
 
 CValue CValue::operator -() const
 {
-    try
+    if (m_value.type() == typeid(double))
     {
-        return CValue::FromDouble(-AsDouble());
+        return Value(-AsDouble());
     }
-    catch (std::exception const&)
-    {
-        return CValue::FromError(std::current_exception());
-    }
+    return GenerateError(*this, "-");
 }
 
 CValue CValue::operator !() const
 {
-    try
+    if (m_value.type() == typeid(bool))
     {
-        return CValue::FromBoolean(!AsBool());
+        return Value(!AsBool());
     }
-    catch (std::exception const&)
-    {
-        return CValue::FromError(std::current_exception());
-    }
+    return GenerateError(*this, "!");
 }
 
 CValue CValue::operator <(const CValue &other) const
 {
-    try
+    if (AreBothValues<double>(*this, other))
     {
-        const auto &type = m_value.type();
-        if (type == typeid(std::string))
-        {
-            return CValue::FromBoolean(AsString() < other.AsString());
-        }
-        else if (type == typeid(double))
-        {
-            return CValue::FromBoolean(AsDouble() < other.AsDouble());
-        }
+        return Value(AsDouble() < other.AsDouble());
     }
-    catch (std::exception const&)
+    if (AreBothValues<std::string>(*this, other))
     {
+        return Value(AsString() < other.AsString());
     }
     return GenerateError(*this, other, "<");
 }
 
 CValue CValue::operator ==(const CValue &other) const
 {
-    try
+    if (AreBothValues<double>(*this, other))
     {
-        const auto &type = m_value.type();
-        if (type == typeid(std::string))
-        {
-            return CValue::FromBoolean(AsString() == other.AsString());
-        }
-        else if (type == typeid(bool))
-        {
-            return CValue::FromBoolean(AsBool() == other.AsBool());
-        }
-        else if (type == typeid(double))
-        {
-            double left = AsDouble();
-            double right = other.AsDouble();
-            bool result = std::fabs(left - right) < std::numeric_limits<double>::epsilon();
-            return CValue::FromBoolean(result);
-        }
+        return Value(FuzzyEquals(AsDouble(), other.AsDouble()));
     }
-    catch (std::exception const&)
+    if (AreBothValues<std::string>(*this, other))
     {
+        return Value(AsString() == other.AsString());
+    }
+    if (AreBothValues<bool>(*this, other))
+    {
+        return Value(AsBool() == other.AsBool());
     }
     return GenerateError(*this, other, "==");
 }
 
 CValue CValue::operator &&(const CValue &other) const
 {
-    auto operation = [](bool left, bool right) -> bool {
-        return left && right;
-    };
-    return DoFixedTypeOperation<bool>(*this, other, operation, "&&");
+    if (AreBothValues<bool>(*this, other))
+    {
+        return Value(AsBool() && other.AsBool());
+    }
+    return GenerateError(*this, other, "&&");
 }
 
 CValue CValue::operator ||(const CValue &other) const
 {
-    auto operation = [](bool left, bool right) -> bool {
-        return left || right;
-    };
-    return DoFixedTypeOperation<bool>(*this, other, operation, "||");
+    if (AreBothValues<bool>(*this, other))
+    {
+        return Value(AsBool() || other.AsBool());
+    }
+    return GenerateError(*this, other, "||");
 }
 
 CValue CValue::operator +(const CValue &other) const
 {
-    try
+    const auto &leftType = m_value.type();
+    const auto &rightType = other.m_value.type();
+    if (leftType == typeid(double))
     {
-        const auto &type = m_value.type();
-        if (type == typeid(std::string))
+        if (rightType == typeid(double))
         {
-            return CValue::FromString(AsString() + other.ConvertToString());
+            return Value(AsDouble() + AsDouble());
         }
-        // Transform Value+String to String+Value.
-        if (other.m_value.type() == typeid(std::string))
+        if (rightType == typeid(std::string))
         {
-            return CValue::FromString(ConvertToString() + other.AsString());
-        }
-        else if (type == typeid(double))
-        {
-            return CValue::FromDouble(AsDouble() + other.ConvertToDouble());
+            return Value(::ToPrettyString(AsDouble()) + AsString());
         }
     }
-    catch (std::exception const&)
+    if (leftType == typeid(std::string))
     {
+        if (rightType == typeid(double))
+        {
+            return Value(AsString() + ::ToPrettyString(AsDouble()));
+        }
+        if (rightType == typeid(std::string))
+        {
+            return Value(AsString() + AsString());
+        }
     }
     return GenerateError(*this, other, "+");
 }
 
 CValue CValue::operator -(const CValue &other) const
 {
-    auto operation = [](double left, double right) -> double {
-        return left * right;
-    };
-    return DoFixedTypeOperation<double>(*this, other, operation, "-");
+    if (AreBothValues<double>(*this, other))
+    {
+        return Value(AsDouble() - other.AsDouble());
+    }
+    return GenerateError(*this, other, "-");
 }
 
 CValue CValue::operator *(const CValue &other) const
 {
-    auto operation = [](double left, double right) -> double {
-        return left * right;
-    };
-    return DoFixedTypeOperation<double>(*this, other, operation, "*");
+    if (AreBothValues<double>(*this, other))
+    {
+        return Value(AsDouble() * other.AsDouble());
+    }
+    return GenerateError(*this, other, "*");
 }
 
 CValue CValue::operator /(const CValue &other) const
 {
-    auto operation = [](double left, double right) -> double {
-        return left / right;
-    };
-    return DoFixedTypeOperation<double>(*this, other, operation, "/");
+    if (AreBothValues<double>(*this, other))
+    {
+        return Value(AsDouble() / other.AsDouble());
+    }
+    return GenerateError(*this, other, "/");
 }
 
 CValue CValue::operator %(const CValue &other) const
 {
-    auto operation = [](double left, double right) -> double {
-        return std::fmod(left, right);
-    };
-    return DoFixedTypeOperation<double>(*this, other, operation, "%");
+    if (AreBothValues<double>(*this, other))
+    {
+        return Value(fmod(AsDouble(), other.AsDouble()));
+    }
+    return GenerateError(*this, other, "%");
 }
 
-template<class TType, class TOperation>
-CValue CValue::DoFixedTypeOperation(const CValue &left, const CValue &right, TOperation &&operation, const char *description)
+template<class TType>
+bool CValue::AreBothValues(const CValue &left, const CValue &right)
 {
-    try
+    return (left.m_value.type() == typeid(TType))
+            && (right.m_value.type() == typeid(TType));
+}
+
+CValue CValue::GenerateError(const CValue &value, const char *description)
+{
+    TypeNameVisitor visitor;
+    std::string valueType = value.m_value.apply_visitor(visitor);
+
+    // Прокидываем информацию об ошибке дальше.
+    if (visitor.m_exception)
     {
-        return CValue(Value(operation(boost::get<TType>(left.m_value), boost::get<TType>(right.m_value))));
+        return CValue::FromError(visitor.m_exception);
     }
-    catch (std::exception const&)
-    {
-        return GenerateError(left, right, description);
-    }
+
+    boost::format formatter("No such unary operation: %1%%2%");
+    formatter % description % valueType;
+
+    return CValue::FromErrorMessage(boost::str(formatter));
 }
 
 CValue CValue::GenerateError(const CValue &left, const CValue &right, const char *description)
@@ -327,13 +290,14 @@ CValue CValue::GenerateError(const CValue &left, const CValue &right, const char
     std::string leftType = left.m_value.apply_visitor(visitor);
     std::string rightType = right.m_value.apply_visitor(visitor);
 
+    // Прокидываем информацию об ошибке дальше.
     if (visitor.m_exception)
     {
         return CValue::FromError(visitor.m_exception);
     }
 
-    boost::format formatter("Cannot use '%1%' with %2% and %3%");
-    formatter % description % leftType % rightType;
+    boost::format formatter("No such binary operation: %1% %2% %3%");
+    formatter % leftType % description % rightType;
 
     return CValue::FromErrorMessage(boost::str(formatter));
 }
@@ -343,17 +307,11 @@ CValue::CValue(const CValue::Value &value)
 {
 }
 
-std::string CValue::ConvertToString() const
+std::string CValue::TryConvertToString() const
 {
     StringConverter converter;
     std::string value = m_value.apply_visitor(converter);
     return value;
-}
-
-double CValue::ConvertToDouble() const
-{
-    NumberConverter converter;
-    return m_value.apply_visitor(converter);
 }
 
 bool CValue::ConvertToBool() const

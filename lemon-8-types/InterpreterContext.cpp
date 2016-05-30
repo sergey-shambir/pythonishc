@@ -174,19 +174,16 @@ void CInterpreterContext::PrintError(const std::string &message)
 
 bool CInterpreterContext::ValidateValue(const CValue &value)
 {
-    if (value.IsError())
+    try
     {
-        try
-        {
-            std::rethrow_exception(value.AsError());
-        }
-        catch (std::exception const& ex)
-        {
-            PrintError(ex.what());
-        }
+        value.RethrowIfException();
+        return true;
+    }
+    catch (std::exception const& ex)
+    {
+        PrintError(ex.what());
         return false;
     }
-    return true;
 }
 
 void CInterpreterContext::SetReturnValue(boost::optional<CValue> const& valueOpt)

@@ -178,7 +178,7 @@ CIfAst::CIfAst(IExpressionASTUniquePtr &&condition, StatementsList &&thenBody, S
 void CIfAst::Execute(CInterpreterContext &context) const
 {
     CValue result = m_condition->Evaluate(context);
-    if (result.ToBool())
+    if (bool(result))
     {
         ExecuteAll(m_thenBody, context);
     }
@@ -219,7 +219,7 @@ CWhileAst::CWhileAst(IExpressionASTUniquePtr &&condition, StatementsList &&body)
 
 void CWhileAst::Execute(CInterpreterContext &context) const
 {
-    while (m_condition->Evaluate(context).ToBool())
+    while (bool(m_condition->Evaluate(context)))
     {
         ExecuteAll(m_body, context);
     }
@@ -237,7 +237,7 @@ void CRepeatAst::Execute(CInterpreterContext &context) const
     {
         ExecuteAll(m_body, context);
     }
-    while (m_condition->Evaluate(context).ToBool());
+    while (bool(m_condition->Evaluate(context)));
 }
 
 CCallAST::CCallAST(unsigned nameId, ExpressionList && arguments)

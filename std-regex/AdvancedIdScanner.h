@@ -3,26 +3,26 @@
 class CAdvancedIdScanner
 {
 public:
-	CAdvancedIdScanner();
+    CAdvancedIdScanner();
 
-	// Сканирует и сохраняет все идентификаторы в строке,
-	// игнорируя комментарии в стиле C: /* comment */.
-	void ScanLine(std::string const& text);
+    // РЎРєР°РЅРёСЂСѓРµС‚ Рё СЃРѕС…СЂР°РЅСЏРµС‚ РІСЃРµ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂС‹ РІ СЃС‚СЂРѕРєРµ,
+    // РёРіРЅРѕСЂРёСЂСѓСЏ РєРѕРјРјРµРЅС‚Р°СЂРёРё РІ СЃС‚РёР»Рµ C: /* comment */.
+    void ScanLine(std::string const& text);
 
-	// Возвращает отсортированный список идентификаторов
-	std::vector<std::string> GetIds()const;
+    // Р’РѕР·РІСЂР°С‰Р°РµС‚ РѕС‚СЃРѕСЂС‚РёСЂРѕРІР°РЅРЅС‹Р№ СЃРїРёСЃРѕРє РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂРѕРІ
+    std::vector<std::string> GetIds()const;
 
 private:
-	using string_iterator = std::string::const_iterator;
+    using string_iterator = std::string::const_iterator;
 
-	void AdvanceInComment(string_iterator from, string_iterator to);
-	void AdvanceNormal(string_iterator from, string_iterator to);
-	void AdvanceNoComment(string_iterator from, string_iterator to);
+    void AdvanceInComment(string_iterator from, string_iterator to);
+    void AdvanceNormal(string_iterator from, string_iterator to);
+    void AdvanceNoComment(string_iterator from, string_iterator to);
 
-	std::set<std::string> m_ids;
-	std::regex m_pattern;
-	std::regex m_commentBegin;
-	std::regex m_commentEnd;
-	bool m_isInComment = false;
+    std::set<std::string> m_ids;
+    std::regex m_pattern;
+    std::regex m_commentBegin;
+    std::regex m_commentEnd;
+    bool m_isInComment = false;
 };
 

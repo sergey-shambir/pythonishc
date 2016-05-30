@@ -12,8 +12,8 @@ class CBatchLexer
 public:
     CBatchLexer(unsigned lineNo, std::string const& sources, CStringPool & stringPool);
 
-    // returns next token or 0 on EOF
-    // tokens defined in CalcGrammar.h
+    // Возвращает следующий токен (лексему) либо 0, если входной файл кончился.
+    // Токены объявлены в BatchGrammar.h
     int Scan(SToken &data);
 
 private:

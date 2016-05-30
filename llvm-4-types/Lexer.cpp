@@ -18,7 +18,7 @@ CLexer::CLexer(unsigned lineNo, std::string const& line, CStringPool &pool, cons
         { "while",  TK_WHILE },
         { "print",  TK_PRINT },
         { "return", TK_RETURN },
-        { "function",    TK_FUNCTION },
+        { "function", TK_FUNCTION },
         { "String", TK_STRING_TYPE },
         { "Number", TK_NUMBER_TYPE },
         { "Boolean",TK_BOOLEAN_TYPE },

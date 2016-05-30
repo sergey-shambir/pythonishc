@@ -157,19 +157,15 @@ std::string CInterpreterContext::GetStringLiteral(unsigned stringId) const
 
 void CInterpreterContext::PrintResults(const std::vector<CValue> &values)
 {
-    try
+    m_output << "  ";
+    for (const auto &value : values)
     {
-        m_output << "  ";
-        for (const auto &value : values)
+        if (ValidateValue(value))
         {
             m_output << value.ToString();
         }
-        m_output << std::endl;
     }
-    catch (const std::exception &ex)
-    {
-        PrintError(ex.what());
-    }
+    m_output << std::endl;
 }
 
 void CInterpreterContext::PrintError(const std::string &message)
@@ -179,19 +175,16 @@ void CInterpreterContext::PrintError(const std::string &message)
 
 bool CInterpreterContext::ValidateValue(const CValue &value)
 {
-    if (value.IsError())
+    try
     {
-        try
-        {
-            std::rethrow_exception(value.AsError());
-        }
-        catch (std::exception const& ex)
-        {
-            PrintError(ex.what());
-        }
+        value.RethrowIfException();
+        return true;
+    }
+    catch (std::exception const& ex)
+    {
+        PrintError(ex.what());
         return false;
     }
-    return true;
 }
 
 void CInterpreterContext::SetReturnValue(boost::optional<CValue> const& valueOpt)

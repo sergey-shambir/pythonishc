@@ -9,8 +9,8 @@ class CCalcLexer
 public:
     CCalcLexer(std::string const& sources);
 
-    // returns next token or 0 on EOF
-    // tokens defined in CalcGrammar.h
+    // Возвращает следующий токен (лексему) либо 0, если входной файл кончился.
+    // Токены объявлены в CalcGrammar.h
     int Scan(SToken &data);
 
 private:

@@ -15,8 +15,8 @@ public:
 
     CLexer(unsigned lineNo, std::string const& line, CStringPool & pool, ErrorHandler const &handler);
 
-    // returns next token or 0 on EOF
-    // tokens defined in CalcGrammar.h
+    // Возвращает следующий токен (лексему) либо 0, если входной файл кончился.
+    // Токены объявлены в Grammar.h
     int Scan(SToken &data);
 
 private:

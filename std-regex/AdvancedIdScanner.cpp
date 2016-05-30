@@ -2,75 +2,75 @@
 #include "AdvancedIdScanner.h"
 
 CAdvancedIdScanner::CAdvancedIdScanner()
-	: m_pattern("[a-zA-Z_][a-zA-Z0-9_]*")
-	, m_commentBegin("/\\*")
-	, m_commentEnd("\\*/")
+    : m_pattern("[a-zA-Z_][a-zA-Z0-9_]*")
+    , m_commentBegin("/\\*")
+    , m_commentEnd("\\*/")
 {
 }
 
 void CAdvancedIdScanner::ScanLine(std::string const& text)
 {
-	// У функции regex_search есть вариант, принимающий 2 итератора вместо строки,
-	// то есть можно использовать итераторы для последовательного движения по строке.
-	auto from = text.cbegin();
-	auto to = text.cend();
-	if (m_isInComment)
-	{
-		AdvanceInComment(from, to);
-	}
-	else
-	{
-		AdvanceNormal(from, to);
-	}
+    // РЈ С„СѓРЅРєС†РёРё regex_search РµСЃС‚СЊ РІР°СЂРёР°РЅС‚, РїСЂРёРЅРёРјР°СЋС‰РёР№ 2 РёС‚РµСЂР°С‚РѕСЂР° РІРјРµСЃС‚Рѕ СЃС‚СЂРѕРєРё,
+    // С‚Рѕ РµСЃС‚СЊ РјРѕР¶РЅРѕ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РёС‚РµСЂР°С‚РѕСЂС‹ РґР»СЏ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕРіРѕ РґРІРёР¶РµРЅРёСЏ РїРѕ СЃС‚СЂРѕРєРµ.
+    auto from = text.cbegin();
+    auto to = text.cend();
+    if (m_isInComment)
+    {
+        AdvanceInComment(from, to);
+    }
+    else
+    {
+        AdvanceNormal(from, to);
+    }
 }
 
 std::vector<std::string> CAdvancedIdScanner::GetIds()const
 {
-	std::vector<std::string> result;
-	result.reserve(m_ids.size());
-	for (std::string const& id : m_ids)
-	{
-		result.emplace_back(id);
-	}
+    std::vector<std::string> result;
+    result.reserve(m_ids.size());
+    for (std::string const& id : m_ids)
+    {
+        result.emplace_back(id);
+    }
 
-	return result;
+    return result;
 }
 
 void CAdvancedIdScanner::AdvanceInComment(string_iterator from, string_iterator to)
 {
-	std::smatch match;
-	if (std::regex_search(from, to, match, m_commentEnd))
-	{
-		m_isInComment = false;
-		from += match.prefix().length() + match.length(0);
-		AdvanceNormal(from, to);
-	}
+    std::smatch match;
+    if (std::regex_search(from, to, match, m_commentEnd))
+    {
+        m_isInComment = false;
+        from += match.prefix().length() + match.length(0);
+        AdvanceNormal(from, to);
+    }
 }
 
 void CAdvancedIdScanner::AdvanceNormal(string_iterator from, string_iterator to)
 {
-	std::smatch match;
-	if (std::regex_search(from, to, match, m_commentBegin))
-	{
-		auto commentStart = from + match.prefix().length();
-		AdvanceNoComment(from, commentStart);
-		m_isInComment = true;
-		AdvanceInComment(commentStart + match.length(0), to);
-	}
-	else
-	{
-		AdvanceNoComment(from, to);
-	}
+    std::smatch match;
+    if (std::regex_search(from, to, match, m_commentBegin))
+    {
+        auto commentStart = from + match.prefix().length();
+        AdvanceNoComment(from, commentStart);
+        m_isInComment = true;
+        AdvanceInComment(commentStart + match.length(0), to);
+    }
+    else
+    {
+        AdvanceNoComment(from, to);
+    }
 }
 
 void CAdvancedIdScanner::AdvanceNoComment(string_iterator from, string_iterator to)
 {
-	std::smatch match;
-	while (std::regex_search(from, to, match, m_pattern))
-	{
-		// Store iterator in std::set.
-		m_ids.insert(match[0]);
-		// Move iterator to the next position after matched ID.
-		from += match.prefix().length() + match.length(0);
-	}
+    std::smatch match;
+    while (std::regex_search(from, to, match, m_pattern))
+    {
+        // РЎРѕС…СЂР°РЅСЏРµРј СЃРѕРїРѕСЃС‚Р°РІР»РµРЅРЅС‹Р№ ID РІ std::set.
+        m_ids.insert(match[0]);
+        // РџРµСЂРµРјРµС‰Р°РµРј РїРѕР·РёС†РёСЋ РЅР°С‡Р°Р»Р° РїРѕРёСЃРєР° Р·Р° РєРѕРЅРµС† РЅР°Р№РґРµРЅРЅРѕРіРѕ ID.
+        from += match.prefix().length() + match.length(0);
+    }
 }
