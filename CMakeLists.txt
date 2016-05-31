@@ -96,6 +96,10 @@ aux_source_directory(llvm-4-types SRC_LLVM_4)
 add_executable(llvm_4 ${SRC_LLVM_4})
 target_link_libraries(llvm_4 ${LLVM_LIBS} ${LLVM_SYSTEM_LIBS})
 
+aux_source_directory(llvm-5-better-types SRC_LLVM_5)
+add_executable(llvm_5 ${SRC_LLVM_5})
+target_link_libraries(llvm_5 ${LLVM_LIBS} ${LLVM_SYSTEM_LIBS})
+
 aux_source_directory(std-regex SRC_STL_REGEX)
 add_executable(std_regex ${SRC_STL_REGEX})
 
