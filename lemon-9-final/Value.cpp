@@ -203,22 +203,22 @@ CValue CValue::operator +(const CValue &other) const
     {
         if (rightType == typeid(double))
         {
-            return Value(AsDouble() + AsDouble());
+            return Value(AsDouble() + other.AsDouble());
         }
         if (rightType == typeid(std::string))
         {
-            return Value(::ToPrettyString(AsDouble()) + AsString());
+            return Value(::ToPrettyString(AsDouble()) + other.AsString());
         }
     }
     if (leftType == typeid(std::string))
     {
         if (rightType == typeid(double))
         {
-            return Value(AsString() + ::ToPrettyString(AsDouble()));
+            return Value(AsString() + ::ToPrettyString(other.AsDouble()));
         }
         if (rightType == typeid(std::string))
         {
-            return Value(AsString() + AsString());
+            return Value(AsString() + other.AsString());
         }
     }
     return GenerateError(*this, other, "+");
