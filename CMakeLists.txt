@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 find_program(
     LLVM_CONFIG_EXECUTABLE
-    llvm-config-3.8
+    llvm-config-3.9
   )
 if (LLVM_CONFIG_EXECUTABLE)
     message(STATUS "Found LLVM configuration tool: ${LLVM_CONFIG_EXECUTABLE}")
@@ -50,7 +50,6 @@ link_directories(${LLVM_LIBDIR})
 
 add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS)
 
-set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra")
 
 aux_source_directory(lemon-1-calculator SRC_LEMON_1)
@@ -95,10 +94,6 @@ target_link_libraries(llvm_3 ${LLVM_LIBS} ${LLVM_SYSTEM_LIBS})
 aux_source_directory(llvm-4-types SRC_LLVM_4)
 add_executable(llvm_4 ${SRC_LLVM_4})
 target_link_libraries(llvm_4 ${LLVM_LIBS} ${LLVM_SYSTEM_LIBS})
-
-aux_source_directory(llvm-5-better-types SRC_LLVM_5)
-add_executable(llvm_5 ${SRC_LLVM_5})
-target_link_libraries(llvm_5 ${LLVM_LIBS} ${LLVM_SYSTEM_LIBS})
 
 aux_source_directory(std-regex SRC_STL_REGEX)
 add_executable(std_regex ${SRC_STL_REGEX})

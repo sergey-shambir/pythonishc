@@ -73,7 +73,6 @@ PassRegistry *SetupPassRegistry()
     initializeCodeGen(*ret);
     initializeLoopStrengthReducePass(*ret);
     initializeLowerIntrinsicsPass(*ret);
-    initializeUnreachableBlockElimPass(*ret);
 
     return ret;
 }
@@ -98,7 +97,7 @@ std::unique_ptr<TargetMachine> MakeTargetMachine(const Target *target, const Tri
     options.MCOptions.AsmVerbose = isDebug;
 
     return std::unique_ptr<TargetMachine>(target->createTargetMachine(triple.getTriple(), cpuName, featuresStr,
-                                                                      options, Reloc::Default, CodeModel::Default, optLevel));
+                                                                      options, Reloc::Static, CodeModel::Default, optLevel));
 }
 
 }

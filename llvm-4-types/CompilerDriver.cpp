@@ -111,6 +111,7 @@ public:
         CCompilerBackend backend;
         try
         {
+            m_codegenContext.GetModule().dump();
             backend.GenerateObjectFile(m_codegenContext.GetModule(), isDebug, outputPath);
             return true;
         }

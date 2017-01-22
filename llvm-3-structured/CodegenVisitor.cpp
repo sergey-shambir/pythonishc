@@ -207,9 +207,9 @@ void CExpressionCodeGenerator::Visit(CCallAST &expr)
     std::vector<Value *> args;
     // swap arguments to visit and codegen
     std::swap(args, m_values);
-    for (const IExpressionASTUniquePtr & expr : expr.GetArguments())
+    for (const IExpressionASTUniquePtr & subexpr : expr.GetArguments())
     {
-        expr->Accept(*this);
+        subexpr->Accept(*this);
     }
     std::swap(args, m_values);
 
