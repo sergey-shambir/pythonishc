@@ -2,8 +2,10 @@
 #include "AST.h"
 #include "FrontendContext.h"
 #include "VariablesScope.h"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+
+
+
+#include "begin_llvm.h"
 #include <llvm/IR/Constants.h>
 #include <llvm/ADT/APSInt.h>
 #include <llvm/ADT/APFloat.h>
@@ -13,7 +15,7 @@
 #include <llvm/IR/Verifier.h>
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/Support/raw_ostream.h>
-#pragma clang diagnostic pop
+#include "end_llvm.h"
 
 using namespace llvm;
 

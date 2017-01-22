@@ -1,9 +1,8 @@
 #pragma once
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+#include "begin_llvm.h"
 #include <llvm/IR/Module.h>
-#pragma clang diagnostic pop
+#include "end_llvm.h"
 
 class CCompilerBackend
 {

@@ -3,7 +3,10 @@
 #include <unordered_map>
 #include <cstdint>
 #include <climits>
+
+#include "begin_llvm.h"
 #include <llvm/IR/Value.h>
+#include "end_llvm.h"
 
 class CVariablesScope
 {

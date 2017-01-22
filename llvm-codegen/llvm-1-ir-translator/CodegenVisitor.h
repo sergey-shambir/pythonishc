@@ -1,14 +1,14 @@
 #pragma once
 
 #include <stdint.h>
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#include <llvm/IR/Value.h>
-#include <llvm/IR/IRBuilder.h>
-#pragma clang diagnostic pop
 #include "ASTVisitor.h"
 #include "AST.h"
 #include <vector>
+
+#include "begin_llvm.h"
+#include <llvm/IR/Value.h>
+#include <llvm/IR/IRBuilder.h>
+#include "end_llvm.h"
 
 class CFrontendContext;
 

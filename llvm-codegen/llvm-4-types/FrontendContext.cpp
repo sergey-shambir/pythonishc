@@ -1,14 +1,14 @@
 #include "AST.h"
 #include "FrontendContext.h"
 #include "Utility.h"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#pragma clang diagnostic pop
 #include <iostream>
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/range/algorithm.hpp>
+
+#include "begin_llvm.h"
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include "end_llvm.h"
 
 
 CFrontendContext::CFrontendContext(std::ostream &errors, CStringPool &pool)

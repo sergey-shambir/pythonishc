@@ -5,9 +5,12 @@
 #include "Lexer.h"
 #include "Grammar.h"
 #include "CodegenVisitor.h"
+
+#include "begin_llvm.h"
 #include <llvm/IR/Function.h>
 #include <llvm/Support/raw_os_ostream.h>
 #include <llvm/IR/Module.h>
+#include "end_llvm.h"
 
 
 using std::bind;

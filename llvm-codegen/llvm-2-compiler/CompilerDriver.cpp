@@ -6,10 +6,13 @@
 #include "Grammar.h"
 #include "CodegenVisitor.h"
 #include "CompilerBackend.h"
+#include <sstream>
+
+#include "begin_llvm.h"
 #include <llvm/IR/Function.h>
 #include <llvm/Support/raw_os_ostream.h>
 #include <llvm/IR/Module.h>
-#include <sstream>
+#include "end_llvm.h"
 
 
 using std::bind;
