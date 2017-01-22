@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string>
 
-struct SToken;
+struct Token;
 class CInterpreterContext;
 
 /// Wraps LEMON generated parser with Object-Oriented API.
@@ -13,12 +13,12 @@ public:
     CBatchParser(CInterpreterContext & context);
     ~CBatchParser();
 
-    bool Advance(int tokenId, SToken const& tokenData);
+    bool Advance(int tokenId, Token const& tokenData);
 #ifndef NDEBUG
     void StartDebugTrace(FILE *output);
 #endif
 
-    void OnError(SToken const& token);
+    void OnError(Token const& token);
     void OnStackOverflow();
     void OnFatalError();
 

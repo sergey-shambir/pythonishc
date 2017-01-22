@@ -21,7 +21,7 @@ CBatchLexer::CBatchLexer(unsigned lineNo, std::string const& sources, CStringPoo
 {
 }
 
-int CBatchLexer::Scan(SToken &data)
+int CBatchLexer::Scan(Token &data)
 {
     SkipSpaces();
     data.line = m_lineNo;
@@ -132,7 +132,7 @@ void CBatchLexer::SkipSpaces()
     m_peep.remove_prefix(count);
 }
 
-int CBatchLexer::AcceptIdOrKeyword(SToken &data, std::string && id)
+int CBatchLexer::AcceptIdOrKeyword(Token &data, std::string && id)
 {
     auto it = m_keywords.find(id);
     if (it != m_keywords.end())

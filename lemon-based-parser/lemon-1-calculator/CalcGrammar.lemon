@@ -4,8 +4,8 @@
 // The type of the data attached to each token is Token.  This is also the
 // default type for non-terminals.
 //
-%token_type {SToken}
-%default_type {SToken}
+%token_type {Token}
+%default_type {Token}
 
 // The generated parser function takes a 4th argument as follows:
 %extra_argument {CCalcParser *pParse}
@@ -39,7 +39,7 @@
 // code file that implements the parser.
 //
 %include {
-// Generated function: void ParseCalcGrammar(void*, int, SToken, CCalcParser*);
+// Generated function: void ParseCalcGrammar(void*, int, Token, CCalcParser*);
 
 #include "Token.h"
 #include "CalcParser.h"

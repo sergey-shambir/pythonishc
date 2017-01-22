@@ -7,7 +7,7 @@
 
 // pre-declaration of generated functions.
 void *ParseCalcGrammarAlloc(void *(*mallocProc)(size_t));
-void ParseCalcGrammar(void*, int, SToken, CCalcParser*);
+void ParseCalcGrammar(void*, int, Token, CCalcParser*);
 void ParseCalcGrammarFree(
   void *p,                    /* The parser to be deleted */
   void (*freeProc)(void*)     /* Function used to reclaim memory */);
@@ -18,6 +18,8 @@ void ParseCalcGrammarTrace(FILE * TraceFILE, char * zTracePrompt);
 
 CCalcParser::CCalcParser()
 {
+    // Лямбда-функция allocate не захватывает переменных,
+    //  и может быть преобразована в указатель на функцию
     auto allocate = [](size_t size) -> void* {
         return new (std::nothrow) char[size];
     };
@@ -26,6 +28,8 @@ CCalcParser::CCalcParser()
 
 CCalcParser::~CCalcParser()
 {
+    // Лямбда-функция retain не захватывает переменных,
+    //  и может быть преобразована в указатель на функцию
     auto retain = [](void *pointer) -> void {
         auto array = reinterpret_cast<char *>(pointer);
         delete[] array;
@@ -33,7 +37,7 @@ CCalcParser::~CCalcParser()
     ParseCalcGrammarFree(m_parser, retain);
 }
 
-bool CCalcParser::Advance(int tokenId, const SToken &tokenData)
+bool CCalcParser::Advance(int tokenId, const Token &tokenData)
 {
     ParseCalcGrammar(m_parser, tokenId, tokenData, this);
     return !m_isErrorState;
@@ -47,7 +51,7 @@ void CCalcParser::StartDebugTrace(FILE *output)
 }
 #endif
 
-void CCalcParser::OnError(const SToken &token)
+void CCalcParser::OnError(const Token &token)
 {
     std::cerr << "Syntax error at position " << token.position << std::endl;
     m_isErrorState = true;

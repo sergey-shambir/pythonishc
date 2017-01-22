@@ -11,7 +11,7 @@ public:
 
     // Возвращает следующий токен (лексему) либо 0, если входной файл кончился.
     // Токены объявлены в CalcGrammar.h
-    int Scan(SToken &data);
+    int Scan(Token &data);
 
 private:
     // returns NaN if cannot parse double.

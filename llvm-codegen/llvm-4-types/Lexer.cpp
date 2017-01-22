@@ -26,7 +26,7 @@ CLexer::CLexer(unsigned lineNo, std::string const& line, CStringPool &pool, cons
 {
 }
 
-int CLexer::Scan(SToken &data)
+int CLexer::Scan(Token &data)
 {
     SkipSpaces();
     data.line = m_lineNo;
@@ -150,7 +150,7 @@ void CLexer::SkipSpaces()
     m_peep.remove_prefix(count);
 }
 
-bool CLexer::ParseString(SToken &data)
+bool CLexer::ParseString(Token &data)
 {
     if (m_peep[0] != '\"')
     {
@@ -174,7 +174,7 @@ bool CLexer::ParseString(SToken &data)
     return true;
 }
 
-int CLexer::AcceptIdOrKeyword(SToken &data, std::string && id)
+int CLexer::AcceptIdOrKeyword(Token &data, std::string && id)
 {
     if (id == "true")
     {
@@ -197,7 +197,7 @@ int CLexer::AcceptIdOrKeyword(SToken &data, std::string && id)
     return TK_ID;
 }
 
-void CLexer::OnError(const char message[], SToken &data)
+void CLexer::OnError(const char message[], Token &data)
 {
     if (m_onError)
     {

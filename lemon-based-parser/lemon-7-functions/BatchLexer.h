@@ -14,14 +14,14 @@ public:
 
     // Возвращает следующий токен (лексему) либо 0, если входной файл кончился.
     // Токены объявлены в BatchGrammar.h
-    int Scan(SToken &data);
+    int Scan(Token &data);
 
 private:
     // returns NaN if cannot parse double.
     double ParseDouble();
     std::string ParseIdentifier();
     void SkipSpaces();
-    int AcceptIdOrKeyword(SToken &data, std::string && id);
+    int AcceptIdOrKeyword(Token &data, std::string && id);
 
     const unsigned m_lineNo;
     const std::string m_sources;

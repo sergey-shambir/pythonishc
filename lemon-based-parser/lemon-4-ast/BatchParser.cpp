@@ -8,7 +8,7 @@
 
 // pre-declaration of generated functions.
 void *ParseBatchGrammarAlloc(void *(*mallocProc)(size_t));
-void ParseBatchGrammar(void*, int, SToken, CBatchParser*);
+void ParseBatchGrammar(void*, int, Token, CBatchParser*);
 void ParseBatchGrammarFree(
   void *p,                    /* The parser to be deleted */
   void (*freeProc)(void*)     /* Function used to reclaim memory */);
@@ -35,7 +35,7 @@ CBatchParser::~CBatchParser()
     ParseBatchGrammarFree(m_parser, retain);
 }
 
-bool CBatchParser::Advance(int tokenId, const SToken &tokenData)
+bool CBatchParser::Advance(int tokenId, const Token &tokenData)
 {
     ParseBatchGrammar(m_parser, tokenId, tokenData, this);
     return !m_isFatalError;
@@ -49,7 +49,7 @@ void CBatchParser::StartDebugTrace(FILE *output)
 }
 #endif
 
-void CBatchParser::OnError(const SToken &token)
+void CBatchParser::OnError(const Token &token)
 {
     std::cerr << "Syntax error at (" << token.line << "," << token.column << ")." << std::endl;
 }

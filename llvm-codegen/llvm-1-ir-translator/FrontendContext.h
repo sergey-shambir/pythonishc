@@ -5,11 +5,10 @@
 #include <stack>
 #include <boost/optional.hpp>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+#include "begin_llvm.h"
 #include <llvm/IR/Value.h>
 #include <llvm/IR/Function.h>
-#pragma clang diagnostic pop
+#include "end_llvm.h"
 
 class CStringPool;
 class CVariablesScope;

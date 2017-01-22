@@ -1,4 +1,4 @@
-project(compiler-theory-samples)
+project(llvm-codegen)
 cmake_minimum_required(VERSION 2.8)
 
 # Exports LLVM_INCLUDEDIR, LLVM_LIBDIR, LLVM_LIBS, LLVM_SYSTEM_LIBS
@@ -6,7 +6,9 @@ include(cmake/CustomFindLLVM.cmake)
 
 # Add header & libs search directories
 include_directories(${LLVM_INCLUDEDIR})
+include_directories(${PROJECT_SOURCE_DIR}/includes)
 link_directories(${LLVM_LIBDIR})
+message(${PROJECT_SOURCE_DIR}/includes)
 
 # LLVM requires following macros defined.
 add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS)

@@ -11,7 +11,7 @@ bool ConsumeLine(unsigned lineNo, std::string const& expr,
                  CStringPool & stringPool, CBatchParser & parser)
 {
     CBatchLexer lexer(lineNo, expr, stringPool);
-    SToken token;
+    Token token;
     for (int tokenId = lexer.Scan(token); tokenId != 0; tokenId = lexer.Scan(token))
     {
         if (!parser.Advance(tokenId, token))

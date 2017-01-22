@@ -11,7 +11,7 @@ CBatchLexer::CBatchLexer(unsigned lineNo, std::string const& sources, CStringPoo
 {
 }
 
-int CBatchLexer::Scan(SToken &data)
+int CBatchLexer::Scan(Token &data)
 {
     SkipSpaces();
     data.line = m_lineNo;

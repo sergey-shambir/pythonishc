@@ -1,6 +1,6 @@
 #pragma once
 
-struct SToken
+struct Token
 {
     unsigned line;
     unsigned column;

@@ -9,7 +9,7 @@ CCalcLexer::CCalcLexer(std::string const& sources)
 {
 }
 
-int CCalcLexer::Scan(SToken &data)
+int CCalcLexer::Scan(Token &data)
 {
     SkipSpaces();
     data.value = 0;

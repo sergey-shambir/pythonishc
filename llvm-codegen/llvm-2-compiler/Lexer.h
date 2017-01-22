@@ -17,15 +17,15 @@ public:
 
     // Возвращает следующий токен (лексему) либо 0, если входной файл кончился.
     // Токены объявлены в Grammar.h
-    int Scan(SToken &data);
+    int Scan(Token &data);
 
 private:
     double ParseDouble();
     std::string ParseIdentifier();
     void SkipSpaces();
-    bool ParseString(SToken &data);
-    int AcceptIdOrKeyword(SToken &data, std::string && id);
-    void OnError(const char message[], SToken &data);
+    bool ParseString(Token &data);
+    int AcceptIdOrKeyword(Token &data, std::string && id);
+    void OnError(const char message[], Token &data);
 
     const unsigned m_lineNo;
     const std::string m_sources;

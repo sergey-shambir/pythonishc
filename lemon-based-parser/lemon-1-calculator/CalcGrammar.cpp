@@ -5,7 +5,7 @@
 ** in the input grammar file. */
 #include <stdio.h>
 
-// Generated function: void ParseCalcGrammar(void*, int, SToken, CCalcParser*);
+// Generated function: void ParseCalcGrammar(void*, int, Token, CCalcParser*);
 
 #include "Token.h"
 #include "CalcParser.h"
@@ -74,7 +74,7 @@ struct SRecord
 #define YYCODETYPE unsigned char
 #define YYNOCODE 13
 #define YYACTIONTYPE unsigned char
-#define ParseCalcGrammarTOKENTYPE SToken
+#define ParseCalcGrammarTOKENTYPE Token
 typedef union {
   int yyinit;
   ParseCalcGrammarTOKENTYPE yy0;

@@ -7,7 +7,7 @@
 #include <stack>
 #include "AST.h"
 
-struct SToken;
+struct Token;
 class CFrontendContext;
 
 /// Wraps LEMON generated parser with Object-Oriented API.
@@ -17,13 +17,13 @@ public:
     CParser(CFrontendContext & context);
     ~CParser();
 
-    bool Advance(int tokenId, SToken const& tokenData);
+    bool Advance(int tokenId, Token const& tokenData);
 #ifndef NDEBUG
     void StartDebugTrace(FILE *output);
 #endif
     std::unique_ptr<CProgramAst> TakeProgram();
 
-    void OnError(SToken const& token);
+    void OnError(Token const& token);
     void OnStackOverflow();
     void OnFatalError();
 

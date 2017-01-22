@@ -130,7 +130,7 @@ private:
         ++m_lineNo;
         auto errorHandler = bind(&CFrontendContext::PrintError, std::ref(m_context), _1);
         CLexer lexer(m_lineNo, line, m_stringPool, errorHandler);
-        SToken token;
+        Token token;
         for (int tokenId = lexer.Scan(token); tokenId != 0; tokenId = lexer.Scan(token))
         {
             if (!m_parser.Advance(tokenId, token))

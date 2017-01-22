@@ -5,7 +5,7 @@
 ** in the input grammar file. */
 #include <stdio.h>
 
-// Generated function: void ParseGrammar(void*, int, SToken, CParser*);
+// Generated function: void ParseGrammar(void*, int, Token, CParser*);
 
 #include "Parser_private.h"
 
@@ -66,7 +66,7 @@ using namespace parser_private;
 #define YYCODETYPE unsigned char
 #define YYNOCODE 44
 #define YYACTIONTYPE unsigned char
-#define ParseGrammarTOKENTYPE SToken
+#define ParseGrammarTOKENTYPE Token
 typedef union {
   int yyinit;
   ParseGrammarTOKENTYPE yy0;

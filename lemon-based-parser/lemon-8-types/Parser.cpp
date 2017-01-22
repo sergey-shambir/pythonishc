@@ -9,7 +9,7 @@
 
 // pre-declaration of generated functions.
 void *ParseGrammarAlloc(void *(*mallocProc)(size_t));
-void ParseGrammar(void*, int, SToken, CParser*);
+void ParseGrammar(void*, int, Token, CParser*);
 void ParseGrammarFree(
   void *p,                    /* The parser to be deleted */
   void (*freeProc)(void*)     /* Function used to reclaim memory */);
@@ -37,7 +37,7 @@ CParser::~CParser()
     ParseGrammarFree(m_parser, retain);
 }
 
-bool CParser::Advance(int tokenId, const SToken &tokenData)
+bool CParser::Advance(int tokenId, const Token &tokenData)
 {
     ParseGrammar(m_parser, tokenId, tokenData, this);
     return !m_isFatalError;
@@ -51,7 +51,7 @@ void CParser::StartDebugTrace(FILE *output)
 }
 #endif
 
-void CParser::OnError(const SToken &token)
+void CParser::OnError(const Token &token)
 {
     std::stringstream message;
     message << "Syntax error at (" << token.line << "," << token.column << ")";

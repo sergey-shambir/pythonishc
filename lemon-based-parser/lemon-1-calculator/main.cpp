@@ -11,7 +11,7 @@ bool ParseExpr(std::string const& expr)
     /// Строка ниже включает отладочный вывод LALR-парсера.
     // parser.StartDebugTrace(stderr);
 
-    SToken token;
+    Token token;
     int tokenId = 0;
     do
     {

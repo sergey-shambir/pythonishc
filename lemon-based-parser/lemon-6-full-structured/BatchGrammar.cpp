@@ -5,7 +5,7 @@
 ** in the input grammar file. */
 #include <stdio.h>
 
-// Generated function: void ParseBatchGrammar(void*, int, SToken, CBatchParser*);
+// Generated function: void ParseBatchGrammar(void*, int, Token, CBatchParser*);
 
 #include "BatchParser_private.h"
 
@@ -66,7 +66,7 @@ using namespace parser_private;
 #define YYCODETYPE unsigned char
 #define YYNOCODE 36
 #define YYACTIONTYPE unsigned char
-#define ParseBatchGrammarTOKENTYPE SToken
+#define ParseBatchGrammarTOKENTYPE Token
 typedef union {
   int yyinit;
   ParseBatchGrammarTOKENTYPE yy0;

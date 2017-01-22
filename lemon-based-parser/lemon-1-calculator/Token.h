@@ -1,6 +1,6 @@
 #pragma once
 
-struct SToken
+struct Token
 {
     // position in source code.
     unsigned position;
