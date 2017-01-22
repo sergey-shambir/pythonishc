@@ -48,8 +48,6 @@
 
 // Disable all error recovery processing in the parser push-down automaton.
 #define YYNOERRORRECOVERY 1
-// Indicate that ParseBatchGrammarFree() will never be called with a nullptr.
-#define YYPARSEFREENEVERNULL 1
 
 struct SRecord
 {

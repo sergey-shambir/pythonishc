@@ -1,0 +1,21 @@
+project(lemon-based-parser)
+cmake_minimum_required(VERSION 3.0)
+
+if(UNIX)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra")
+endif(UNIX)
+
+macro(add_sample NAME)
+    file(GLOB SRC_${NAME} "${NAME}/*.cpp" "${NAME}/*.h" "${NAME}/*.lemon")
+    add_executable(${NAME} ${SRC_${NAME}})
+endmacro(add_sample)
+
+add_sample(lemon-1-calculator)
+add_sample(lemon-2-interpreter)
+add_sample(lemon-3-error-recovery)
+add_sample(lemon-4-ast)
+add_sample(lemon-5-minimal-structured)
+add_sample(lemon-6-full-structured)
+add_sample(lemon-7-functions)
+add_sample(lemon-8-types)
+add_sample(lemon-9-final)

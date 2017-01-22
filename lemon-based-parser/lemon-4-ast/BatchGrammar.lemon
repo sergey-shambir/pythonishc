@@ -52,9 +52,6 @@
 #include <assert.h>
 #include <math.h>
 
-// Indicate that ParseBatchGrammarFree() will never be called with a nullptr.
-#define YYPARSEFREENEVERNULL 1
-
 struct SRecord
 {
     IExpressionAST *expr;

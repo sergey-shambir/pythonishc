@@ -55,9 +55,6 @@
 
 using namespace parser_private;
 
-// Indicate that ParseGrammarFree() will never be called with a nullptr.
-#define YYPARSEFREENEVERNULL 1
-
 } // end %include
 
 /////////////////////////
