@@ -81,6 +81,9 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 
+# QtCreator files
+CMakeLists.txt.user
+
 # Build subdirectories
 build-*/
 
