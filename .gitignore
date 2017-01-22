@@ -70,3 +70,17 @@ Thumbs.db
 *.dll
 *.exe
 
+# Cmake Files
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+
+# Build subdirectories
+build-*/
+
