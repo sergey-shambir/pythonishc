@@ -2,8 +2,8 @@
 
 struct Token
 {
-    // position in source code.
+    // Позиция в исходном коде.
     unsigned position;
-    // token value (always 0 for most tokens).
+    // Числовое значение литерала (0 для остальных токенов).
     double value;
 };
