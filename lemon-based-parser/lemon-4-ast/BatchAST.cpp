@@ -5,37 +5,37 @@
 #include <cassert>
 
 
-CPrintAST::CPrintAST(IExpressionAST *value)
+CPrintAst::CPrintAst(IExpressionAst *value)
     : m_value(value)
 {
 }
 
-void CPrintAST::Execute(CInterpreterContext &context)const
+void CPrintAst::Execute(CInterpreterContext &context)const
 {
     const double result = m_value->Evaluate(context);
     context.PrintResult(result);
 }
 
-CAssignAST::CAssignAST(unsigned nameId, IExpressionAST *value)
+CAssignAst::CAssignAst(unsigned nameId, IExpressionAst *value)
     : m_nameId(nameId)
     , m_value(value)
 {
 }
 
-void CAssignAST::Execute(CInterpreterContext &context)const
+void CAssignAst::Execute(CInterpreterContext &context)const
 {
     const double value = m_value->Evaluate(context);
     context.AssignVariable(m_nameId, value);
 }
 
-CBinaryExpressionAST::CBinaryExpressionAST(IExpressionAST *left, BinaryOperation op, IExpressionAST *right)
+CBinaryExpressionAst::CBinaryExpressionAst(IExpressionAst *left, BinaryOperation op, IExpressionAst *right)
     : m_left(left)
     , m_operation(op)
     , m_right(right)
 {
 }
 
-double CBinaryExpressionAST::Evaluate(CInterpreterContext &context) const
+double CBinaryExpressionAst::Evaluate(CInterpreterContext &context) const
 {
     const double a = m_left->Evaluate(context);
     const double b = m_right->Evaluate(context);
@@ -56,13 +56,13 @@ double CBinaryExpressionAST::Evaluate(CInterpreterContext &context) const
     return std::numeric_limits<double>::quiet_NaN();
 }
 
-CUnaryExpressionAST::CUnaryExpressionAST(UnaryOperation op, IExpressionAST *value)
+CUnaryExpressionAst::CUnaryExpressionAst(UnaryOperation op, IExpressionAst *value)
     : m_operation(op)
     , m_value(value)
 {
 }
 
-double CUnaryExpressionAST::Evaluate(CInterpreterContext &context) const
+double CUnaryExpressionAst::Evaluate(CInterpreterContext &context) const
 {
     const double value = m_value->Evaluate(context);
     switch (m_operation)
@@ -76,23 +76,23 @@ double CUnaryExpressionAST::Evaluate(CInterpreterContext &context) const
     return std::numeric_limits<double>::quiet_NaN();
 }
 
-CLiteralAST::CLiteralAST(double value)
+CLiteralAst::CLiteralAst(double value)
     : m_value(value)
 {
 }
 
-double CLiteralAST::Evaluate(CInterpreterContext &context) const
+double CLiteralAst::Evaluate(CInterpreterContext &context) const
 {
     (void)context;
     return m_value;
 }
 
-CVariableRefAST::CVariableRefAST(unsigned nameId)
+CVariableRefAst::CVariableRefAst(unsigned nameId)
     : m_nameId(nameId)
 {
 }
 
-double CVariableRefAST::Evaluate(CInterpreterContext &context) const
+double CVariableRefAst::Evaluate(CInterpreterContext &context) const
 {
     return context.GetVariableValue(m_nameId);
 }

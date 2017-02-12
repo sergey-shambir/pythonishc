@@ -81,9 +81,9 @@ void ConcatList(TTarget *& target, TTarget *& source, TItem *& item)
 
 using ExpressionListPtr = ExpressionList*;
 using StatementListPtr = StatementsList*;
-using StatementPtr = IStatementAST*;
-using ExpressionPtr = IExpressionAST*;
-using FunctionPtr = IFunctionAST*;
+using StatementPtr = IStatementAst*;
+using ExpressionPtr = IExpressionAst*;
+using FunctionPtr = IFunctionAst*;
 using NamesList = std::vector<unsigned>;
 using NamesListPtr = NamesList*;
 

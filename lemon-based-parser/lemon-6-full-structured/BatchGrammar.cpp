@@ -835,14 +835,14 @@ static void yy_reduce(
         break;
       case 5: /* statement ::= ID ASSIGN expression */
 {
-    auto stmt = Make<CAssignAST>(yymsp[-2].minor.yy0.stringId, Take(yymsp[0].minor.yy35));
+    auto stmt = Make<CAssignAst>(yymsp[-2].minor.yy0.stringId, Take(yymsp[0].minor.yy35));
     pParse->AddStatement(std::move(stmt));
   yy_destructor(yypParser,8,&yymsp[-1].minor);
 }
         break;
       case 6: /* statement ::= PRINT expression */
 {
-    auto stmt = Make<CPrintAST>(Take(yymsp[0].minor.yy35));
+    auto stmt = Make<CPrintAst>(Take(yymsp[0].minor.yy35));
     pParse->AddStatement(std::move(stmt));
   yy_destructor(yypParser,9,&yymsp[-1].minor);
 }
@@ -851,7 +851,7 @@ static void yy_reduce(
       case 13: /* statement ::= while_condition_line statement_lines_list END */ yytestcase(yyruleno==13);
 {
     pParse->ExitBlock();
-    pParse->AddStatement(IStatementASTUniquePtr(Take(yymsp[-2].minor.yy46)));
+    pParse->AddStatement(IStatementAstUniquePtr(Take(yymsp[-2].minor.yy46)));
   yy_destructor(yypParser,10,&yymsp[0].minor);
 }
         break;
@@ -859,7 +859,7 @@ static void yy_reduce(
       case 14: /* statement ::= while_condition_line END */ yytestcase(yyruleno==14);
 {
     pParse->ExitBlock();
-    pParse->AddStatement(IStatementASTUniquePtr(Take(yymsp[-1].minor.yy46)));
+    pParse->AddStatement(IStatementAstUniquePtr(Take(yymsp[-1].minor.yy46)));
   yy_destructor(yypParser,10,&yymsp[0].minor);
 }
         break;
@@ -867,7 +867,7 @@ static void yy_reduce(
 {
     static_cast<CIfAst*>(yymsp[-2].minor.yy46)->SetElseStatement(Take(yymsp[0].minor.yy46));
     pParse->ExitBlock();
-    pParse->AddStatement(IStatementASTUniquePtr(Take(yymsp[-2].minor.yy46)));
+    pParse->AddStatement(IStatementAstUniquePtr(Take(yymsp[-2].minor.yy46)));
 }
         break;
       case 10: /* else_block ::= else_head_line statement_lines_list END */
@@ -898,7 +898,7 @@ static void yy_reduce(
 {
     static_cast<CRepeatAst*>(yymsp[-3].minor.yy46)->SetCondition(Take(yymsp[-1].minor.yy35));
     pParse->ExitBlock();
-    pParse->AddStatement(IStatementASTUniquePtr(Take(yymsp[-3].minor.yy46)));
+    pParse->AddStatement(IStatementAstUniquePtr(Take(yymsp[-3].minor.yy46)));
   yy_destructor(yypParser,10,&yymsp[0].minor);
 }
         break;
@@ -906,7 +906,7 @@ static void yy_reduce(
 {
     static_cast<CRepeatAst*>(yymsp[-2].minor.yy46)->SetCondition(Take(yymsp[-1].minor.yy35));
     pParse->ExitBlock();
-    pParse->AddStatement(IStatementASTUniquePtr(Take(yymsp[-2].minor.yy46)));
+    pParse->AddStatement(IStatementAstUniquePtr(Take(yymsp[-2].minor.yy46)));
   yy_destructor(yypParser,10,&yymsp[0].minor);
 }
         break;
@@ -949,54 +949,54 @@ static void yy_reduce(
         break;
       case 25: /* expression ::= expression PLUS expression */
 {
-    yygotominor.yy35 = New<CBinaryExpressionAST>(Take(yymsp[-2].minor.yy35), BinaryOperation::Add, Take(yymsp[0].minor.yy35));
+    yygotominor.yy35 = New<CBinaryExpressionAst>(Take(yymsp[-2].minor.yy35), BinaryOperation::Add, Take(yymsp[0].minor.yy35));
   yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
         break;
       case 26: /* expression ::= expression MINUS expression */
 {
-    yygotominor.yy35 = New<CBinaryExpressionAST>(Take(yymsp[-2].minor.yy35), BinaryOperation::Substract, Take(yymsp[0].minor.yy35));
+    yygotominor.yy35 = New<CBinaryExpressionAst>(Take(yymsp[-2].minor.yy35), BinaryOperation::Substract, Take(yymsp[0].minor.yy35));
   yy_destructor(yypParser,2,&yymsp[-1].minor);
 }
         break;
       case 27: /* expression ::= expression STAR expression */
 {
-    yygotominor.yy35 = New<CBinaryExpressionAST>(Take(yymsp[-2].minor.yy35), BinaryOperation::Multiply, Take(yymsp[0].minor.yy35));
+    yygotominor.yy35 = New<CBinaryExpressionAst>(Take(yymsp[-2].minor.yy35), BinaryOperation::Multiply, Take(yymsp[0].minor.yy35));
   yy_destructor(yypParser,3,&yymsp[-1].minor);
 }
         break;
       case 28: /* expression ::= expression SLASH expression */
 {
-    yygotominor.yy35 = New<CBinaryExpressionAST>(Take(yymsp[-2].minor.yy35), BinaryOperation::Divide, Take(yymsp[0].minor.yy35));
+    yygotominor.yy35 = New<CBinaryExpressionAst>(Take(yymsp[-2].minor.yy35), BinaryOperation::Divide, Take(yymsp[0].minor.yy35));
   yy_destructor(yypParser,4,&yymsp[-1].minor);
 }
         break;
       case 29: /* expression ::= expression PERCENT expression */
 {
-    yygotominor.yy35 = New<CBinaryExpressionAST>(Take(yymsp[-2].minor.yy35), BinaryOperation::Modulo, Take(yymsp[0].minor.yy35));
+    yygotominor.yy35 = New<CBinaryExpressionAst>(Take(yymsp[-2].minor.yy35), BinaryOperation::Modulo, Take(yymsp[0].minor.yy35));
   yy_destructor(yypParser,5,&yymsp[-1].minor);
 }
         break;
       case 30: /* expression ::= PLUS expression */
 {
-    yygotominor.yy35 = New<CUnaryExpressionAST>(UnaryOperation::Plus, Take(yymsp[0].minor.yy35));
+    yygotominor.yy35 = New<CUnaryExpressionAst>(UnaryOperation::Plus, Take(yymsp[0].minor.yy35));
   yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
         break;
       case 31: /* expression ::= MINUS expression */
 {
-    yygotominor.yy35 = New<CUnaryExpressionAST>(UnaryOperation::Minus, Take(yymsp[0].minor.yy35));
+    yygotominor.yy35 = New<CUnaryExpressionAst>(UnaryOperation::Minus, Take(yymsp[0].minor.yy35));
   yy_destructor(yypParser,2,&yymsp[-1].minor);
 }
         break;
       case 32: /* expression ::= NUMBER */
 {
-    yygotominor.yy35 = New<CLiteralAST>(yymsp[0].minor.yy0.value);
+    yygotominor.yy35 = New<CLiteralAst>(yymsp[0].minor.yy0.value);
 }
         break;
       case 33: /* expression ::= ID */
 {
-    yygotominor.yy35 = New<CVariableRefAST>(yymsp[0].minor.yy0.stringId);
+    yygotominor.yy35 = New<CVariableRefAst>(yymsp[0].minor.yy0.stringId);
 }
         break;
       default:

@@ -25,7 +25,7 @@ public:
     void OnError(Token const& token);
     void OnStackOverflow();
     void OnFatalError();
-    void AddStatement(IStatementASTUniquePtr &&stmt);
+    void AddStatement(IStatementAstUniquePtr &&stmt);
     void EnterBlock(CAbstractBlockAST *block);
     void ExitBlock();
 

@@ -54,7 +54,7 @@
 
 struct SRecord
 {
-    IExpressionAST *expr;
+    IExpressionAst *expr;
 };
 
 } // end %include
@@ -82,13 +82,13 @@ statement_line ::= error NEWLINE.
 
 statement ::= ID(A) ASSIGN expression(B).
 {
-    auto stmt = pParse->MakeAST<CAssignAST>(A.stringId, B.expr);
+    auto stmt = pParse->MakeAST<CAssignAst>(A.stringId, B.expr);
     pParse->AddStatement(stmt);
 }
 
 statement ::= PRINT expression(A).
 {
-    auto stmt = pParse->MakeAST<CPrintAST>(A.expr);
+    auto stmt = pParse->MakeAST<CPrintAst>(A.expr);
     pParse->AddStatement(stmt);
 }
 
@@ -99,45 +99,45 @@ expression(X) ::= LPAREN expression(A) RPAREN.
 
 expression(X) ::= expression(A) PLUS expression(B).
 {
-    X.expr = pParse->MakeAST<CBinaryExpressionAST>(A.expr, BinaryOperation::Add, B.expr);
+    X.expr = pParse->MakeAST<CBinaryExpressionAst>(A.expr, BinaryOperation::Add, B.expr);
 }
 
 expression(X) ::= expression(A) MINUS expression(B).
 {
-    X.expr = pParse->MakeAST<CBinaryExpressionAST>(A.expr, BinaryOperation::Substract, B.expr);
+    X.expr = pParse->MakeAST<CBinaryExpressionAst>(A.expr, BinaryOperation::Substract, B.expr);
 }
 
 expression(X) ::= expression(A) STAR expression(B).
 {
-    X.expr = pParse->MakeAST<CBinaryExpressionAST>(A.expr, BinaryOperation::Multiply, B.expr);
+    X.expr = pParse->MakeAST<CBinaryExpressionAst>(A.expr, BinaryOperation::Multiply, B.expr);
 }
 
 expression(X) ::= expression(A) SLASH expression(B).
 {
-    X.expr = pParse->MakeAST<CBinaryExpressionAST>(A.expr, BinaryOperation::Divide, B.expr);
+    X.expr = pParse->MakeAST<CBinaryExpressionAst>(A.expr, BinaryOperation::Divide, B.expr);
 }
 
 expression(X) ::= expression(A) PERCENT expression(B).
 {
-    X.expr = pParse->MakeAST<CBinaryExpressionAST>(A.expr, BinaryOperation::Modulo, B.expr);
+    X.expr = pParse->MakeAST<CBinaryExpressionAst>(A.expr, BinaryOperation::Modulo, B.expr);
 }
 
 expression(X) ::= PLUS expression(A).
 {
-    X.expr = pParse->MakeAST<CUnaryExpressionAST>(UnaryOperation::Plus, A.expr);
+    X.expr = pParse->MakeAST<CUnaryExpressionAst>(UnaryOperation::Plus, A.expr);
 }
 
 expression(X) ::= MINUS expression(A).
 {
-    X.expr = pParse->MakeAST<CUnaryExpressionAST>(UnaryOperation::Minus, A.expr);
+    X.expr = pParse->MakeAST<CUnaryExpressionAst>(UnaryOperation::Minus, A.expr);
 }
 
 expression(X) ::= NUMBER(A).
 {
-    X.expr = pParse->MakeAST<CLiteralAST>(A.value);
+    X.expr = pParse->MakeAST<CLiteralAst>(A.value);
 }
 
 expression(X) ::= ID(A).
 {
-    X.expr = pParse->MakeAST<CVariableRefAST>(A.stringId);
+    X.expr = pParse->MakeAST<CVariableRefAst>(A.stringId);
 }

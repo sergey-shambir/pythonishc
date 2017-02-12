@@ -67,7 +67,7 @@ void CBatchParser::OnFatalError()
     m_isFatalError = true;
 }
 
-void CBatchParser::AddStatement(IStatementASTUniquePtr && stmt)
+void CBatchParser::AddStatement(IStatementAstUniquePtr && stmt)
 {
     if (stmt)
     {

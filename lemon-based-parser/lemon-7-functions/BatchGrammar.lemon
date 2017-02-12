@@ -113,14 +113,14 @@ toplevel_statement ::= function_declaration(A).
 function_declaration(X) ::= FUNCTION ID(A) LPAREN RPAREN NEWLINE statement_list(B) END.
 {
     auto pBody = Take(B);
-    EmplaceAST<CFunctionAST>(X, A.stringId, std::vector<unsigned>(), std::move(*pBody));
+    EmplaceAST<CFunctionAst>(X, A.stringId, std::vector<unsigned>(), std::move(*pBody));
 }
 
 function_declaration(X) ::= FUNCTION ID(A) LPAREN parameter_list(B) RPAREN NEWLINE statement_list(C) END.
 {
     auto pParameters = Take(B);
     auto pBody = Take(C);
-    EmplaceAST<CFunctionAST>(X, A.stringId, std::move(*pParameters), std::move(*pBody));
+    EmplaceAST<CFunctionAst>(X, A.stringId, std::move(*pParameters), std::move(*pBody));
 }
 
 parameter_list(X) ::= ID(A).
@@ -159,17 +159,17 @@ statement_line(X) ::= error NEWLINE.
 
 statement(X) ::= ID(A) ASSIGN expression(B).
 {
-    EmplaceAST<CAssignAST>(X, A.stringId, Take(B));
+    EmplaceAST<CAssignAst>(X, A.stringId, Take(B));
 }
 
 statement(X) ::= PRINT expression(A).
 {
-    EmplaceAST<CPrintAST>(X, Take(A));
+    EmplaceAST<CPrintAst>(X, Take(A));
 }
 
 statement(X) ::= RETURN expression(A).
 {
-    EmplaceAST<CReturnAST>(X, Take(A));
+    EmplaceAST<CReturnAst>(X, Take(A));
 }
 
 statement(X) ::= IF expression(A) NEWLINE END.
@@ -224,13 +224,13 @@ expression_list(X) ::= expression_list(A) COMMA expression(B).
 
 expression(X) ::= ID(A) LPAREN RPAREN.
 {
-    EmplaceAST<CCallAST>(X, A.stringId, ExpressionList());
+    EmplaceAST<CCallAst>(X, A.stringId, ExpressionList());
 }
 
 expression(X) ::= ID(A) LPAREN expression_list(B) RPAREN.
 {
     auto pList = Take(B);
-    EmplaceAST<CCallAST>(X, A.stringId, std::move(*pList));
+    EmplaceAST<CCallAst>(X, A.stringId, std::move(*pList));
 }
 
 expression(X) ::= LPAREN expression(A) RPAREN.
@@ -240,45 +240,45 @@ expression(X) ::= LPAREN expression(A) RPAREN.
 
 expression(X) ::= expression(A) PLUS expression(B).
 {
-    EmplaceAST<CBinaryExpressionAST>(X, Take(A), BinaryOperation::Add, Take(B));
+    EmplaceAST<CBinaryExpressionAst>(X, Take(A), BinaryOperation::Add, Take(B));
 }
 
 expression(X) ::= expression(A) MINUS expression(B).
 {
-    EmplaceAST<CBinaryExpressionAST>(X, Take(A), BinaryOperation::Substract, Take(B));
+    EmplaceAST<CBinaryExpressionAst>(X, Take(A), BinaryOperation::Substract, Take(B));
 }
 
 expression(X) ::= expression(A) STAR expression(B).
 {
-    EmplaceAST<CBinaryExpressionAST>(X, Take(A), BinaryOperation::Multiply, Take(B));
+    EmplaceAST<CBinaryExpressionAst>(X, Take(A), BinaryOperation::Multiply, Take(B));
 }
 
 expression(X) ::= expression(A) SLASH expression(B).
 {
-    EmplaceAST<CBinaryExpressionAST>(X, Take(A), BinaryOperation::Divide, Take(B));
+    EmplaceAST<CBinaryExpressionAst>(X, Take(A), BinaryOperation::Divide, Take(B));
 }
 
 expression(X) ::= expression(A) PERCENT expression(B).
 {
-    EmplaceAST<CBinaryExpressionAST>(X, Take(A), BinaryOperation::Modulo, Take(B));
+    EmplaceAST<CBinaryExpressionAst>(X, Take(A), BinaryOperation::Modulo, Take(B));
 }
 
 expression(X) ::= PLUS expression(A).
 {
-    EmplaceAST<CUnaryExpressionAST>(X, UnaryOperation::Plus, Take(A));
+    EmplaceAST<CUnaryExpressionAst>(X, UnaryOperation::Plus, Take(A));
 }
 
 expression(X) ::= MINUS expression(A).
 {
-    EmplaceAST<CUnaryExpressionAST>(X, UnaryOperation::Minus, Take(A));
+    EmplaceAST<CUnaryExpressionAst>(X, UnaryOperation::Minus, Take(A));
 }
 
 expression(X) ::= NUMBER(A).
 {
-    EmplaceAST<CLiteralAST>(X, A.value);
+    EmplaceAST<CLiteralAst>(X, A.value);
 }
 
 expression(X) ::= ID(A).
 {
-    EmplaceAST<CVariableRefAST>(X, A.stringId);
+    EmplaceAST<CVariableRefAst>(X, A.stringId);
 }

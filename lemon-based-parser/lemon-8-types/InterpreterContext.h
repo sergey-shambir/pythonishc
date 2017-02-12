@@ -7,7 +7,7 @@
 
 class CStringPool;
 class CVariablesScope;
-class IFunctionAST;
+class IFunctionAst;
 
 class CInterpreterContext
 {
@@ -23,8 +23,8 @@ public:
     std::unique_ptr<CVariablesScope> PopScope();
     size_t GetScopesCount()const;
 
-    IFunctionAST *GetFunction(unsigned nameId)const;
-    void AddFunction(unsigned nameId, IFunctionAST *function);
+    IFunctionAst *GetFunction(unsigned nameId)const;
+    void AddFunction(unsigned nameId, IFunctionAst *function);
 
     std::string GetStringLiteral(unsigned stringId)const;
 
@@ -37,12 +37,12 @@ public:
 private:
     CVariablesScope *FindScopeWithVariable(unsigned nameId)const;
     bool ValidateValue(const CValue &value);
-    void AddBuiltin(const std::string &name, std::unique_ptr<IFunctionAST> && function);
+    void AddBuiltin(const std::string &name, std::unique_ptr<IFunctionAst> && function);
 
-    std::unordered_map<unsigned, IFunctionAST*> m_functions;
+    std::unordered_map<unsigned, IFunctionAst*> m_functions;
     CStringPool & m_pool;
     boost::optional<CValue> m_returnValueOpt;
-    std::vector<std::unique_ptr<IFunctionAST>> m_builtins;
+    std::vector<std::unique_ptr<IFunctionAst>> m_builtins;
     std::vector<std::unique_ptr<CVariablesScope>> m_scopes;
     std::ostream &m_output;
     std::ostream &m_errors;

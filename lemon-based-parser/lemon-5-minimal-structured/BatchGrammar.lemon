@@ -93,20 +93,20 @@ statement_line ::= error NEWLINE.
 
 statement ::= ID(A) ASSIGN expression(B).
 {
-    auto stmt = Make<CAssignAST>(A.stringId, Take(B));
+    auto stmt = Make<CAssignAst>(A.stringId, Take(B));
     pParse->AddStatement(std::move(stmt));
 }
 
 statement ::= PRINT expression(A).
 {
-    auto stmt = Make<CPrintAST>(Take(A));
+    auto stmt = Make<CPrintAst>(Take(A));
     pParse->AddStatement(std::move(stmt));
 }
 
 statement ::= if_condition_line(A) statement_lines_list END.
 {
     pParse->ExitBlock();
-    pParse->AddStatement(IStatementASTUniquePtr(Take(A)));
+    pParse->AddStatement(IStatementAstUniquePtr(Take(A)));
 }
 
 statement ::= if_condition_line(A) END.
@@ -134,45 +134,45 @@ expression(X) ::= LPAREN expression(A) RPAREN.
 
 expression(X) ::= expression(A) PLUS expression(B).
 {
-    X = New<CBinaryExpressionAST>(Take(A), BinaryOperation::Add, Take(B));
+    X = New<CBinaryExpressionAst>(Take(A), BinaryOperation::Add, Take(B));
 }
 
 expression(X) ::= expression(A) MINUS expression(B).
 {
-    X = New<CBinaryExpressionAST>(Take(A), BinaryOperation::Substract, Take(B));
+    X = New<CBinaryExpressionAst>(Take(A), BinaryOperation::Substract, Take(B));
 }
 
 expression(X) ::= expression(A) STAR expression(B).
 {
-    X = New<CBinaryExpressionAST>(Take(A), BinaryOperation::Multiply, Take(B));
+    X = New<CBinaryExpressionAst>(Take(A), BinaryOperation::Multiply, Take(B));
 }
 
 expression(X) ::= expression(A) SLASH expression(B).
 {
-    X = New<CBinaryExpressionAST>(Take(A), BinaryOperation::Divide, Take(B));
+    X = New<CBinaryExpressionAst>(Take(A), BinaryOperation::Divide, Take(B));
 }
 
 expression(X) ::= expression(A) PERCENT expression(B).
 {
-    X = New<CBinaryExpressionAST>(Take(A), BinaryOperation::Modulo, Take(B));
+    X = New<CBinaryExpressionAst>(Take(A), BinaryOperation::Modulo, Take(B));
 }
 
 expression(X) ::= PLUS expression(A).
 {
-    X = New<CUnaryExpressionAST>(UnaryOperation::Plus, Take(A));
+    X = New<CUnaryExpressionAst>(UnaryOperation::Plus, Take(A));
 }
 
 expression(X) ::= MINUS expression(A).
 {
-    X = New<CUnaryExpressionAST>(UnaryOperation::Minus, Take(A));
+    X = New<CUnaryExpressionAst>(UnaryOperation::Minus, Take(A));
 }
 
 expression(X) ::= NUMBER(A).
 {
-    X = New<CLiteralAST>(A.value);
+    X = New<CLiteralAst>(A.value);
 }
 
 expression(X) ::= ID(A).
 {
-    X = New<CVariableRefAST>(A.stringId);
+    X = New<CVariableRefAst>(A.stringId);
 }

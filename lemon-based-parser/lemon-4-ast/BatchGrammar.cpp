@@ -18,7 +18,7 @@
 
 struct SRecord
 {
-    IExpressionAST *expr;
+    IExpressionAst *expr;
 };
 
 /* Next is all token values, in a form suitable for use by makeheaders.
@@ -733,14 +733,14 @@ static void yy_reduce(
         break;
       case 5: /* statement ::= ID ASSIGN expression */
 {
-    auto stmt = pParse->MakeAST<CAssignAST>(yymsp[-2].minor.yy0.stringId, yymsp[0].minor.yy3.expr);
+    auto stmt = pParse->MakeAST<CAssignAst>(yymsp[-2].minor.yy0.stringId, yymsp[0].minor.yy3.expr);
     pParse->AddStatement(stmt);
   yy_destructor(yypParser,8,&yymsp[-1].minor);
 }
         break;
       case 6: /* statement ::= PRINT expression */
 {
-    auto stmt = pParse->MakeAST<CPrintAST>(yymsp[0].minor.yy3.expr);
+    auto stmt = pParse->MakeAST<CPrintAst>(yymsp[0].minor.yy3.expr);
     pParse->AddStatement(stmt);
   yy_destructor(yypParser,9,&yymsp[-1].minor);
 }
@@ -754,54 +754,54 @@ static void yy_reduce(
         break;
       case 8: /* expression ::= expression PLUS expression */
 {
-    yygotominor.yy3.expr = pParse->MakeAST<CBinaryExpressionAST>(yymsp[-2].minor.yy3.expr, BinaryOperation::Add, yymsp[0].minor.yy3.expr);
+    yygotominor.yy3.expr = pParse->MakeAST<CBinaryExpressionAst>(yymsp[-2].minor.yy3.expr, BinaryOperation::Add, yymsp[0].minor.yy3.expr);
   yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
         break;
       case 9: /* expression ::= expression MINUS expression */
 {
-    yygotominor.yy3.expr = pParse->MakeAST<CBinaryExpressionAST>(yymsp[-2].minor.yy3.expr, BinaryOperation::Substract, yymsp[0].minor.yy3.expr);
+    yygotominor.yy3.expr = pParse->MakeAST<CBinaryExpressionAst>(yymsp[-2].minor.yy3.expr, BinaryOperation::Substract, yymsp[0].minor.yy3.expr);
   yy_destructor(yypParser,2,&yymsp[-1].minor);
 }
         break;
       case 10: /* expression ::= expression STAR expression */
 {
-    yygotominor.yy3.expr = pParse->MakeAST<CBinaryExpressionAST>(yymsp[-2].minor.yy3.expr, BinaryOperation::Multiply, yymsp[0].minor.yy3.expr);
+    yygotominor.yy3.expr = pParse->MakeAST<CBinaryExpressionAst>(yymsp[-2].minor.yy3.expr, BinaryOperation::Multiply, yymsp[0].minor.yy3.expr);
   yy_destructor(yypParser,3,&yymsp[-1].minor);
 }
         break;
       case 11: /* expression ::= expression SLASH expression */
 {
-    yygotominor.yy3.expr = pParse->MakeAST<CBinaryExpressionAST>(yymsp[-2].minor.yy3.expr, BinaryOperation::Divide, yymsp[0].minor.yy3.expr);
+    yygotominor.yy3.expr = pParse->MakeAST<CBinaryExpressionAst>(yymsp[-2].minor.yy3.expr, BinaryOperation::Divide, yymsp[0].minor.yy3.expr);
   yy_destructor(yypParser,4,&yymsp[-1].minor);
 }
         break;
       case 12: /* expression ::= expression PERCENT expression */
 {
-    yygotominor.yy3.expr = pParse->MakeAST<CBinaryExpressionAST>(yymsp[-2].minor.yy3.expr, BinaryOperation::Modulo, yymsp[0].minor.yy3.expr);
+    yygotominor.yy3.expr = pParse->MakeAST<CBinaryExpressionAst>(yymsp[-2].minor.yy3.expr, BinaryOperation::Modulo, yymsp[0].minor.yy3.expr);
   yy_destructor(yypParser,5,&yymsp[-1].minor);
 }
         break;
       case 13: /* expression ::= PLUS expression */
 {
-    yygotominor.yy3.expr = pParse->MakeAST<CUnaryExpressionAST>(UnaryOperation::Plus, yymsp[0].minor.yy3.expr);
+    yygotominor.yy3.expr = pParse->MakeAST<CUnaryExpressionAst>(UnaryOperation::Plus, yymsp[0].minor.yy3.expr);
   yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
         break;
       case 14: /* expression ::= MINUS expression */
 {
-    yygotominor.yy3.expr = pParse->MakeAST<CUnaryExpressionAST>(UnaryOperation::Minus, yymsp[0].minor.yy3.expr);
+    yygotominor.yy3.expr = pParse->MakeAST<CUnaryExpressionAst>(UnaryOperation::Minus, yymsp[0].minor.yy3.expr);
   yy_destructor(yypParser,2,&yymsp[-1].minor);
 }
         break;
       case 15: /* expression ::= NUMBER */
 {
-    yygotominor.yy3.expr = pParse->MakeAST<CLiteralAST>(yymsp[0].minor.yy0.value);
+    yygotominor.yy3.expr = pParse->MakeAST<CLiteralAst>(yymsp[0].minor.yy0.value);
 }
         break;
       case 16: /* expression ::= ID */
 {
-    yygotominor.yy3.expr = pParse->MakeAST<CVariableRefAST>(yymsp[0].minor.yy0.stringId);
+    yygotominor.yy3.expr = pParse->MakeAST<CVariableRefAst>(yymsp[0].minor.yy0.stringId);
 }
         break;
       default:

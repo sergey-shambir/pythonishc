@@ -24,7 +24,7 @@ public:
     void OnError(Token const& token);
     void OnStackOverflow();
     void OnFatalError();
-    void AddStatement(IStatementAST *stmt);
+    void AddStatement(IStatementAst *stmt);
 
     template <class T, class ...TArgs>
     T *MakeAST(TArgs&&... args)
@@ -40,6 +40,6 @@ private:
     bool m_isFatalError = false;
     void *m_parser = nullptr;
     CInterpreterContext & m_context;
-    std::vector<IStatementAST*> m_program;
-    std::vector<std::unique_ptr<IAnyAST>> m_nodePool;
+    std::vector<IStatementAst*> m_program;
+    std::vector<std::unique_ptr<IAnyAst>> m_nodePool;
 };

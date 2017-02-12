@@ -911,7 +911,7 @@ static void yy_reduce(
       case 8: /* function_declaration ::= FUNCTION ID LPAREN RPAREN NEWLINE statement_list END */
 {
     auto pBody = Take(yymsp[-1].minor.yy76);
-    EmplaceAST<CFunctionAST>(yygotominor.yy33, yymsp[-5].minor.yy0.stringId, std::vector<unsigned>(), std::move(*pBody));
+    EmplaceAST<CFunctionAst>(yygotominor.yy33, yymsp[-5].minor.yy0.stringId, std::vector<unsigned>(), std::move(*pBody));
   yy_destructor(yypParser,12,&yymsp[-6].minor);
   yy_destructor(yypParser,14,&yymsp[-4].minor);
   yy_destructor(yypParser,15,&yymsp[-3].minor);
@@ -923,7 +923,7 @@ static void yy_reduce(
 {
     auto pParameters = Take(yymsp[-4].minor.yy19);
     auto pBody = Take(yymsp[-1].minor.yy76);
-    EmplaceAST<CFunctionAST>(yygotominor.yy33, yymsp[-6].minor.yy0.stringId, std::move(*pParameters), std::move(*pBody));
+    EmplaceAST<CFunctionAst>(yygotominor.yy33, yymsp[-6].minor.yy0.stringId, std::move(*pParameters), std::move(*pBody));
   yy_destructor(yypParser,12,&yymsp[-7].minor);
   yy_destructor(yypParser,14,&yymsp[-5].minor);
   yy_destructor(yypParser,15,&yymsp[-3].minor);
@@ -970,20 +970,20 @@ static void yy_reduce(
         break;
       case 16: /* statement ::= ID ASSIGN expression */
 {
-    EmplaceAST<CAssignAST>(yygotominor.yy28, yymsp[-2].minor.yy0.stringId, Take(yymsp[0].minor.yy55));
+    EmplaceAST<CAssignAst>(yygotominor.yy28, yymsp[-2].minor.yy0.stringId, Take(yymsp[0].minor.yy55));
   yy_destructor(yypParser,18,&yymsp[-1].minor);
 }
         break;
       case 17: /* statement ::= PRINT expression_list */
 {
     auto pList = Take(yymsp[0].minor.yy39);
-    EmplaceAST<CPrintAST>(yygotominor.yy28, std::move(*pList));
+    EmplaceAST<CPrintAst>(yygotominor.yy28, std::move(*pList));
   yy_destructor(yypParser,19,&yymsp[-1].minor);
 }
         break;
       case 18: /* statement ::= RETURN expression */
 {
-    EmplaceAST<CReturnAST>(yygotominor.yy28, Take(yymsp[0].minor.yy55));
+    EmplaceAST<CReturnAst>(yygotominor.yy28, Take(yymsp[0].minor.yy55));
   yy_destructor(yypParser,20,&yymsp[-1].minor);
 }
         break;
@@ -1065,7 +1065,7 @@ static void yy_reduce(
         break;
       case 28: /* expression ::= ID LPAREN RPAREN */
 {
-    EmplaceAST<CCallAST>(yygotominor.yy55, yymsp[-2].minor.yy0.stringId, ExpressionList());
+    EmplaceAST<CCallAst>(yygotominor.yy55, yymsp[-2].minor.yy0.stringId, ExpressionList());
   yy_destructor(yypParser,14,&yymsp[-1].minor);
   yy_destructor(yypParser,15,&yymsp[0].minor);
 }
@@ -1073,7 +1073,7 @@ static void yy_reduce(
       case 29: /* expression ::= ID LPAREN expression_list RPAREN */
 {
     auto pList = Take(yymsp[-1].minor.yy39);
-    EmplaceAST<CCallAST>(yygotominor.yy55, yymsp[-3].minor.yy0.stringId, std::move(*pList));
+    EmplaceAST<CCallAst>(yygotominor.yy55, yymsp[-3].minor.yy0.stringId, std::move(*pList));
   yy_destructor(yypParser,14,&yymsp[-2].minor);
   yy_destructor(yypParser,15,&yymsp[0].minor);
 }
@@ -1087,94 +1087,94 @@ static void yy_reduce(
         break;
       case 31: /* expression ::= expression LESS expression */
 {
-    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Less, Take(yymsp[0].minor.yy55));
+    EmplaceAST<CBinaryExpressionAst>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Less, Take(yymsp[0].minor.yy55));
   yy_destructor(yypParser,1,&yymsp[-1].minor);
 }
         break;
       case 32: /* expression ::= expression EQUALS expression */
 {
-    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Equals, Take(yymsp[0].minor.yy55));
+    EmplaceAST<CBinaryExpressionAst>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Equals, Take(yymsp[0].minor.yy55));
   yy_destructor(yypParser,2,&yymsp[-1].minor);
 }
         break;
       case 33: /* expression ::= expression AND expression */
 {
-    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::And, Take(yymsp[0].minor.yy55));
+    EmplaceAST<CBinaryExpressionAst>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::And, Take(yymsp[0].minor.yy55));
   yy_destructor(yypParser,3,&yymsp[-1].minor);
 }
         break;
       case 34: /* expression ::= expression OR expression */
 {
-    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Or, Take(yymsp[0].minor.yy55));
+    EmplaceAST<CBinaryExpressionAst>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Or, Take(yymsp[0].minor.yy55));
   yy_destructor(yypParser,4,&yymsp[-1].minor);
 }
         break;
       case 35: /* expression ::= expression PLUS expression */
 {
-    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Add, Take(yymsp[0].minor.yy55));
+    EmplaceAST<CBinaryExpressionAst>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Add, Take(yymsp[0].minor.yy55));
   yy_destructor(yypParser,6,&yymsp[-1].minor);
 }
         break;
       case 36: /* expression ::= expression MINUS expression */
 {
-    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Substract, Take(yymsp[0].minor.yy55));
+    EmplaceAST<CBinaryExpressionAst>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Substract, Take(yymsp[0].minor.yy55));
   yy_destructor(yypParser,7,&yymsp[-1].minor);
 }
         break;
       case 37: /* expression ::= expression STAR expression */
 {
-    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Multiply, Take(yymsp[0].minor.yy55));
+    EmplaceAST<CBinaryExpressionAst>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Multiply, Take(yymsp[0].minor.yy55));
   yy_destructor(yypParser,8,&yymsp[-1].minor);
 }
         break;
       case 38: /* expression ::= expression SLASH expression */
 {
-    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Divide, Take(yymsp[0].minor.yy55));
+    EmplaceAST<CBinaryExpressionAst>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Divide, Take(yymsp[0].minor.yy55));
   yy_destructor(yypParser,9,&yymsp[-1].minor);
 }
         break;
       case 39: /* expression ::= expression PERCENT expression */
 {
-    EmplaceAST<CBinaryExpressionAST>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Modulo, Take(yymsp[0].minor.yy55));
+    EmplaceAST<CBinaryExpressionAst>(yygotominor.yy55, Take(yymsp[-2].minor.yy55), BinaryOperation::Modulo, Take(yymsp[0].minor.yy55));
   yy_destructor(yypParser,10,&yymsp[-1].minor);
 }
         break;
       case 40: /* expression ::= NOT expression */
 {
-    EmplaceAST<CUnaryExpressionAST>(yygotominor.yy55, UnaryOperation::Not, Take(yymsp[0].minor.yy55));
+    EmplaceAST<CUnaryExpressionAst>(yygotominor.yy55, UnaryOperation::Not, Take(yymsp[0].minor.yy55));
   yy_destructor(yypParser,5,&yymsp[-1].minor);
 }
         break;
       case 41: /* expression ::= PLUS expression */
 {
-    EmplaceAST<CUnaryExpressionAST>(yygotominor.yy55, UnaryOperation::Plus, Take(yymsp[0].minor.yy55));
+    EmplaceAST<CUnaryExpressionAst>(yygotominor.yy55, UnaryOperation::Plus, Take(yymsp[0].minor.yy55));
   yy_destructor(yypParser,6,&yymsp[-1].minor);
 }
         break;
       case 42: /* expression ::= MINUS expression */
 {
-    EmplaceAST<CUnaryExpressionAST>(yygotominor.yy55, UnaryOperation::Minus, Take(yymsp[0].minor.yy55));
+    EmplaceAST<CUnaryExpressionAst>(yygotominor.yy55, UnaryOperation::Minus, Take(yymsp[0].minor.yy55));
   yy_destructor(yypParser,7,&yymsp[-1].minor);
 }
         break;
       case 43: /* expression ::= NUMBER */
 {
-    EmplaceAST<CLiteralAST>(yygotominor.yy55, CValue::FromDouble(yymsp[0].minor.yy0.value));
+    EmplaceAST<CLiteralAst>(yygotominor.yy55, CValue::FromDouble(yymsp[0].minor.yy0.value));
 }
         break;
       case 44: /* expression ::= STRING */
 {
-    EmplaceAST<CLiteralAST>(yygotominor.yy55, pParse->GetStringLiteral(yymsp[0].minor.yy0.stringId));
+    EmplaceAST<CLiteralAst>(yygotominor.yy55, pParse->GetStringLiteral(yymsp[0].minor.yy0.stringId));
 }
         break;
       case 45: /* expression ::= BOOL */
 {
-    EmplaceAST<CLiteralAST>(yygotominor.yy55, CValue::FromBoolean(yymsp[0].minor.yy0.boolValue));
+    EmplaceAST<CLiteralAst>(yygotominor.yy55, CValue::FromBoolean(yymsp[0].minor.yy0.boolValue));
 }
         break;
       case 46: /* expression ::= ID */
 {
-    EmplaceAST<CVariableRefAST>(yygotominor.yy55, yymsp[0].minor.yy0.stringId);
+    EmplaceAST<CVariableRefAst>(yygotominor.yy55, yymsp[0].minor.yy0.stringId);
 }
         break;
       default:

@@ -26,8 +26,8 @@ public:
     void OnStackOverflow();
     void OnFatalError();
 
-    void AddStatement(IStatementASTUniquePtr &&stmt);
-    void AddFunction(IFunctionASTUniquePtr && function);
+    void AddStatement(IStatementAstUniquePtr &&stmt);
+    void AddFunction(IFunctionAstUniquePtr && function);
 
 private:
 #ifndef NDEBUG

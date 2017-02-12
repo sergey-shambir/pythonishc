@@ -5,22 +5,22 @@
 
 class CInterpreterContext;
 
-class IExpressionAST
+class IExpressionAst
 {
 public:
-    virtual ~IExpressionAST() = default;
+    virtual ~IExpressionAst() = default;
     virtual double Evaluate(CInterpreterContext & context)const = 0;
 };
 
-class IStatementAST
+class IStatementAst
 {
 public:
-    virtual ~IStatementAST() = default;
+    virtual ~IStatementAst() = default;
     virtual void Execute(CInterpreterContext & context)const = 0;
 };
 
-using IExpressionASTUniquePtr = std::unique_ptr<IExpressionAST>;
-using IStatementASTUniquePtr = std::unique_ptr<IStatementAST>;
+using IExpressionAstUniquePtr = std::unique_ptr<IExpressionAst>;
+using IStatementAstUniquePtr = std::unique_ptr<IStatementAst>;
 
 enum class BinaryOperation
 {
@@ -31,16 +31,16 @@ enum class BinaryOperation
     Modulo
 };
 
-class CBinaryExpressionAST : public IExpressionAST
+class CBinaryExpressionAst : public IExpressionAst
 {
 public:
-    CBinaryExpressionAST(IExpressionASTUniquePtr && left, BinaryOperation op, IExpressionASTUniquePtr && right);
+    CBinaryExpressionAst(IExpressionAstUniquePtr && left, BinaryOperation op, IExpressionAstUniquePtr && right);
     double Evaluate(CInterpreterContext & context)const override;
 
 private:
-    IExpressionASTUniquePtr m_left;
+    IExpressionAstUniquePtr m_left;
     const BinaryOperation m_operation;
-    IExpressionASTUniquePtr m_right;
+    IExpressionAstUniquePtr m_right;
 };
 
 enum class UnaryOperation
@@ -49,112 +49,112 @@ enum class UnaryOperation
     Minus
 };
 
-class CUnaryExpressionAST : public IExpressionAST
+class CUnaryExpressionAst : public IExpressionAst
 {
 public:
-    CUnaryExpressionAST(UnaryOperation op, IExpressionASTUniquePtr && value);
+    CUnaryExpressionAst(UnaryOperation op, IExpressionAstUniquePtr && value);
     double Evaluate(CInterpreterContext & context)const override;
 
 private:
     const UnaryOperation m_operation;
-    IExpressionASTUniquePtr m_expr;
+    IExpressionAstUniquePtr m_expr;
 };
 
-class CLiteralAST : public IExpressionAST
+class CLiteralAst : public IExpressionAst
 {
 public:
-    CLiteralAST(double value);
+    CLiteralAst(double value);
     double Evaluate(CInterpreterContext & context)const override;
 
 private:
     const double m_value;
 };
 
-class CVariableRefAST : public IExpressionAST
+class CVariableRefAst : public IExpressionAst
 {
 public:
-    CVariableRefAST(unsigned nameId);
+    CVariableRefAst(unsigned nameId);
     double Evaluate(CInterpreterContext & context)const override;
 
 private:
     const unsigned m_nameId;
 };
 
-class CPrintAST : public IStatementAST
+class CPrintAst : public IStatementAst
 {
 public:
-    CPrintAST(IExpressionASTUniquePtr && expr);
+    CPrintAst(IExpressionAstUniquePtr && expr);
 
 protected:
     void Execute(CInterpreterContext & context)const override;
 
 private:
-    IExpressionASTUniquePtr m_expr;
+    IExpressionAstUniquePtr m_expr;
 };
 
-class CAssignAST : public IStatementAST
+class CAssignAst : public IStatementAst
 {
 public:
-    CAssignAST(unsigned nameId, IExpressionASTUniquePtr && value);
+    CAssignAst(unsigned nameId, IExpressionAstUniquePtr && value);
 
 protected:
     void Execute(CInterpreterContext &context)const override;
 
 private:
     const unsigned m_nameId;
-    IExpressionASTUniquePtr m_value;
+    IExpressionAstUniquePtr m_value;
 };
 
-class CAbstractBlockAST : public IStatementAST
+class CAbstractBlockAST : public IStatementAst
 {
 public:
-    virtual void AddStatement(IStatementASTUniquePtr && stmt);
+    virtual void AddStatement(IStatementAstUniquePtr && stmt);
 
 protected:
     void ExecuteBody(CInterpreterContext &context) const;
     void ExecuteLast(CInterpreterContext &context) const;
 
 private:
-    std::vector<IStatementASTUniquePtr> m_body;
+    std::vector<IStatementAstUniquePtr> m_body;
 };
 
 class CWhileAst : public CAbstractBlockAST
 {
 public:
-    CWhileAst(IExpressionASTUniquePtr && condition);
+    CWhileAst(IExpressionAstUniquePtr && condition);
 
 protected:
     void Execute(CInterpreterContext &context) const override;
 
 private:
-    IExpressionASTUniquePtr m_condition;
+    IExpressionAstUniquePtr m_condition;
 };
 
 class CRepeatAst : public CAbstractBlockAST
 {
 public:
-    void SetCondition(IExpressionASTUniquePtr && condition);
+    void SetCondition(IExpressionAstUniquePtr && condition);
 
 protected:
     void Execute(CInterpreterContext &context) const override;
 
 private:
-    IExpressionASTUniquePtr m_condition;
+    IExpressionAstUniquePtr m_condition;
 };
 
 class CIfAst : public CAbstractBlockAST
 {
 public:
-    CIfAst(IExpressionASTUniquePtr && condition);
+    CIfAst(IExpressionAstUniquePtr && condition);
 
-    void SetElseStatement(IStatementASTUniquePtr && elseBlock);
+    void SetElseStatement(IStatementAstUniquePtr && elseBlock);
 
 protected:
     void Execute(CInterpreterContext &context) const override;
 
 private:
-    IExpressionASTUniquePtr m_condition;
-    IStatementASTUniquePtr m_elseBlock;
+    IExpressionAstUniquePtr m_condition;
+    IStatementAstUniquePtr m_elseBlock;
 };
 
 class CBlockAst : public CAbstractBlockAST
@@ -168,7 +168,7 @@ class CProgramAst : public CAbstractBlockAST
 public:
     CProgramAst(CInterpreterContext &context);
 
-    void AddStatement(IStatementASTUniquePtr && stmt) override;
+    void AddStatement(IStatementAstUniquePtr && stmt) override;
 
 protected:
     void Execute(CInterpreterContext &context) const override;

@@ -5,37 +5,37 @@
 #include <cassert>
 
 
-CPrintAST::CPrintAST(IExpressionASTUniquePtr &&expr)
+CPrintAst::CPrintAst(IExpressionAstUniquePtr &&expr)
     : m_expr(std::move(expr))
 {
 }
 
-void CPrintAST::Execute(CInterpreterContext &context)const
+void CPrintAst::Execute(CInterpreterContext &context)const
 {
     const double result = m_expr->Evaluate(context);
     context.PrintResult(result);
 }
 
-CAssignAST::CAssignAST(unsigned nameId, IExpressionASTUniquePtr &&value)
+CAssignAst::CAssignAst(unsigned nameId, IExpressionAstUniquePtr &&value)
     : m_nameId(nameId)
     , m_value(std::move(value))
 {
 }
 
-void CAssignAST::Execute(CInterpreterContext &context)const
+void CAssignAst::Execute(CInterpreterContext &context)const
 {
     const double value = m_value->Evaluate(context);
     context.AssignVariable(m_nameId, value);
 }
 
-CBinaryExpressionAST::CBinaryExpressionAST(IExpressionASTUniquePtr &&left, BinaryOperation op, IExpressionASTUniquePtr &&right)
+CBinaryExpressionAst::CBinaryExpressionAst(IExpressionAstUniquePtr &&left, BinaryOperation op, IExpressionAstUniquePtr &&right)
     : m_left(std::move(left))
     , m_operation(op)
     , m_right(std::move(right))
 {
 }
 
-double CBinaryExpressionAST::Evaluate(CInterpreterContext &context) const
+double CBinaryExpressionAst::Evaluate(CInterpreterContext &context) const
 {
     const double a = m_left->Evaluate(context);
     const double b = m_right->Evaluate(context);
@@ -56,13 +56,13 @@ double CBinaryExpressionAST::Evaluate(CInterpreterContext &context) const
     return std::numeric_limits<double>::quiet_NaN();
 }
 
-CUnaryExpressionAST::CUnaryExpressionAST(UnaryOperation op, IExpressionASTUniquePtr &&value)
+CUnaryExpressionAst::CUnaryExpressionAst(UnaryOperation op, IExpressionAstUniquePtr &&value)
     : m_operation(op)
     , m_expr(std::move(value))
 {
 }
 
-double CUnaryExpressionAST::Evaluate(CInterpreterContext &context) const
+double CUnaryExpressionAst::Evaluate(CInterpreterContext &context) const
 {
     const double value = m_expr->Evaluate(context);
     switch (m_operation)
@@ -76,35 +76,35 @@ double CUnaryExpressionAST::Evaluate(CInterpreterContext &context) const
     return std::numeric_limits<double>::quiet_NaN();
 }
 
-CLiteralAST::CLiteralAST(double value)
+CLiteralAst::CLiteralAst(double value)
     : m_value(value)
 {
 }
 
-double CLiteralAST::Evaluate(CInterpreterContext &context) const
+double CLiteralAst::Evaluate(CInterpreterContext &context) const
 {
     (void)context;
     return m_value;
 }
 
-CVariableRefAST::CVariableRefAST(unsigned nameId)
+CVariableRefAst::CVariableRefAst(unsigned nameId)
     : m_nameId(nameId)
 {
 }
 
-double CVariableRefAST::Evaluate(CInterpreterContext &context) const
+double CVariableRefAst::Evaluate(CInterpreterContext &context) const
 {
     return context.GetVariableValue(m_nameId);
 }
 
-void CAbstractBlockAST::AddStatement(IStatementASTUniquePtr &&stmt)
+void CAbstractBlockAST::AddStatement(IStatementAstUniquePtr &&stmt)
 {
     m_body.push_back(std::move(stmt));
 }
 
 void CAbstractBlockAST::ExecuteBody(CInterpreterContext & context) const
 {
-    for (IStatementASTUniquePtr const& stmt : m_body)
+    for (IStatementAstUniquePtr const& stmt : m_body)
     {
         stmt->Execute(context);
     }
@@ -118,12 +118,12 @@ void CAbstractBlockAST::ExecuteLast(CInterpreterContext &context) const
     }
 }
 
-CIfAst::CIfAst(IExpressionASTUniquePtr &&condition)
+CIfAst::CIfAst(IExpressionAstUniquePtr &&condition)
     : m_condition(std::move(condition))
 {
 }
 
-void CIfAst::SetElseStatement(IStatementASTUniquePtr &&elseBlock)
+void CIfAst::SetElseStatement(IStatementAstUniquePtr &&elseBlock)
 {
     m_elseBlock = std::move(elseBlock);
 }
@@ -146,7 +146,7 @@ CProgramAst::CProgramAst(CInterpreterContext &context)
 {
 }
 
-void CProgramAst::AddStatement(IStatementASTUniquePtr &&stmt)
+void CProgramAst::AddStatement(IStatementAstUniquePtr &&stmt)
 {
     CAbstractBlockAST::AddStatement(std::move(stmt));
     ExecuteLast(m_context);
@@ -157,7 +157,7 @@ void CProgramAst::Execute(CInterpreterContext &context) const
     ExecuteBody(context);
 }
 
-CWhileAst::CWhileAst(IExpressionASTUniquePtr &&condition)
+CWhileAst::CWhileAst(IExpressionAstUniquePtr &&condition)
     : m_condition(std::move(condition))
 {
 }
@@ -172,7 +172,7 @@ void CWhileAst::Execute(CInterpreterContext &context) const
     }
 }
 
-void CRepeatAst::SetCondition(IExpressionASTUniquePtr && condition)
+void CRepeatAst::SetCondition(IExpressionAstUniquePtr && condition)
 {
     m_condition = std::move(condition);
 }

@@ -66,7 +66,7 @@ void CBatchParser::OnFatalError()
     m_isFatalError = true;
 }
 
-void CBatchParser::AddStatement(IStatementAST *stmt)
+void CBatchParser::AddStatement(IStatementAst *stmt)
 {
     if (stmt)
     {

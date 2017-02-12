@@ -64,37 +64,37 @@ private:
 
 }
 
-CPrintAST::CPrintAST(IExpressionASTUniquePtr &&expr)
+CPrintAst::CPrintAst(IExpressionAstUniquePtr &&expr)
     : m_expr(std::move(expr))
 {
 }
 
-void CPrintAST::Execute(CInterpreterContext &context)const
+void CPrintAst::Execute(CInterpreterContext &context)const
 {
     const CValue result = m_expr->Evaluate(context);
     context.PrintResult(result);
 }
 
-CAssignAST::CAssignAST(unsigned nameId, IExpressionASTUniquePtr &&value)
+CAssignAst::CAssignAst(unsigned nameId, IExpressionAstUniquePtr &&value)
     : m_nameId(nameId)
     , m_value(std::move(value))
 {
 }
 
-void CAssignAST::Execute(CInterpreterContext &context)const
+void CAssignAst::Execute(CInterpreterContext &context)const
 {
     const CValue value = m_value->Evaluate(context);
     context.AssignVariable(m_nameId, value);
 }
 
-CBinaryExpressionAST::CBinaryExpressionAST(IExpressionASTUniquePtr &&left, BinaryOperation op, IExpressionASTUniquePtr &&right)
+CBinaryExpressionAst::CBinaryExpressionAst(IExpressionAstUniquePtr &&left, BinaryOperation op, IExpressionAstUniquePtr &&right)
     : m_left(std::move(left))
     , m_operation(op)
     , m_right(std::move(right))
 {
 }
 
-CValue CBinaryExpressionAST::Evaluate(CInterpreterContext &context) const
+CValue CBinaryExpressionAst::Evaluate(CInterpreterContext &context) const
 {
     const CValue a = m_left->Evaluate(context);
     const CValue b = m_right->Evaluate(context);
@@ -118,13 +118,13 @@ CValue CBinaryExpressionAST::Evaluate(CInterpreterContext &context) const
     return CValue::FromErrorMessage("binary operation not implemented");
 }
 
-CUnaryExpressionAST::CUnaryExpressionAST(UnaryOperation op, IExpressionASTUniquePtr &&value)
+CUnaryExpressionAst::CUnaryExpressionAst(UnaryOperation op, IExpressionAstUniquePtr &&value)
     : m_operation(op)
     , m_expr(std::move(value))
 {
 }
 
-CValue CUnaryExpressionAST::Evaluate(CInterpreterContext &context) const
+CValue CUnaryExpressionAst::Evaluate(CInterpreterContext &context) const
 {
     const CValue value = m_expr->Evaluate(context);
     switch (m_operation)
@@ -137,28 +137,28 @@ CValue CUnaryExpressionAST::Evaluate(CInterpreterContext &context) const
     return CValue::FromErrorMessage("unary operation not implemented");
 }
 
-CLiteralAST::CLiteralAST(CValue value)
+CLiteralAst::CLiteralAst(CValue value)
     : m_value(value)
 {
 }
 
-CValue CLiteralAST::Evaluate(CInterpreterContext &context) const
+CValue CLiteralAst::Evaluate(CInterpreterContext &context) const
 {
     (void)context;
     return m_value;
 }
 
-CVariableRefAST::CVariableRefAST(unsigned nameId)
+CVariableRefAst::CVariableRefAst(unsigned nameId)
     : m_nameId(nameId)
 {
 }
 
-CValue CVariableRefAST::Evaluate(CInterpreterContext &context) const
+CValue CVariableRefAst::Evaluate(CInterpreterContext &context) const
 {
     return context.GetVariableValue(m_nameId);
 }
 
-CIfAst::CIfAst(IExpressionASTUniquePtr &&condition, StatementsList &&thenBody, StatementsList &&elseBody)
+CIfAst::CIfAst(IExpressionAstUniquePtr &&condition, StatementsList &&thenBody, StatementsList &&elseBody)
     : m_condition(std::move(condition))
     , m_thenBody(std::move(thenBody))
     , m_elseBody(std::move(elseBody))
@@ -188,19 +188,19 @@ CProgramAst::~CProgramAst()
     m_context.PopScope();
 }
 
-void CProgramAst::AddStatement(IStatementASTUniquePtr &&stmt)
+void CProgramAst::AddStatement(IStatementAstUniquePtr &&stmt)
 {
     stmt->Execute(m_context);
 }
 
-void CProgramAst::AddFunction(IFunctionASTUniquePtr &&function)
+void CProgramAst::AddFunction(IFunctionAstUniquePtr &&function)
 {
     unsigned nameId = function->GetNameId();
     m_context.AddFunction(nameId, function.get());
     m_functions.emplace_back(std::move(function));
 }
 
-CWhileAst::CWhileAst(IExpressionASTUniquePtr &&condition, StatementsList &&body)
+CWhileAst::CWhileAst(IExpressionAstUniquePtr &&condition, StatementsList &&body)
     : m_condition(std::move(condition))
     , m_body(std::move(body))
 {
@@ -214,7 +214,7 @@ void CWhileAst::Execute(CInterpreterContext &context) const
     }
 }
 
-CRepeatAst::CRepeatAst(IExpressionASTUniquePtr &&condition, StatementsList &&body)
+CRepeatAst::CRepeatAst(IExpressionAstUniquePtr &&condition, StatementsList &&body)
     : m_condition(std::move(condition))
     , m_body(std::move(body))
 {
@@ -229,18 +229,18 @@ void CRepeatAst::Execute(CInterpreterContext &context) const
     while (bool(m_condition->Evaluate(context)));
 }
 
-CCallAST::CCallAST(unsigned nameId, ExpressionList && arguments)
+CCallAst::CCallAst(unsigned nameId, ExpressionList && arguments)
     : m_nameId(nameId)
     , m_arguments(std::move(arguments))
 {
 }
 
-CValue CCallAST::Evaluate(CInterpreterContext &context) const
+CValue CCallAst::Evaluate(CInterpreterContext &context) const
 {
-    if (IFunctionAST *func = context.GetFunction(m_nameId))
+    if (IFunctionAst *func = context.GetFunction(m_nameId))
     {
         std::vector<CValue> args(m_arguments.size());
-        std::transform(m_arguments.begin(), m_arguments.end(), args.begin(), [&](IExpressionASTUniquePtr const& ast) {
+        std::transform(m_arguments.begin(), m_arguments.end(), args.begin(), [&](IExpressionAstUniquePtr const& ast) {
             return ast->Evaluate(context);
         });
         return func->Call(context, args);
@@ -248,19 +248,19 @@ CValue CCallAST::Evaluate(CInterpreterContext &context) const
     return CValue::FromErrorMessage("Attempt to call unknown function.");
 }
 
-CFunctionAST::CFunctionAST(unsigned nameId, std::vector<unsigned> argumentNames, StatementsList && body)
+CFunctionAst::CFunctionAst(unsigned nameId, std::vector<unsigned> argumentNames, StatementsList && body)
     : m_nameId(nameId)
     , m_argumentNames(argumentNames)
     , m_body(std::move(body))
 {
 }
 
-unsigned CFunctionAST::GetNameId() const
+unsigned CFunctionAst::GetNameId() const
 {
     return m_nameId;
 }
 
-CValue CFunctionAST::Call(CInterpreterContext &context, const std::vector<CValue> &arguments) const
+CValue CFunctionAst::Call(CInterpreterContext &context, const std::vector<CValue> &arguments) const
 {
     if (arguments.size() != m_argumentNames.size())
     {
@@ -278,7 +278,7 @@ CValue CFunctionAST::Call(CInterpreterContext &context, const std::vector<CValue
     }
 
     boost::optional<CValue> returnedValue;
-    for (IStatementASTUniquePtr const& stmt : m_body)
+    for (IStatementAstUniquePtr const& stmt : m_body)
     {
         stmt->Execute(context);
         returnedValue = context.GetReturnValue();
@@ -297,12 +297,12 @@ CValue CFunctionAST::Call(CInterpreterContext &context, const std::vector<CValue
     return CValue::FromErrorMessage("Function returned no value");
 }
 
-CReturnAST::CReturnAST(IExpressionASTUniquePtr &&value)
+CReturnAst::CReturnAst(IExpressionAstUniquePtr &&value)
     : m_value(std::move(value))
 {
 }
 
-void CReturnAST::Execute(CInterpreterContext &context) const
+void CReturnAst::Execute(CInterpreterContext &context) const
 {
     CValue result = m_value->Evaluate(context);
     context.SetReturnValue(result);

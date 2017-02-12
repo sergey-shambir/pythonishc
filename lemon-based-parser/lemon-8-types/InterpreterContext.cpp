@@ -23,7 +23,7 @@ CValue ExecuteSafely(TFunction && fn)
     }
 }
 
-class CSinFunction : public IFunctionAST
+class CSinFunction : public IFunctionAst
 {
 public:
     CValue Call(CInterpreterContext &context, const std::vector<CValue> &arguments) const override
@@ -41,7 +41,7 @@ public:
     }
 };
 
-class CRandFunction : public IFunctionAST
+class CRandFunction : public IFunctionAst
 {
 public:
     CValue Call(CInterpreterContext &context, const std::vector<CValue> &arguments) const override
@@ -73,8 +73,8 @@ CInterpreterContext::CInterpreterContext(std::ostream &output, std::ostream &err
     , m_output(output)
     , m_errors(errors)
 {
-    AddBuiltin("sin", std::unique_ptr<IFunctionAST>(new CSinFunction));
-    AddBuiltin("rand", std::unique_ptr<IFunctionAST>(new CRandFunction));
+    AddBuiltin("sin", std::unique_ptr<IFunctionAst>(new CSinFunction));
+    AddBuiltin("rand", std::unique_ptr<IFunctionAst>(new CRandFunction));
 }
 
 CInterpreterContext::~CInterpreterContext()
@@ -130,7 +130,7 @@ size_t CInterpreterContext::GetScopesCount() const
     return m_scopes.size();
 }
 
-IFunctionAST *CInterpreterContext::GetFunction(unsigned nameId) const
+IFunctionAst *CInterpreterContext::GetFunction(unsigned nameId) const
 {
     try
     {
@@ -142,7 +142,7 @@ IFunctionAST *CInterpreterContext::GetFunction(unsigned nameId) const
     }
 }
 
-void CInterpreterContext::AddFunction(unsigned nameId, IFunctionAST *function)
+void CInterpreterContext::AddFunction(unsigned nameId, IFunctionAst *function)
 {
     if (function)
     {
@@ -209,7 +209,7 @@ CVariablesScope *CInterpreterContext::FindScopeWithVariable(unsigned nameId) con
     return nullptr;
 }
 
-void CInterpreterContext::AddBuiltin(const std::string &name, std::unique_ptr<IFunctionAST> &&function)
+void CInterpreterContext::AddBuiltin(const std::string &name, std::unique_ptr<IFunctionAst> &&function)
 {
     m_builtins.emplace_back(std::move(function));
     unsigned nameRand = m_pool.Insert(name);

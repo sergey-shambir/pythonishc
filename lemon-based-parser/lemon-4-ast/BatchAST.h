@@ -4,19 +4,19 @@
 
 class CInterpreterContext;
 
-class IAnyAST
+class IAnyAst
 {
 public:
-    virtual ~IAnyAST() = default;
+    virtual ~IAnyAst() = default;
 };
 
-class IExpressionAST : public IAnyAST
+class IExpressionAst : public IAnyAst
 {
 public:
     virtual double Evaluate(CInterpreterContext & context)const = 0;
 };
 
-class IStatementAST : public IAnyAST
+class IStatementAst : public IAnyAst
 {
 public:
     virtual void Execute(CInterpreterContext & context)const = 0;
@@ -31,16 +31,16 @@ enum class BinaryOperation
     Modulo
 };
 
-class CBinaryExpressionAST : public IExpressionAST
+class CBinaryExpressionAst : public IExpressionAst
 {
 public:
-    CBinaryExpressionAST(IExpressionAST *left, BinaryOperation op, IExpressionAST *right);
+    CBinaryExpressionAst(IExpressionAst *left, BinaryOperation op, IExpressionAst *right);
     double Evaluate(CInterpreterContext & context)const override;
 
 private:
-    IExpressionAST *m_left;
+    IExpressionAst *m_left;
     const BinaryOperation m_operation;
-    IExpressionAST *m_right;
+    IExpressionAst *m_right;
 };
 
 enum class UnaryOperation
@@ -49,54 +49,54 @@ enum class UnaryOperation
     Minus
 };
 
-class CUnaryExpressionAST : public IExpressionAST
+class CUnaryExpressionAst : public IExpressionAst
 {
 public:
-    CUnaryExpressionAST(UnaryOperation op, IExpressionAST *value);
+    CUnaryExpressionAst(UnaryOperation op, IExpressionAst *value);
     double Evaluate(CInterpreterContext & context)const override;
 
 private:
     const UnaryOperation m_operation;
-    IExpressionAST *m_value;
+    IExpressionAst *m_value;
 };
 
-class CLiteralAST : public IExpressionAST
+class CLiteralAst : public IExpressionAst
 {
 public:
-    CLiteralAST(double value);
+    CLiteralAst(double value);
     double Evaluate(CInterpreterContext & context)const override;
 
 private:
     const double m_value;
 };
 
-class CVariableRefAST : public IExpressionAST
+class CVariableRefAst : public IExpressionAst
 {
 public:
-    CVariableRefAST(unsigned nameId);
+    CVariableRefAst(unsigned nameId);
     double Evaluate(CInterpreterContext & context)const override;
 
 private:
     const unsigned m_nameId;
 };
 
-class CPrintAST : public IStatementAST
+class CPrintAst : public IStatementAst
 {
 public:
-    CPrintAST(IExpressionAST *value);
+    CPrintAst(IExpressionAst *value);
     void Execute(CInterpreterContext & context)const override;
 
 private:
-    IExpressionAST *m_value;
+    IExpressionAst *m_value;
 };
 
-class CAssignAST : public IStatementAST
+class CAssignAst : public IStatementAst
 {
 public:
-    CAssignAST(unsigned nameId, IExpressionAST *value);
+    CAssignAst(unsigned nameId, IExpressionAst *value);
     void Execute(CInterpreterContext &context)const override;
 
 private:
     const unsigned m_nameId;
-    IExpressionAST *m_value;
+    IExpressionAst *m_value;
 };

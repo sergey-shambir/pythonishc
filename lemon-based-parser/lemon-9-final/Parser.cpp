@@ -76,7 +76,7 @@ CValue CParser::GetStringLiteral(unsigned stringId) const
     return CValue::FromString(str);
 }
 
-void CParser::AddStatement(IStatementASTUniquePtr && stmt)
+void CParser::AddStatement(IStatementAstUniquePtr && stmt)
 {
     if (stmt)
     {
@@ -84,7 +84,7 @@ void CParser::AddStatement(IStatementASTUniquePtr && stmt)
     }
 }
 
-void CParser::AddFunction(IFunctionASTUniquePtr &&function)
+void CParser::AddFunction(IFunctionAstUniquePtr &&function)
 {
     if (function)
     {
