@@ -1,4 +1,6 @@
-# Примеры для std::regex
+# Примеры для std::regex в id-scanners
+
+## Примеры распознавания идентификаторов в каталоге id-scanners
 
 Здесь размещены три примера, демонстрирующих применение регулярных выражений в составе STL.
 Регулярные выражения в STL представлены классом `std::regex` и несколькими функциями в заголовке `<regex>`.
@@ -26,3 +28,7 @@ std::regex_search(std::string::iterator begin,
 
 В отличие от простого сканера, улучшенный умеет игнорировать комментарии в стиле C: `/* it's comment */`.
 Для реализации класса также использована функция [`std::regex_seach`](http://www.cplusplus.com/reference/regex/regex_search/).
+
+## Лексический анализатор языка Dart в каталоге dart-lexer
+
+В каталоге находится лексический анализатор Dart, построенный на регулярных выражениях. См. также тур по языку Dart на [dartlang.org/guides/language/language-tour](https://www.dartlang.org/guides/language/language-tour)
