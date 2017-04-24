@@ -283,7 +283,7 @@ void CCodegenContext::InitLibCBuiltins()
         auto *fnType = llvm::FunctionType::get(int32Type, {cStringType}, true);
         m_builtinFunctions[BuiltinFunction::PRINTF] = declareFn(fnType, "printf");
     }
-    // i8 *strcat(i8* dest, i8* src)
+    // i8 *strcpy(i8* dest, i8* src)
     {
         auto *fnType = llvm::FunctionType::get(cStringType, {cStringType, cStringType}, false);
         m_builtinFunctions[BuiltinFunction::STRCPY] = declareFn(fnType, "strcpy");
