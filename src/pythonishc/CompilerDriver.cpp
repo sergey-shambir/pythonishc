@@ -7,6 +7,7 @@
 #include "CompilerBackend.h"
 #include "TypecheckVisitor.h"
 #include <sstream>
+#include <fstream>
 
 #include "begin_llvm.h"
 #include <llvm/IR/Function.h>
@@ -114,7 +115,9 @@ public:
         CCompilerBackend backend;
         try
         {
+#if 0   // Enable to dump LLVM assembler
             m_codegenContext.GetModule().dump();
+#endif
             backend.GenerateObjectFile(m_codegenContext.GetModule(), isDebug, outputPath);
             return true;
         }
@@ -194,7 +197,19 @@ void CCompilerDriver::StartDebugTrace()
     m_pImpl->StartDebugTrace();
 }
 
-bool CCompilerDriver::Compile(std::istream &input, const std::string &outputPath)
+bool CCompilerDriver::Compile(const std::string &inputPath, const std::string &outputPath)
+{
+    if (inputPath.empty())
+    {
+        return CompileStream(std::cin, outputPath);
+    }
+    std::ifstream input(inputPath);
+    input.exceptions(std::ios::badbit);
+
+    return CompileStream(input, outputPath);
+}
+
+bool CCompilerDriver::CompileStream(std::istream &input, const std::string &outputPath)
 {
     return m_pImpl->ParseAst(input) && m_pImpl->GenerateCodeFromAst() && m_pImpl->CompileModule(outputPath);
 }
