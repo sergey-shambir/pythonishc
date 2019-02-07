@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -e
+
+pythonishc
+ld -lc --entry main program.o -o program

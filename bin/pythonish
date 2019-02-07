@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+docker run -it --rm sshambir/compiler:0.0.1 pythonish "%@"
