@@ -1,6 +1,32 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 
-set -e
+import subprocess
+import argparse
+import os
 
-pythonishc
-ld -lc --entry main program.o -o program
+def compile(src_path: str, obj_path: str):
+    workdir = os.path.dirname(src_path)
+    cmd = ['pythonishc', '-i', src_path, '-o', obj_path]
+    subprocess.check_call(cmd, cwd=workdir)
+
+def link(obj_path: str, bin_path: str):
+    workdir = os.path.dirname(bin_path)
+    cmd =['gcc', '-o', bin_path, obj_path]
+    subprocess.check_call(cmd, cwd=workdir)
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input', help='input source code file path')
+    parser.add_argument('-o', '--output', help='output binary file path', default='a.out')
+    return parser.parse_args()
+
+def main():
+    args = parse_args()
+    src_path = args.input
+    obj_path = src_path + '.o'
+    bin_path = args.output
+    compile(src_path, obj_path)
+    link(obj_path, bin_path)
+
+if __name__ == '__main__':
+    main()

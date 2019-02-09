@@ -9,4 +9,4 @@ FROM sshambir/compiler-base:0.0.1
 COPY --from=builder /app/build/pythonishc /usr/bin/pythonishc
 COPY src/bin/pythonish /usr/bin/pythonish
 
-ENTRYPOINT [ "/usr/bin/pythonish" ]
+#ENTRYPOINT [ "/usr/bin/pythonish" ]
