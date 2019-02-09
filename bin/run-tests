@@ -4,6 +4,21 @@ import os.path
 import subprocess
 import shutil
 
+DOCKER_IMAGE_NAME = 'sshambir/compiler:0.0.1'
+
+def compile(src_path: str):
+    workdir = os.path.dirname(src_path)
+    src_name = os.path.basename(src_path)
+    bin_path = os.path.splitext(src_path)[0]
+    bin_name = os.path.basename(bin_path)
+    cmd = ['docker', 'run', '--rm',
+        '-v', '{0}:{0}'.format(workdir),
+        '-w', workdir,
+        DOCKER_IMAGE_NAME,
+        'pythonish', '-i', src_name, '-o', bin_name]
+    subprocess.check_call(cmd, cwd=workdir)
+    return bin_path
+
 def get_compiler_path():
     compiler_path = os.path.abspath("../../debug-compiler-theory-samples/llvm_4")
     if not os.path.exists(compiler_path):
