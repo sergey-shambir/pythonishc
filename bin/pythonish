@@ -1,3 +1,36 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 
-docker run -it --rm sshambir/compiler:0.0.1 pythonish "%@"
+import os.path
+import argparse
+import subprocess
+import sys
+
+DOCKER_IMAGE_NAME = 'sshambir/compiler:0.0.1'
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input', help='input source code file path')
+    parser.add_argument('-o', '--output', help='output binary file path', default='a.out')
+    return parser.parse_args()
+
+def run(src_path: str, bin_path: str):
+    src_dir = os.path.dirname(src_path)
+    bin_dir = os.path.dirname(bin_path)
+    workdir = os.path.commonpath([src_dir, bin_dir])
+    cmd = ['docker', 'run', '--rm',
+        '-v', '{0}:{0}'.format(workdir),
+        DOCKER_IMAGE_NAME,
+        'pythonish', src_path, '-o', bin_path]
+    subprocess.check_call(cmd, cwd=workdir)
+
+def main():
+    try:
+        args = parse_args()
+        src_path = os.path.abspath(args.input)
+        bin_path = os.path.abspath(args.output)
+        run(src_path, bin_path)
+    except Exception as e:
+        print(str(e), file=sys.stderr)
+
+if __name__ == "__main__":
+    main()

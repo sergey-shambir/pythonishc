@@ -4,46 +4,24 @@ import os.path
 import subprocess
 import shutil
 
+SCRIPT_DIR = os.path.dirname(os.path.normpath(os.path.realpath(__file__)))
 DOCKER_IMAGE_NAME = 'sshambir/compiler:0.0.1'
 
-def compile(src_path: str):
-    workdir = os.path.dirname(src_path)
-    src_name = os.path.basename(src_path)
-    bin_path = os.path.splitext(src_path)[0]
-    bin_name = os.path.basename(bin_path)
-    cmd = ['docker', 'run', '--rm',
-        '-v', '{0}:{0}'.format(workdir),
-        '-w', workdir,
-        DOCKER_IMAGE_NAME,
-        'pythonish', '-i', src_name, '-o', bin_name]
-    subprocess.check_call(cmd, cwd=workdir)
-    return bin_path
+def compile(src_path: str, bin_path: str):
+    cmd = [os.path.join(SCRIPT_DIR, 'pythonish'), src_path, '-o', bin_path]
+    subprocess.check_call(cmd, cwd=SCRIPT_DIR)
 
-def get_compiler_path():
-    compiler_path = os.path.abspath("../../debug-compiler-theory-samples/llvm_4")
-    if not os.path.exists(compiler_path):
-        raise ValueError('compiler llvm_4 not found')
-    return compiler_path
-
-class Runner:
-    def __init__(self, compiler_path):
-        self.compiler_path = compiler_path
-
-    def run(self, input_name):
-        input_path = os.path.abspath(os.path.join("data", input_name))
-        with open(input_path, "r") as input_file:
-            print("Running", input_name)
-            subprocess.check_call([self.compiler_path], stdin=input_file)
-            obj_file_name = os.path.splitext(input_name)[0] + ".o"
-            shutil.move("program.o", os.path.join("out", obj_file_name))
+def run(src_name: str):
+    src_path = os.path.normpath(os.path.join(SCRIPT_DIR, '..', 'test', src_name))
+    bin_path = os.path.normpath(os.path.join(SCRIPT_DIR, '..', 'test', 'out', os.path.splitext(src_name)[0]))
+    compile(src_path, bin_path)
 
 def main():
-    r = Runner(get_compiler_path())
-    r.run("first-space-velocity.txt")
-    r.run("if_branching.txt")
-    r.run("simple_strings_concat.txt")
-    r.run("square.txt")
-    r.run("advanced_strings_concat.txt")
+    run("first-space-velocity.txt")
+    #run("if_branching.txt")
+    #run("simple_strings_concat.txt")
+    #run("square.txt")
+    #run("advanced_strings_concat.txt")
 
 if __name__ == "__main__":
     main()
