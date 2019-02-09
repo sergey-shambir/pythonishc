@@ -96,7 +96,7 @@ std::unique_ptr<TargetMachine> MakeTargetMachine(const Target *target, const Tri
     options.MCOptions.AsmVerbose = isDebug;
 
     return std::unique_ptr<TargetMachine>(target->createTargetMachine(triple.getTriple(), cpuName, featuresStr,
-                                                                      options, Reloc::Static, CodeModel::Default, optLevel));
+                                                                      options, Reloc::PIC_, CodeModel::Default, optLevel));
 }
 
 }
