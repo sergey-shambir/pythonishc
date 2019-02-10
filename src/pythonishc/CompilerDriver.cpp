@@ -135,6 +135,20 @@ public:
 #endif
     }
 
+    bool Compile(const std::string &inputPath, const std::string &outputPath)
+    {
+        std::ifstream input;
+        input.exceptions(std::ios::badbit);
+        input.open(inputPath);
+
+        return CompileStream(input, outputPath);
+    }
+
+    bool CompileStream(std::istream &input, const std::string &outputPath)
+    {
+        return ParseAst(input) && GenerateCodeFromAst() && CompileModule(outputPath);
+    }
+
 private:
     bool ConsumeLine(std::string const& line)
     {
@@ -199,17 +213,5 @@ void CCompilerDriver::StartDebugTrace()
 
 bool CCompilerDriver::Compile(const std::string &inputPath, const std::string &outputPath)
 {
-    if (inputPath.empty())
-    {
-        return CompileStream(std::cin, outputPath);
-    }
-    std::ifstream input(inputPath);
-    input.exceptions(std::ios::badbit);
-
-    return CompileStream(input, outputPath);
-}
-
-bool CCompilerDriver::CompileStream(std::istream &input, const std::string &outputPath)
-{
-    return m_pImpl->ParseAst(input) && m_pImpl->GenerateCodeFromAst() && m_pImpl->CompileModule(outputPath);
+    return m_pImpl->Compile(inputPath, outputPath);
 }

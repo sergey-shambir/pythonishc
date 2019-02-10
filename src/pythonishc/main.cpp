@@ -5,8 +5,6 @@
 #include <boost/program_options.hpp>
 #include <boost/optional.hpp>
 
-const char DEFAULT_OUTPUT_PATH[] = "program.o";
-
 struct CompilerOptions
 {
     std::string inputPath;
@@ -48,21 +46,22 @@ boost::optional<CompilerOptions> parse_args(int argc, char* argv[])
     CompilerOptions result;
     desc.add_options()
         ("help,h", "print usage message")
-        ("input,i", value(&result.inputPath), "pathname for input")
-        ("output,o", value(&result.outputPath), "pathname for output");
+        ("input,i", value<std::string>(), "pathname for input")
+        ("output,o", value<std::string>()->default_value("program.o"), "pathname for output (optional)");
 
     variables_map vm;
     store(parse_command_line(argc, argv, desc), vm);
+    notify(vm);
     if (vm.count("help"))
     {  
         std::cout << desc << "\n";
         return boost::none;
     }
-
-    // Fallback to default value.
-    if (result.outputPath.empty())
+    result.inputPath = vm["input"].as<std::string>();
+    result.outputPath = vm["output"].as<std::string>();
+    if (result.inputPath.empty())
     {
-        result.outputPath = DEFAULT_OUTPUT_PATH;
+        throw std::runtime_error("missing input file (-i option)");
     }
 
     return result;
