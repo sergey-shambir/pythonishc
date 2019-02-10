@@ -29,7 +29,7 @@ std::string CFrontendContext::GetString(unsigned stringId) const
 void CFrontendContext::PrintError(const std::string &message)const
 {
     ++m_errorsCount;
-    m_errors << "  Error: " << message << std::endl;
+    m_errors << "error: " << message << std::endl;
 }
 
 unsigned CFrontendContext::GetErrorsCount() const

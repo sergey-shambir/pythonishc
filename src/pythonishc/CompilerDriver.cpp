@@ -156,7 +156,7 @@ private:
 
     void OnFatalError(std::exception const& ex)
     {
-        m_errors << "Fatal error: " << ex.what() << std::endl;
+        m_errors << "error: internal error: " << ex.what() << std::endl;
     }
 
     bool DetectMainFunction(const CProgramAst & ast)
