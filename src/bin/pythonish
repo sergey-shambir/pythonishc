@@ -16,17 +16,21 @@ def link(obj_path: str, bin_path: str):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument('input', help='input source code file path')
+    parser.add_argument('-i', '--input', help='input source code file path', required=True)
     parser.add_argument('-o', '--output', help='output binary file path', default='a.out')
     return parser.parse_args()
 
 def main():
-    args = parse_args()
-    src_path = args.input
-    obj_path = src_path + '.o'
-    bin_path = args.output
-    compile(src_path, obj_path)
-    link(obj_path, bin_path)
+    try:
+        args = parse_args()
+        src_path = args.input
+        bin_path = args.output
+        obj_path = bin_path + '.o'
+        compile(src_path, obj_path)
+        link(obj_path, bin_path)
+    except subprocess.CalledProcessError as e:
+        # print nothing - compiler already reported an error
+        exit(e.returncode)
 
 if __name__ == '__main__':
     main()

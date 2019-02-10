@@ -84,6 +84,5 @@ CTestTestfile.cmake
 # QtCreator files
 CMakeLists.txt.user
 
-# Build subdirectories
-build-*/
-
+# VSCode
+/.vscode/

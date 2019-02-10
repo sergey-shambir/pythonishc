@@ -1,27 +1,35 @@
 #!/usr/bin/env python3
 
-import os.path
+import os
+import sys
 import subprocess
 import shutil
 
 SCRIPT_DIR = os.path.dirname(os.path.normpath(os.path.realpath(__file__)))
 DOCKER_IMAGE_NAME = 'sshambir/compiler:0.0.1'
+SRC_DIR = os.path.normpath(os.path.join(SCRIPT_DIR, '..', 'test'))
+OUT_DIR = os.path.normpath(os.path.join(SCRIPT_DIR, '..', 'test', 'out'))
 
 def compile(src_path: str, bin_path: str):
-    cmd = [os.path.join(SCRIPT_DIR, 'pythonish'), src_path, '-o', bin_path]
+    cmd = [os.path.join(SCRIPT_DIR, 'pythonish'), '-i', src_path, '-o', bin_path]
     subprocess.check_call(cmd, cwd=SCRIPT_DIR)
 
-def run(src_name: str):
-    src_path = os.path.normpath(os.path.join(SCRIPT_DIR, '..', 'test', src_name))
-    bin_path = os.path.normpath(os.path.join(SCRIPT_DIR, '..', 'test', 'out', os.path.splitext(src_name)[0]))
-    compile(src_path, bin_path)
-
 def main():
-    run("first-space-velocity.txt")
-    #run("if_branching.txt")
-    #run("simple_strings_concat.txt")
-    #run("square.txt")
-    #run("advanced_strings_concat.txt")
+    total = 0
+    succeed = 0
+    for src_name in os.listdir(SRC_DIR):
+        src_path = os.path.join(SRC_DIR, src_name)
+        if not os.path.isfile(src_path):
+            continue
+        bin_path = os.path.join(OUT_DIR, os.path.splitext(src_name)[0])
+        total += 1
+        try:
+            compile(src_path, bin_path)
+        except Exception as e:
+            print('failed to compile {}: {}'.format(src_name, str(e)), file=sys.stderr)
+        else:
+            succeed += 1
+            print('compiled {} - OK'.format(src_name))
 
 if __name__ == "__main__":
     main()
